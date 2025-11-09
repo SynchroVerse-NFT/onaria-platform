@@ -173,7 +173,10 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         );
 
         // Initialize GitVersionControl (bind sql to preserve 'this' context)
-        this.git = new GitVersionControl(this.sql.bind(this));
+        this.git = new GitVersionControl(this.sql.bind(this), {
+            name: this.env.GIT_AUTHOR_NAME || 'AI Platform',
+            email: this.env.GIT_AUTHOR_EMAIL || 'bot@platform.local'
+        });
 
         // Initialize FileManager
         this.fileManager = new FileManager(this.stateManager, () => this.getTemplateDetails(), this.git);

@@ -48,26 +48,22 @@
 		"binding": "AI",
         "remote": true
 	},
-    "dispatch_namespaces": [
-        {
-            "binding": "DISPATCHER",
-            "namespace": "vibesdk-default-namespace",
-            "remote": true
-        }
-    ],
+    // "dispatch_namespaces": [
+    //     {
+    //         "binding": "DISPATCHER",
+    //         "namespace": "vibesdk-default-namespace",
+    //         "remote": true
+    //     }
+    // ],
 	"containers": [
 		{
 			"class_name": "UserAppSandboxService",
 			"image": "./SandboxDockerfile",
             // "image": "registry.cloudflare.com/vibesdk-production-userappsandboxservice:cfe197fc",
             // Altering max_instances value will have no effect. Please use the MAX_SANDBOX_INSTANCES var instead.
-			"max_instances": 1400,
+			"max_instances": 10,
             // ATTENTION: Altering instance_type value will have no effect. Please use the SANDBOX_INSTANCE_TYPE var instead.
-            "instance_type": {
-                "vcpu": 4,
-                "memory_mib": 8192,
-                "disk_mb": 10240
-            },
+            "instance_type": "standard-3",
             "rollout_step_percentage": 100
 		}
 	],
@@ -130,25 +126,25 @@
 	],
 	"routes": [
         {
-            "pattern": "build.cloudflare.dev",
-            "custom_domain": true
-        },
-        {
-            "pattern": "*build-preview.cloudflare.dev/*",
-            "custom_domain": false,
-            "zone_id": "db01fac4261b2604aacad8410443a3e2"
+            "pattern": "onaria.xyz/*",
+            "zone_id": "943917c8d4b68c6776cdd27b3cac2073"
         }
     ],
 	"vars": {
+        // White-labeling: Fork https://github.com/cloudflare/vibesdk-templates and update this URL to your fork
         "TEMPLATES_REPOSITORY": "https://github.com/cloudflare/vibesdk-templates",
         "ALLOWED_EMAIL": "info@synchroverse.io",
-        "DISPATCH_NAMESPACE": "vibesdk-default-namespace",
+        "DISPATCH_NAMESPACE": "",
         "ENABLE_READ_REPLICAS": "true",
         "CLOUDFLARE_AI_GATEWAY": "vibesdk-gateway",
         "CUSTOM_DOMAIN": "onaria.xyz",
         "MAX_SANDBOX_INSTANCES": "10",
         "SANDBOX_INSTANCE_TYPE": "standard-3",
-        "USE_CLOUDFLARE_IMAGES": "true"
+        "USE_CLOUDFLARE_IMAGES": "true",
+        // White-labeling: Customize git commit author for generated code
+        // Note: For GitHub exports, use noreply format to avoid email verification issues
+        "GIT_AUTHOR_NAME": "Onaria Platform",
+        "GIT_AUTHOR_EMAIL": "noreply@onaria.xyz"
     },
 	"workers_dev": false,
 	"preview_urls": false

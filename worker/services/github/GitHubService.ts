@@ -216,7 +216,8 @@ export class GitHubService {
         try {
             GitHubService.logger.info('Starting GitHub export from DO git', {
                 gitObjectCount: options.gitObjects.length,
-                repositoryUrl: options.repositoryUrl
+                repositoryUrl: options.repositoryUrl,
+                username: options.username
             });
 
             // Build in-memory repo from DO git objects
@@ -228,7 +229,7 @@ export class GitHubService {
             });
 
             // Modify README to add GitHub deploy button
-            await GitHubService.modifyReadmeForGitHub(fs, options.repositoryUrl);
+            await GitHubService.modifyReadmeForGitHub(fs, options.repositoryUrl, options.username);
 
             // Get all commits from built repo
             const commits = await git.log({ fs, dir: '/', depth: 1000 });
@@ -255,7 +256,7 @@ export class GitHubService {
     /**
      * Replace [cloudflarebutton] placeholder with deploy button
      */
-    private static async modifyReadmeForGitHub(fs: MemFS, githubRepoUrl: string): Promise<void> {
+    private static async modifyReadmeForGitHub(fs: MemFS, githubRepoUrl: string, username: string): Promise<void> {
         try {
             // Check if README exists
             try {
@@ -267,7 +268,7 @@ export class GitHubService {
 
             const contentRaw = await fs.readFile('/README.md', { encoding: 'utf8' });
             const content = typeof contentRaw === 'string' ? contentRaw : new TextDecoder().decode(contentRaw);
-            
+
             if (!content.includes('[cloudflarebutton]')) {
                 GitHubService.logger.info('README.md has no [cloudflarebutton] placeholder');
                 return;
@@ -280,13 +281,14 @@ export class GitHubService {
 
             await fs.writeFile('/README.md', modified);
             await git.add({ fs, dir: '/', filepath: 'README.md' });
+            // Use GitHub's noreply email format which is always accepted
             await git.commit({
                 fs,
                 dir: '/',
                 message: 'docs: Add Cloudflare deploy button to README',
-                author: { 
-                    name: 'vibesdk-bot', 
-                    email: 'bot@vibesdk.com',
+                author: {
+                    name: username,
+                    email: `${username}@users.noreply.github.com`,
                     timestamp: Math.floor(Date.now() / 1000)
                 }
             });

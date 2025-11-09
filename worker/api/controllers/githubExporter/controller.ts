@@ -169,7 +169,7 @@ export class GitHubExporterController extends BaseController {
                 repositoryHtmlUrl: repositoryUrl,
                 isPrivate,
                 token,
-                email: 'vibesdk-bot@cloudflare.com',
+                email: env.GIT_AUTHOR_EMAIL || 'noreply@localhost',
                 username
             });
 
