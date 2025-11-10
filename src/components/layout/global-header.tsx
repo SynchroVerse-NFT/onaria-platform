@@ -33,14 +33,14 @@ export function GlobalHeader() {
 				initial={{ y: -10, opacity: 0 }}
 				animate={{ y: 0, opacity: 1 }}
 				transition={{ duration: 0.2, ease: 'easeOut' }}
-				className={clsx("sticky top-0 z-50", pathname !== "/" && "bg-bg-3")}
+				className={clsx("sticky top-0 z-50 backdrop-blur-md", pathname !== "/" && "bg-[var(--card)]/60 border-b border-[var(--border-color)] shadow-[0_4px_16px_rgba(0,0,0,0.15)]")}
 			>
 				<div className="relative">
-					{/* Subtle gradient accent */}
-					<div className="absolute inset-0 z-0" />
+					{/* OnAria gradient accent */}
+					<div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-[var(--aria-blue)]/5 to-transparent" />
 
 					{/* Main content */}
-					<div className="relative z-10 grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-2">
+					<div className="relative z-10 grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-3">
 						{/* Left section */}
 						{user ? (
 							<motion.div
@@ -52,7 +52,7 @@ export function GlobalHeader() {
 								}}
 								className='flex items-center'
 							>
-								<SidebarTrigger className="h-8 w-8 text-text-primary rounded-md hover:bg-blue-50/40 transition-colors duration-200" />
+								<SidebarTrigger className="h-9 w-9 text-text-primary rounded-xl hover:bg-[var(--aria-blue)]/10 hover:text-[var(--aria-blue)] transition-all duration-200" />
 								<CloudflareLogo
 									className="flex-shrink-0 mx-auto transition-all duration-300"
 									style={{
@@ -66,12 +66,12 @@ export function GlobalHeader() {
 										type="button"
 										onClick={hasChangeLogs ? () => setIsChangelogOpen(true) : undefined}
 										disabled={!hasChangeLogs}
-										className={`flex max-w-full items-center gap-2 rounded-full border border-accent/40 bg-bg-4/80 px-3 ml-4 py-1.5 text-xs text-text-primary shadow-sm backdrop-blur transition-colors hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-accent/30 dark:bg-bg-2/80 md:text-sm${!hasChangeLogs ? ' opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+										className={`flex max-w-full items-center gap-2 rounded-full border border-[var(--aria-blue)]/30 bg-[var(--card)]/80 px-4 ml-4 py-2 text-xs text-text-primary shadow-[0_0_16px_rgba(79,141,255,0.08)] backdrop-blur-sm transition-all duration-200 hover:bg-[var(--aria-blue)]/10 hover:border-[var(--aria-blue)]/50 hover:shadow-[0_0_24px_rgba(79,141,255,0.15)] focus:outline-none focus:ring-2 focus:ring-[var(--aria-blue)]/50 md:text-sm${!hasChangeLogs ? ' opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
 										aria-label="Platform updates"
 									>
-										<AlertCircle className="h-4 w-4 text-accent" />
+										<AlertCircle className="h-4 w-4 text-[var(--aria-blue)]" />
 										<span className="truncate max-w-[46ch] md:max-w-[60ch]">{status.globalUserMessage}</span>
-										<ChevronRight className="ml-1 h-4 w-4 text-accent" />
+										<ChevronRight className="ml-1 h-4 w-4 text-[var(--aria-blue)]" />
 									</button>
 								)}
 							</motion.div>

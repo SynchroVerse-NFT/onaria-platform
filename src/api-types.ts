@@ -372,15 +372,6 @@ export type {
   ReactivateSubscriptionData
 } from 'worker/api/controllers/subscriptions/types';
 
-// Payment API Response Types
-export type {
-  InitiateCryptoPaymentData,
-  VerifyCryptoPaymentData,
-  PaymentHistoryData,
-  PaymentDetailsData,
-  CryptoWebhookData
-} from 'worker/api/controllers/payments/types';
-
 // Payment Method API Response Types
 export type {
   PaymentMethodsData,

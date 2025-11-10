@@ -11,11 +11,6 @@ export type {
 } from './subscription-cards';
 
 export { WalletConnectModal } from './wallet-connect-modal';
-export type {
-  WalletConnectModalProps,
-  WalletType,
-  WalletOption,
-} from './wallet-connect-modal';
 
 export { UsageDashboard } from './usage-dashboard';
 export type {
@@ -40,12 +35,6 @@ export type {
 } from './upgrade-prompt';
 
 export { PaymentMethodSelector } from './payment-method-selector';
-export type {
-  PaymentMethodSelectorProps,
-  PaymentMethod,
-  PaymentMethodType,
-  BlockchainNetwork,
-} from './payment-method-selector';
 
 export { CryptoPaymentConfirmation } from './crypto-payment-confirmation';
 export type {

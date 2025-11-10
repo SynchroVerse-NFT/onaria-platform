@@ -6,40 +6,40 @@
   src:  url('./assets/fonts/DepartureMono-Regular.woff') 
 }
 
-/* Subtle chat edge throb effect */
+/* OnAria chat edge throb effect - neon glow */
 @keyframes chat-edge-throb {
   0%, 100% {
     box-shadow:
-      0 0 0 0 rgba(0, 102, 255, 0.10),
-      inset 0 0 0 1px rgba(0, 102, 255, 0.16);
+      0 0 0 0 rgba(79, 141, 255, 0.25),
+      inset 0 0 0 1px rgba(79, 141, 255, 0.3);
   }
   50% {
     box-shadow:
-      0 0 0 6px rgba(0, 102, 255, 0.08),
-      inset 0 0 0 2px rgba(0, 102, 255, 0.22);
+      0 0 12px rgba(79, 141, 255, 0.45),
+      inset 0 0 0 2px rgba(79, 141, 255, 0.5);
   }
 }
 
 .chat-edge-throb {
   animation: chat-edge-throb 1.6s ease-in-out infinite;
-  border-radius: 0.75rem; /* rounded-xl */
+  border-radius: 1.25rem; /* 20px */
 }
 
 @media (prefers-reduced-motion: reduce) {
   .chat-edge-throb { animation: none; }
 }
 
-/* Debug mode pulsing effect - blue edges */
+/* Debug mode pulsing effect - neon blue edges */
 @keyframes debug-pulse {
   0%, 100% {
     box-shadow:
-      inset 4px 0 12px rgba(0, 102, 255, 0.1),
-      inset -4px 0 12px rgba(0, 102, 255, 0.1);
+      inset 4px 0 12px rgba(79, 141, 255, 0.15),
+      inset -4px 0 12px rgba(79, 141, 255, 0.15);
   }
   50% {
     box-shadow:
-      inset 4px 0 20px rgba(0, 102, 255, 0.2),
-      inset -4px 0 20px rgba(0, 102, 255, 0.2);
+      inset 4px 0 20px rgba(79, 141, 255, 0.35),
+      inset -4px 0 20px rgba(79, 141, 255, 0.35);
   }
 }
 
@@ -51,7 +51,44 @@
   .animate-debug-pulse { animation: none; }
 }
 
-/* Custom scrollbar for debug bubble */
+/* OnAria Aurora Sweep - gradient shimmer effect */
+@keyframes aurora-sweep {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.aurora-sweep {
+  background-size: 200% 100%;
+  animation: aurora-sweep 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-sweep { animation: none; }
+}
+
+/* OnAria Gradient Ring Shimmer */
+@keyframes gradient-ring-shimmer {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.gradient-ring-shimmer {
+  animation: gradient-ring-shimmer 8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-ring-shimmer { animation: none; }
+}
+
+/* Custom scrollbar for debug bubble - OnAria neon */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
@@ -62,12 +99,12 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 102, 255, 0.3);
+  background: rgba(79, 141, 255, 0.4);
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 102, 255, 0.5);
+  background: rgba(79, 141, 255, 0.6);
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-track {
@@ -75,11 +112,11 @@
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 102, 255, 0.4);
+  background: rgba(79, 141, 255, 0.5);
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 102, 255, 0.6);
+  background: rgba(79, 141, 255, 0.7);
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -133,69 +170,111 @@
 
 
 :root {
+	/* OnAria Design System - Light Mode (less common, keeping for compatibility) */
 	--radius:
-		0.625rem;
+		1.25rem; /* 20px for OnAria cards */
 	--destructive:
-		oklch(0.577 0.245 27.325);
+		#FF4E6A; /* OnAria error red */
 	--border:
-		oklch(0.922 0 0);
+		#24304A; /* OnAria border */
 	--input:
-		oklch(0.922 0 0);
+		#151A30; /* OnAria card base */
 	--ring:
-		oklch(0.708 0 0);
-	--build-accent-color: #0066FF;
-	--build-chat-colors-bg-1: #F0F4FF;
-	--build-chat-colors-bg-2: #F6F9FF;
-	--build-chat-colors-bg-3: #fbfbfc;
-	--build-chat-colors-bg-4: #ffffff;
-	--build-chat-colors-border-primary: #e5e5e5;
-	--build-chat-colors-border-secondary: #eeeeee;
-	--build-chat-colors-border-tertiary: #eeeeee;
-	--build-chat-colors-danger: #950000cc;
-	--build-chat-colors-brand-heavy: #1E3A8A;
-	--build-chat-colors-brand-primary: #0066FF;
-	--build-chat-colors-brand-subtle: #60A5FA;
-	--build-chat-colors-text-inverted: #ffffff;
-	--build-chat-colors-text-primary: #0a0a0a;
-	--build-chat-colors-text-secondary: #171717;
-	--build-chat-colors-text-tertiary: #21212199;
+		#4F8DFF; /* OnAria blue focus */
+
+	/* OnAria Core Colors */
+	--bg: #0B0E14;
+	--bg-2: #12152A;
+	--card: #151A30;
+	--text: #E8ECF1;
+	--muted: #9AA6B2;
+
+	/* OnAria Accent Colors (neon/aurora) */
+	--aria-blue: #4F8DFF;
+	--electric-orange: #FF6A3D;
+	--magenta-hot: #FF2BBF;
+	--violet-core: #7C4DFF;
+	--cyber-cyan: #54E6F4;
+	--ion-green: #7DFF65;
+
+	/* OnAria CTA & State Colors */
+	--cta: #4F8DFF;
+	--cta-hover: #3A78F2;
+	--success: #26D07C;
+	--warning: #FFC14D;
+	--error: #FF4E6A;
+	--border-color: #24304A;
+
+	/* OnAria Card Tints */
+	--mint-card: #9CE6C6;
+	--sky-card: #77A7FF;
+	--hotpink-card: #FF2DA1;
+
+	/* OnAria Gradients */
+	--grad-aria: linear-gradient(135deg, #4F8DFF 0%, #FF6A3D 100%);
+	--grad-nebula: linear-gradient(180deg, #7C4DFF 0%, #FF2BBF 60%, #54E6F4 100%);
+	--grad-card-ring: conic-gradient(from 180deg, #4F8DFF, #FF2BBF, #54E6F4, #4F8DFF);
+
+	/* Legacy variable mapping for compatibility */
+	--build-accent-color: #4F8DFF;
+	--build-chat-colors-bg-1: #0B0E14;
+	--build-chat-colors-bg-2: #12152A;
+	--build-chat-colors-bg-3: #151A30;
+	--build-chat-colors-bg-4: #1C2237;
+	--build-chat-colors-border-primary: #24304A;
+	--build-chat-colors-border-secondary: #2A3650;
+	--build-chat-colors-border-tertiary: #2A3650;
+	--build-chat-colors-danger: #FF4E6A;
+	--build-chat-colors-brand-heavy: #7C4DFF;
+	--build-chat-colors-brand-primary: #4F8DFF;
+	--build-chat-colors-brand-subtle: #77A7FF;
+	--build-chat-colors-text-inverted: #0B0E14;
+	--build-chat-colors-text-primary: #E8ECF1;
+	--build-chat-colors-text-secondary: #C5CDD8;
+	--build-chat-colors-text-tertiary: #9AA6B2;
 }
 
 .dark {
+	/* OnAria Design System - Dark Mode (primary theme) */
 	--destructive:
-		#ef4444; /* Error red */
+		#FF4E6A; /* OnAria error red */
 	--border:
-		#393939; /* Primary border color */
+		#24304A; /* OnAria border */
 	--input:
-		#292929; /* Input background */
+		#151A30; /* OnAria card base */
 
-	--build-chat-colors-bg-1: #151515;
-	--build-chat-colors-bg-2: #1f2020;
-	--build-chat-colors-bg-3: #292929;
-	--build-chat-colors-bg-4: #3c3c3c;
-	--build-chat-colors-border-primary: #393939;
-	--build-chat-colors-border-secondary: #454746;
-	--build-chat-colors-border-tertiary: #454746;
-	--build-chat-colors-brand-heavy: #1E3A8A;
-	--build-chat-colors-brand-primary: #0066FF;
-	--build-chat-colors-brand-subtle: #60A5FA;
-	--build-chat-colors-text-inverted: #000000;
-	--build-chat-colors-text-primary: #ffffff;
-	--build-chat-colors-text-secondary: #cdcaca;
-	--build-chat-colors-text-tertiary: #bcb9b9;
+	/* OnAria Dark Theme Colors (same as root for cosmic theme) */
+	--build-chat-colors-bg-1: #0B0E14;
+	--build-chat-colors-bg-2: #12152A;
+	--build-chat-colors-bg-3: #151A30;
+	--build-chat-colors-bg-4: #1C2237;
+	--build-chat-colors-border-primary: #24304A;
+	--build-chat-colors-border-secondary: #2A3650;
+	--build-chat-colors-border-tertiary: #2A3650;
+	--build-chat-colors-brand-heavy: #7C4DFF;
+	--build-chat-colors-brand-primary: #4F8DFF;
+	--build-chat-colors-brand-subtle: #77A7FF;
+	--build-chat-colors-text-inverted: #0B0E14;
+	--build-chat-colors-text-primary: #E8ECF1;
+	--build-chat-colors-text-secondary: #C5CDD8;
+	--build-chat-colors-text-tertiary: #9AA6B2;
 
+	/* OnAria Shadow System with Glow */
 	--shadow-dialog:
-		0px 18px 60px 0px rgba(6, 6, 5, 0.1),
-		3px 3px 13px 0px rgba(0, 0, 0, 0.04), -3px 3px 13px 0px rgba(0, 0, 0, 0.04),
-		24px 24px 24px 0px rgba(0, 0, 0, 0.03),
-		-24px 24px 24px 0px rgba(0, 0, 0, 0.03),
-		53px 53px 32px 0px rgba(0, 0, 0, 0.02),
-		0px 0px 0px 1px rgba(217, 217, 217, 0.2);
+		0 8px 24px rgba(0, 0, 0, 0.35),
+		0 0 32px rgba(79, 141, 255, 0.15),
+		inset 0 1px 0 rgba(79, 141, 255, 0.1);
 	--shadow-elevation:
-		6px 6px 13px 0px rgba(0, 0, 0, 0.2),
-		24px 24px 24px 0px rgba(0, 0, 0, 0.17),
-		53px 53px 32px 0px rgba(0, 0, 0, 0.12),
-		0px 0px 0px 1px rgba(217, 217, 217, 0.1);
+		0 8px 24px rgba(0, 0, 0, 0.35),
+		0 0 16px rgba(79, 141, 255, 0.1);
+	--shadow-card:
+		0 8px 24px rgba(0, 0, 0, 0.35);
+	--shadow-glow:
+		0 0 32px rgba(79, 141, 255, 0.25);
+	--shadow-focus:
+		0 0 0 2px transparent,
+		0 0 0 3px #4F8DFF,
+		0 0 12px rgba(79, 141, 255, 0.45);
 }
 
 @layer base {
@@ -214,28 +293,35 @@
 }
 
 @theme {
+	/* OnAria Typography - Inter for UI, Inter Tight for Display */
 	--font-sans:
-		'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+		'Inter', 'Inter Tight', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
 		'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+	--font-display:
+		'Inter Tight', 'General Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+	--font-numeric:
+		'Space Grotesk', 'Inter', ui-monospace, monospace;
 
-	--color-brand: #0092b8;
-	--color-text: #000;
-	--color-text-on-brand: #fff;
+	/* OnAria Brand Colors */
+	--color-brand: #4F8DFF;
+	--color-text: #E8ECF1;
+	--color-text-on-brand: #0B0E14;
 
+	/* OnAria Shadow System with Neon Glow */
 	--shadow-dialog:
-		0px 18px 60px 0px rgba(6, 6, 5, 0.1),
-		3px 3px 13px 0px rgba(0, 0, 0, 0.04), -3px 3px 13px 0px rgba(0, 0, 0, 0.04),
-		24px 24px 24px 0px rgba(0, 0, 0, 0.03),
-		-24px 24px 24px 0px rgba(0, 0, 0, 0.03),
-		53px 53px 32px 0px rgba(0, 0, 0, 0.02),
-		0px 0px 0px 1px rgba(217, 217, 217, 0.2);
+		0 8px 24px rgba(0, 0, 0, 0.35),
+		0 0 32px rgba(79, 141, 255, 0.15),
+		inset 0 1px 0 rgba(79, 141, 255, 0.1);
 	--shadow-elevation:
-		6px 6px 13px 0px rgba(0, 0, 0, 0.04),
-		24px 24px 24px 0px rgba(0, 0, 0, 0.03),
-		53px 53px 32px 0px rgba(0, 0, 0, 0.02),
-		0px 0px 0px 1px rgba(217, 217, 217, 0.2);
+		0 8px 24px rgba(0, 0, 0, 0.35),
+		0 0 16px rgba(79, 141, 255, 0.1);
 	--shadow-soft-layered:
-		3px 3px 13px 0px rgba(0, 0, 0, 0.04), 24px 24px 24px 0px rgba(0, 0, 0, 0.03);
+		0 4px 16px rgba(0, 0, 0, 0.25),
+		0 0 24px rgba(79, 141, 255, 0.08);
+	--shadow-card:
+		0 8px 24px rgba(0, 0, 0, 0.35);
+	--shadow-glow:
+		0 0 32px rgba(79, 141, 255, 0.25);
 }
 
 

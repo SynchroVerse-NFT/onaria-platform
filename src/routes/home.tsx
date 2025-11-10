@@ -124,33 +124,36 @@ export default function Home() {
 
 	return (
 		<div className="relative flex flex-col items-center w-full min-h-full overflow-x-hidden">
-			{/* Animated gradient background */}
+			{/* OnAria Cosmic Gradient Background */}
 			<div className="fixed inset-0 z-0 pointer-events-none">
-				<div className="absolute inset-0 bg-gradient-to-br from-[#0066FF]/5 via-bg-1 to-[#1E3A8A]/10 dark:from-[#0066FF]/10 dark:via-[#0A0A0A] dark:to-[#1E3A8A]/20" />
-				<div className="absolute inset-0 opacity-30 dark:opacity-20">
+				<div className="absolute inset-0 bg-gradient-to-br from-[#7C4DFF]/8 via-[#0B0E14] to-[#4F8DFF]/8" />
+				<div className="absolute inset-0 bg-gradient-to-t from-[#FF2BBF]/5 via-transparent to-transparent" />
+				<div className="absolute inset-0 opacity-25">
 					<svg width="100%" height="100%">
 						<defs>
 							<pattern
 								id="hero-dots"
 								viewBox="-6 -6 12 12"
 								patternUnits="userSpaceOnUse"
-								width="24"
-								height="24"
+								width="32"
+								height="32"
 							>
 								<circle
 									cx="0"
 									cy="0"
 									r="1.5"
 									fill="currentColor"
-									className="text-[#0066FF]"
+									className="text-[#4F8DFF]"
 								></circle>
 							</pattern>
+							<linearGradient id="aurora-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+								<stop offset="0%" stopColor="#7C4DFF" stopOpacity="0.1" />
+								<stop offset="50%" stopColor="#FF2BBF" stopOpacity="0.1" />
+								<stop offset="100%" stopColor="#54E6F4" stopOpacity="0.1" />
+							</linearGradient>
 						</defs>
-						<rect
-							width="100%"
-							height="100%"
-							fill="url(#hero-dots)"
-						></rect>
+						<rect width="100%" height="100%" fill="url(#hero-dots)"></rect>
+						<rect width="100%" height="100%" fill="url(#aurora-gradient)"></rect>
 					</svg>
 				</div>
 			</div>
@@ -163,9 +166,12 @@ export default function Home() {
 						transition={{ layout: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }}
 						className="px-6 p-8 flex flex-col items-center z-10"
 					>
-						<h2 className="text-3xl font-semibold text-text-primary mb-6 text-center">
-							No code-build + Deploy Apps and Workflow powered by $ARIA AI
-						</h2>
+						<h1 className="text-4xl md:text-5xl font-extrabold text-text-primary mb-3 text-center tracking-tight leading-tight">
+							Build an app. Click Publish.<br />Your link is live.
+						</h1>
+						<p className="text-lg text-[var(--muted)] mb-8 text-center max-w-xl">
+							Describe your idea and launch at <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[var(--aria-blue)]/10 text-[var(--aria-blue)] text-sm font-medium border border-[var(--aria-blue)]/30">yourname.onaria.xyz</span>—with workflows baked in.
+						</p>
 
 						<form
 							method="POST"
@@ -174,7 +180,7 @@ export default function Home() {
 								const query = textareaRef.current!.value;
 								handleCreateApp(query, agentMode);
 							}}
-							className="flex z-10 flex-col w-full min-h-[150px] bg-bg-4 border border-accent/30 dark:border-accent/50 dark:bg-bg-2 rounded-[18px] shadow-textarea p-5 transition-all duration-200"
+							className="flex z-10 flex-col w-full min-h-[180px] bg-[var(--card)]/80 backdrop-blur-sm border border-[var(--border-color)] rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.35),0_0_32px_rgba(79,141,255,0.1)] p-6 transition-all duration-200 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_40px_rgba(79,141,255,0.15)] relative overflow-hidden before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[var(--aria-blue)] before:to-transparent"
 						>
 							<div
 								className={clsx(
@@ -235,7 +241,7 @@ export default function Home() {
 									<button
 										type="submit"
 										disabled={!query.trim()}
-										className="bg-accent text-white p-1 rounded-md *:size-5 transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+										className="bg-[var(--cta)] text-white p-2.5 rounded-xl *:size-5 transition-all duration-200 hover:bg-[var(--cta-hover)] hover:shadow-[0_0_24px_rgba(79,141,255,0.4)] hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
 									>
 										<ArrowRight />
 									</button>
@@ -253,10 +259,10 @@ export default function Home() {
 							exit={{ opacity: 0, y: -10 }}
 							className="w-full max-w-2xl px-6"
 						>
-							<div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-bg-4/50 dark:bg-bg-2/50 border border-accent/20 dark:border-accent/30 shadow-sm">
-								<Info className="size-4 text-accent flex-shrink-0 mt-0.5" />
-								<p className="text-xs text-text-tertiary leading-relaxed">
-									<span className="font-medium text-text-secondary">Images Beta:</span> Images guide app layout and design but may not be replicated exactly. The coding agent cannot access images directly for app assets.
+							<div className="flex items-start gap-3 px-5 py-3.5 rounded-2xl bg-[var(--card)]/60 backdrop-blur-sm border border-[var(--aria-blue)]/20 shadow-[0_0_16px_rgba(79,141,255,0.08)]">
+								<Info className="size-4 text-[var(--aria-blue)] flex-shrink-0 mt-0.5" />
+								<p className="text-xs text-[var(--muted)] leading-relaxed">
+									<span className="font-semibold text-text-primary">Images Beta:</span> Images guide app layout and design but may not be replicated exactly. The coding agent cannot access images directly for app assets.
 								</p>
 							</div>
 						</motion.div>

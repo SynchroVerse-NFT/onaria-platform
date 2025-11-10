@@ -1,0 +1,11 @@
+name: "vite-cf-DO-v2-runner"
+description: "Vite/React application with Cloudflare Durable Objects"
+base_reference: "vite-reference"
+
+# Patch package.json to match original template name
+package_patches:
+  name: "vite-cf-do-v2-runner"
+
+excludes:
+  - "worker/userRoutes.ts"
+  
