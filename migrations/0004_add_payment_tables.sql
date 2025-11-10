@@ -27,21 +27,30 @@ CREATE INDEX `payment_methods_is_default_idx` ON `payment_methods` (`is_default`
 CREATE INDEX `payment_methods_is_active_idx` ON `payment_methods` (`is_active`);--> statement-breakpoint
 
 -- ========================================
--- SUBSCRIPTIONS (EXTENDED)
+-- SUBSCRIPTIONS
 -- ========================================
 
--- Add new columns to existing subscriptions table
-ALTER TABLE `subscriptions` ADD COLUMN `tier` TEXT; -- 'free', 'pro', 'business', 'enterprise', 'byok'--> statement-breakpoint
-ALTER TABLE `subscriptions` ADD COLUMN `start_date` INTEGER;--> statement-breakpoint
-ALTER TABLE `subscriptions` ADD COLUMN `end_date` INTEGER;--> statement-breakpoint
-ALTER TABLE `subscriptions` ADD COLUMN `payment_method_id` TEXT;--> statement-breakpoint
+CREATE TABLE `subscriptions` (
+    `id` TEXT PRIMARY KEY,
+    `user_id` TEXT NOT NULL,
+    `tier` TEXT NOT NULL, -- 'free', 'pro', 'business', 'enterprise', 'byok'
+    `status` TEXT NOT NULL, -- 'active', 'cancelled', 'expired', 'past_due'
+    `start_date` INTEGER NOT NULL,
+    `end_date` INTEGER,
+    `payment_method_id` TEXT,
+    `is_trial` INTEGER DEFAULT 0, -- Boolean as 0/1
+    `trial_ends_at` INTEGER,
+    `scheduled_tier` TEXT, -- For scheduled downgrades
+    `scheduled_tier_date` INTEGER,
+    `created_at` INTEGER NOT NULL,
+    `updated_at` INTEGER NOT NULL,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`payment_method_id`) REFERENCES `payment_methods`(`id`) ON DELETE SET NULL
+);--> statement-breakpoint
 
--- Update existing subscriptions to have tier values based on plan_type
-UPDATE `subscriptions` SET `tier` = `plan_type` WHERE `tier` IS NULL;--> statement-breakpoint
-UPDATE `subscriptions` SET `start_date` = `current_period_start` WHERE `start_date` IS NULL;--> statement-breakpoint
-UPDATE `subscriptions` SET `end_date` = `current_period_end` WHERE `end_date` IS NULL;--> statement-breakpoint
-
+CREATE INDEX `subscriptions_user_idx` ON `subscriptions` (`user_id`);--> statement-breakpoint
 CREATE INDEX `subscriptions_tier_idx` ON `subscriptions` (`tier`);--> statement-breakpoint
+CREATE INDEX `subscriptions_status_idx` ON `subscriptions` (`status`);--> statement-breakpoint
 CREATE INDEX `subscriptions_start_date_idx` ON `subscriptions` (`start_date`);--> statement-breakpoint
 CREATE INDEX `subscriptions_end_date_idx` ON `subscriptions` (`end_date`);--> statement-breakpoint
 CREATE INDEX `subscriptions_payment_method_idx` ON `subscriptions` (`payment_method_id`);--> statement-breakpoint
@@ -101,13 +110,36 @@ CREATE INDEX `billing_history_status_idx` ON `billing_history` (`status`);--> st
 CREATE INDEX `billing_history_created_at_idx` ON `billing_history` (`created_at`);--> statement-breakpoint
 
 -- ========================================
--- UPDATE CRYPTO PAYMENTS
+-- CRYPTO PAYMENTS
 -- ========================================
 
--- Update crypto_payments to support new fields
-ALTER TABLE `crypto_payments` ADD COLUMN `wallet_address` TEXT;--> statement-breakpoint
+CREATE TABLE `crypto_payments` (
+    `id` TEXT PRIMARY KEY,
+    `user_id` TEXT NOT NULL,
+    `subscription_id` TEXT,
+    `payment_method_id` TEXT,
+    `chain` TEXT NOT NULL, -- 'ethereum', 'solana', 'polygon', 'base'
+    `transaction_hash` TEXT NOT NULL UNIQUE,
+    `from_address` TEXT NOT NULL,
+    `to_address` TEXT NOT NULL,
+    `wallet_address` TEXT NOT NULL,
+    `amount` TEXT NOT NULL, -- Stored as string to preserve precision
+    `amount_usd` REAL, -- USD value at time of payment
+    `status` TEXT NOT NULL, -- 'pending', 'confirmed', 'failed'
+    `confirmations` INTEGER DEFAULT 0,
+    `block_number` INTEGER,
+    `verified_at` INTEGER,
+    `created_at` INTEGER NOT NULL,
+    `updated_at` INTEGER NOT NULL,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`payment_method_id`) REFERENCES `payment_methods`(`id`) ON DELETE SET NULL
+);--> statement-breakpoint
 
--- Populate wallet_address from from_address for existing records
-UPDATE `crypto_payments` SET `wallet_address` = `from_address` WHERE `wallet_address` IS NULL;--> statement-breakpoint
-
+CREATE INDEX `crypto_payments_user_idx` ON `crypto_payments` (`user_id`);--> statement-breakpoint
+CREATE INDEX `crypto_payments_subscription_idx` ON `crypto_payments` (`subscription_id`);--> statement-breakpoint
+CREATE INDEX `crypto_payments_chain_idx` ON `crypto_payments` (`chain`);--> statement-breakpoint
+CREATE INDEX `crypto_payments_transaction_hash_idx` ON `crypto_payments` (`transaction_hash`);--> statement-breakpoint
 CREATE INDEX `crypto_payments_wallet_address_idx` ON `crypto_payments` (`wallet_address`);--> statement-breakpoint
+CREATE INDEX `crypto_payments_status_idx` ON `crypto_payments` (`status`);--> statement-breakpoint
+CREATE INDEX `crypto_payments_created_at_idx` ON `crypto_payments` (`created_at`);--> statement-breakpoint
