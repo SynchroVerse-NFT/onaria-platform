@@ -18,11 +18,48 @@ export class UserService extends BaseService {
     // ========================================
 
     async createUser(userData: schema.NewUser): Promise<schema.User> {
+        const userId = generateId();
         const [user] = await this.database
             .insert(schema.users)
-            .values({ ...userData, id: generateId() })
+            .values({ ...userData, id: userId })
             .returning();
+
+        // Auto-create free subscription for new users
+        await this.createDefaultSubscription(userId);
+
         return user;
+    }
+
+    /**
+     * Create default free subscription for new user
+     */
+    private async createDefaultSubscription(userId: string): Promise<void> {
+        try {
+            const now = new Date();
+            const newSubscription: schema.NewSubscription = {
+                id: generateId(),
+                userId,
+                planType: 'free',
+                status: 'active',
+                billingCycle: 'monthly',
+                currentPeriodStart: now,
+                currentPeriodEnd: undefined, // Free tier doesn't expire
+                amountPaid: 0,
+                currency: 'USD',
+                autoRenew: false,
+                createdAt: now,
+                updatedAt: now
+            };
+
+            await this.database
+                .insert(schema.subscriptions)
+                .values(newSubscription);
+
+            this.logger.info('Default free subscription created', { userId });
+        } catch (error) {
+            this.logger.error('Failed to create default subscription', { userId, error });
+            // Don't throw - user creation should succeed even if subscription creation fails
+        }
     }
 
     /**

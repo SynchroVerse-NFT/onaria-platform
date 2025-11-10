@@ -106,6 +106,15 @@ export type {
   SecretTemplatesData
 } from 'worker/api/controllers/secrets/types';
 
+// Payment API Types
+export type {
+  InitiateCryptoPaymentData,
+  VerifyCryptoPaymentData,
+  PaymentHistoryData,
+  PaymentDetailsData,
+  CryptoWebhookData
+} from 'worker/api/controllers/payments/types';
+
 // Agent/CodeGen API Types  
 export type {
   AgentConnectionData,
@@ -271,3 +280,131 @@ export type {
     GitHubExportOptions,
     GitHubExportResult,
 } from 'worker/services/github/types';
+
+// ===============================
+// Payment & Subscription Types
+// ===============================
+
+export type SubscriptionTier = 'free' | 'pro' | 'business' | 'enterprise' | 'byok';
+export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'past_due';
+export type Chain = 'ethereum' | 'solana' | 'polygon' | 'base';
+
+export interface Subscription {
+  id: string;
+  userId: string;
+  tier: SubscriptionTier;
+  status: SubscriptionStatus;
+  startDate: number;
+  endDate?: number;
+  autoRenew: boolean;
+  paymentMethodId?: string;
+  scheduledTier?: SubscriptionTier;
+  scheduledChangeDate?: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface CryptoPayment {
+  id: string;
+  userId: string;
+  subscriptionId?: string;
+  chain: Chain;
+  walletAddress: string;
+  txHash: string;
+  amount: number;
+  currency: string;
+  usdValue: number;
+  status: 'pending' | 'confirmed' | 'failed';
+  confirmations: number;
+  requiredConfirmations: number;
+  createdAt: number;
+  confirmedAt?: number;
+}
+
+export interface PaymentMethod {
+  id: string;
+  userId: string;
+  type: 'wallet' | 'stripe';
+  chain?: Chain;
+  walletAddress?: string;
+  last4?: string;
+  isDefault: boolean;
+  isActive: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface UsageMetrics {
+  aiGenerations: number;
+  appsCreated: number;
+  workflowExecutions: number;
+  estimatedCost: number;
+}
+
+export interface TierLimits {
+  aiGenerations: number;
+  appsCreated: number;
+  workflowExecutions: number;
+  maxTeamMembers?: number;
+  customDomains?: number;
+}
+
+export interface BillingRecord {
+  id: string;
+  userId: string;
+  subscriptionId?: string;
+  type: 'subscription' | 'upgrade' | 'downgrade' | 'refund' | 'credit';
+  amount: number;
+  currency: string;
+  description: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  paymentId?: string;
+  createdAt: number;
+  processedAt?: number;
+}
+
+// Subscription API Response Types
+export type {
+  CurrentSubscriptionData,
+  UpgradeSubscriptionData,
+  DowngradeSubscriptionData,
+  CancelSubscriptionData,
+  ReactivateSubscriptionData
+} from 'worker/api/controllers/subscriptions/types';
+
+// Payment API Response Types
+export type {
+  InitiateCryptoPaymentData,
+  VerifyCryptoPaymentData,
+  PaymentHistoryData,
+  PaymentDetailsData,
+  CryptoWebhookData
+} from 'worker/api/controllers/payments/types';
+
+// Payment Method API Response Types
+export type {
+  PaymentMethodsData,
+  PaymentMethodCreateData,
+  PaymentMethodUpdateData,
+  PaymentMethodDeleteData
+} from 'worker/api/controllers/payment-methods/types';
+
+// Usage API Response Types
+export type {
+  CurrentUsageData,
+  UsageHistoryData,
+  UsageExportData
+} from 'worker/api/controllers/usage/types';
+
+// Billing API Response Types
+export type {
+  BillingHistoryData,
+  InvoiceDetailsData,
+  NextBillingData
+} from 'worker/api/controllers/billing/types';
+
+// Feature API Response Types
+export type {
+  AvailableFeaturesData,
+  FeatureCheckData
+} from 'worker/api/controllers/features/types';

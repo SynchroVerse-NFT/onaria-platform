@@ -537,6 +537,194 @@ export const userModelProviders = sqliteTable('user_model_providers', {
 }));
 
 // ========================================
+// PAYMENTS AND SUBSCRIPTIONS
+// ========================================
+
+/**
+ * Payment Methods table - Manage user payment methods (wallets and Stripe)
+ */
+export const paymentMethods = sqliteTable('payment_methods', {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+
+    // Payment Method Type
+    type: text('type', { enum: ['wallet', 'stripe'] }).notNull(),
+
+    // Wallet Details (for crypto payments)
+    chain: text('chain', { enum: ['ethereum', 'solana', 'polygon', 'base'] }),
+    walletAddress: text('wallet_address'),
+
+    // Stripe Details (for card payments)
+    stripePaymentMethodId: text('stripe_payment_method_id'),
+    last4: text('last4'), // Last 4 digits for cards
+
+    // Status
+    isDefault: integer('is_default', { mode: 'boolean' }).default(false),
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+    userIdx: index('payment_methods_user_idx').on(table.userId),
+    typeIdx: index('payment_methods_type_idx').on(table.type),
+    chainIdx: index('payment_methods_chain_idx').on(table.chain),
+    isDefaultIdx: index('payment_methods_is_default_idx').on(table.isDefault),
+    isActiveIdx: index('payment_methods_is_active_idx').on(table.isActive),
+}));
+
+/**
+ * Subscriptions table - Manage user subscription plans and status
+ */
+export const subscriptions = sqliteTable('subscriptions', {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+
+    // Subscription Details
+    planType: text('plan_type', { enum: ['free', 'starter', 'pro', 'enterprise'] }).notNull().default('free'),
+    tier: text('tier', { enum: ['free', 'pro', 'business', 'enterprise', 'byok'] }),
+    status: text('status', { enum: ['active', 'pending', 'expired', 'cancelled', 'past_due'] }).notNull().default('pending'),
+
+    // Billing Period
+    billingCycle: text('billing_cycle', { enum: ['monthly', 'yearly', 'lifetime'] }).notNull().default('monthly'),
+    currentPeriodStart: integer('current_period_start', { mode: 'timestamp' }),
+    currentPeriodEnd: integer('current_period_end', { mode: 'timestamp' }),
+    startDate: integer('start_date', { mode: 'timestamp' }),
+    endDate: integer('end_date', { mode: 'timestamp' }),
+
+    // Pricing
+    amountPaid: real('amount_paid'), // USD amount paid
+    currency: text('currency').default('USD'),
+
+    // Auto-renewal
+    autoRenew: integer('auto_renew', { mode: 'boolean' }).default(false),
+
+    // Payment Method
+    paymentMethodId: text('payment_method_id').references(() => paymentMethods.id),
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    cancelledAt: integer('cancelled_at', { mode: 'timestamp' }),
+    cancellationReason: text('cancellation_reason'),
+}, (table) => ({
+    userIdx: index('subscriptions_user_idx').on(table.userId),
+    tierIdx: index('subscriptions_tier_idx').on(table.tier),
+    statusIdx: index('subscriptions_status_idx').on(table.status),
+    periodEndIdx: index('subscriptions_period_end_idx').on(table.currentPeriodEnd),
+    startDateIdx: index('subscriptions_start_date_idx').on(table.startDate),
+    endDateIdx: index('subscriptions_end_date_idx').on(table.endDate),
+    paymentMethodIdx: index('subscriptions_payment_method_idx').on(table.paymentMethodId),
+}));
+
+/**
+ * Crypto Payments table - Track cryptocurrency payment transactions
+ */
+export const cryptoPayments = sqliteTable('crypto_payments', {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    subscriptionId: text('subscription_id').references(() => subscriptions.id, { onDelete: 'set null' }),
+
+    // Transaction Details
+    txHash: text('tx_hash').notNull().unique(), // Blockchain transaction hash
+    chain: text('chain', { enum: ['ethereum', 'solana', 'polygon', 'base'] }).notNull(),
+    walletAddress: text('wallet_address'), // User's wallet address
+
+    // Payment Information
+    fromAddress: text('from_address').notNull(), // Sender wallet address
+    toAddress: text('to_address').notNull(), // Platform wallet address (recipient)
+    amount: text('amount').notNull(), // Crypto amount as string to preserve precision
+    currency: text('currency').notNull(), // ETH, SOL, MATIC, etc.
+    amountUsd: real('amount_usd').notNull(), // USD value at time of payment
+
+    // Blockchain Verification
+    blockNumber: integer('block_number'), // Block number of transaction
+    confirmations: integer('confirmations').default(0), // Number of confirmations
+    blockTimestamp: integer('block_timestamp', { mode: 'timestamp' }), // Timestamp from blockchain
+
+    // Payment Status
+    status: text('status', { enum: ['pending', 'confirming', 'verified', 'failed', 'expired'] }).notNull().default('pending'),
+    verifiedAt: integer('verified_at', { mode: 'timestamp' }),
+    failureReason: text('failure_reason'),
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+    txHashIdx: uniqueIndex('crypto_payments_tx_hash_idx').on(table.txHash),
+    userIdx: index('crypto_payments_user_idx').on(table.userId),
+    subscriptionIdx: index('crypto_payments_subscription_idx').on(table.subscriptionId),
+    chainIdx: index('crypto_payments_chain_idx').on(table.chain),
+    walletAddressIdx: index('crypto_payments_wallet_address_idx').on(table.walletAddress),
+    statusIdx: index('crypto_payments_status_idx').on(table.status),
+    verifiedAtIdx: index('crypto_payments_verified_at_idx').on(table.verifiedAt),
+}));
+
+/**
+ * Usage Metrics table - Track daily user usage for billing and analytics
+ */
+export const usageMetrics = sqliteTable('usage_metrics', {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    subscriptionId: text('subscription_id').references(() => subscriptions.id, { onDelete: 'set null' }),
+
+    // Date tracking (YYYY-MM-DD format)
+    date: text('date').notNull(),
+
+    // Usage Counters
+    aiGenerations: integer('ai_generations').default(0),
+    tokensUsed: integer('tokens_used').default(0),
+    appsCreated: integer('apps_created').default(0),
+    workflowExecutions: integer('workflow_executions').default(0),
+
+    // Cost Tracking
+    estimatedCost: real('estimated_cost').default(0.0), // USD
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+    userIdx: index('usage_metrics_user_idx').on(table.userId),
+    subscriptionIdx: index('usage_metrics_subscription_idx').on(table.subscriptionId),
+    dateIdx: index('usage_metrics_date_idx').on(table.date),
+    userDateIdx: uniqueIndex('usage_metrics_user_date_idx').on(table.userId, table.date),
+}));
+
+/**
+ * Billing History table - Track all billing transactions and invoices
+ */
+export const billingHistory = sqliteTable('billing_history', {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    subscriptionId: text('subscription_id').references(() => subscriptions.id, { onDelete: 'set null' }),
+
+    // Transaction Details
+    type: text('type', { enum: ['subscription', 'upgrade', 'overage', 'refund'] }).notNull(),
+    amount: real('amount').notNull(),
+    currency: text('currency').default('USD'),
+    description: text('description').notNull(),
+
+    // Payment Method
+    paymentMethodId: text('payment_method_id').references(() => paymentMethods.id, { onDelete: 'set null' }),
+
+    // Status
+    status: text('status', { enum: ['paid', 'pending', 'failed', 'refunded'] }).notNull(),
+
+    // Invoice
+    invoiceUrl: text('invoice_url'),
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+    userIdx: index('billing_history_user_idx').on(table.userId),
+    subscriptionIdx: index('billing_history_subscription_idx').on(table.subscriptionId),
+    paymentMethodIdx: index('billing_history_payment_method_idx').on(table.paymentMethodId),
+    typeIdx: index('billing_history_type_idx').on(table.type),
+    statusIdx: index('billing_history_status_idx').on(table.status),
+    createdAtIdx: index('billing_history_created_at_idx').on(table.createdAt),
+}));
+
+// ========================================
 // SYSTEM CONFIGURATION
 // ========================================
 
@@ -548,7 +736,7 @@ export const systemSettings = sqliteTable('system_settings', {
     key: text('key').notNull().unique(),
     value: text('value', { mode: 'json' }),
     description: text('description'),
-    
+
     // Metadata
     updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
     updatedBy: text('updated_by').references(() => users.id),
@@ -615,3 +803,27 @@ export type NewUserModelProvider = typeof userModelProviders.$inferInsert;
 
 export type Star = typeof stars.$inferSelect;
 export type NewStar = typeof stars.$inferInsert;
+
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type NewPaymentMethod = typeof paymentMethods.$inferInsert;
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type NewSubscription = typeof subscriptions.$inferInsert;
+
+export type CryptoPayment = typeof cryptoPayments.$inferSelect;
+export type NewCryptoPayment = typeof cryptoPayments.$inferInsert;
+
+export type UsageMetric = typeof usageMetrics.$inferSelect;
+export type NewUsageMetric = typeof usageMetrics.$inferInsert;
+
+export type BillingHistory = typeof billingHistory.$inferSelect;
+export type NewBillingHistory = typeof billingHistory.$inferInsert;
+
+// Payment and Subscription Type Enums
+export type SubscriptionTier = 'free' | 'pro' | 'business' | 'enterprise' | 'byok';
+export type SubscriptionStatus = 'active' | 'pending' | 'expired' | 'cancelled' | 'past_due';
+export type PaymentStatus = 'paid' | 'pending' | 'failed' | 'refunded';
+export type CryptoPaymentStatus = 'pending' | 'confirming' | 'verified' | 'failed' | 'expired';
+export type Chain = 'ethereum' | 'solana' | 'polygon' | 'base';
+export type PaymentMethodType = 'wallet' | 'stripe';
+export type BillingHistoryType = 'subscription' | 'upgrade' | 'overage' | 'refund';

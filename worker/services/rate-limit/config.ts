@@ -105,3 +105,57 @@ export const DEFAULT_RATE_INCREMENTS_FOR_MODELS: Record<AIModels | string, numbe
 	[AIModels.GEMINI_2_5_PRO_PREVIEW_05_06] : 4,
 	[AIModels.GEMINI_2_5_PRO_PREVIEW_06_05] : 4,
 };
+
+// Tier-based rate limits configuration
+export const TIER_RATE_LIMITS = {
+	// API requests per minute
+	api: {
+		free: { limit: 100, window: 60 },
+		pro: { limit: 1000, window: 60 },
+		business: { limit: 5000, window: 60 },
+		enterprise: { limit: 10000, window: 60 },
+		byok: { limit: 1000, window: 60 }
+	},
+	// AI generations per hour
+	aiGeneration: {
+		free: { limit: 10, window: 3600 },
+		pro: { limit: 100, window: 3600 },
+		business: { limit: 500, window: 3600 },
+		enterprise: { limit: -1, window: 3600 }, // unlimited
+		byok: { limit: -1, window: 3600 }
+	},
+	// Concurrent operations
+	concurrent: {
+		free: { limit: 1 },
+		pro: { limit: 3 },
+		business: { limit: 10 },
+		enterprise: { limit: 20 },
+		byok: { limit: 3 }
+	}
+} as const;
+
+export const MONTHLY_LIMITS = {
+	aiGenerations: {
+		free: 100,
+		pro: 2000,
+		business: 10000,
+		enterprise: -1, // unlimited
+		byok: -1
+	},
+	apps: {
+		free: 5,
+		pro: 50,
+		business: -1, // unlimited
+		enterprise: -1,
+		byok: 20
+	},
+	workflowExecutions: {
+		free: 0,
+		pro: 500,
+		business: 5000,
+		enterprise: -1,
+		byok: 500
+	}
+} as const;
+
+export type SubscriptionTier = 'free' | 'pro' | 'business' | 'enterprise' | 'byok';

@@ -56,7 +56,30 @@ import type{
     CodeGenArgs,
     AgentPreviewResponse,
     PlatformStatusData,
-    RateLimitError
+    RateLimitError,
+	SubscriptionTier,
+	Chain,
+	CurrentSubscriptionData,
+	UpgradeSubscriptionData,
+	DowngradeSubscriptionData,
+	CancelSubscriptionData,
+	ReactivateSubscriptionData,
+	InitiateCryptoPaymentData,
+	VerifyCryptoPaymentData,
+	PaymentHistoryData,
+	PaymentDetailsData,
+	PaymentMethodsData,
+	PaymentMethodCreateData,
+	PaymentMethodUpdateData,
+	PaymentMethodDeleteData,
+	CurrentUsageData,
+	UsageHistoryData,
+	UsageExportData,
+	BillingHistoryData,
+	InvoiceDetailsData,
+	NextBillingData,
+	AvailableFeaturesData,
+	FeatureCheckData
 } from '@/api-types';
 import {
     
@@ -1185,6 +1208,251 @@ class ApiClient {
 
 		// Redirect to OAuth provider
 		window.location.href = oauthUrl.toString();
+	}
+
+	// ===============================
+	// Subscription API Methods
+	// ===============================
+
+	/**
+	 * Get current subscription with usage and limits
+	 */
+	async getCurrentSubscription(): Promise<ApiResponse<CurrentSubscriptionData>> {
+		return this.request<CurrentSubscriptionData>('/api/subscriptions/current');
+	}
+
+	/**
+	 * Upgrade to a higher tier
+	 */
+	async upgradeSubscription(
+		tier: SubscriptionTier,
+		paymentMethodId?: string
+	): Promise<ApiResponse<UpgradeSubscriptionData>> {
+		return this.request<UpgradeSubscriptionData>('/api/subscriptions/upgrade', {
+			method: 'POST',
+			body: { tier, paymentMethodId }
+		});
+	}
+
+	/**
+	 * Schedule downgrade at end of billing cycle
+	 */
+	async downgradeSubscription(
+		tier: SubscriptionTier
+	): Promise<ApiResponse<DowngradeSubscriptionData>> {
+		return this.request<DowngradeSubscriptionData>('/api/subscriptions/downgrade', {
+			method: 'POST',
+			body: { tier }
+		});
+	}
+
+	/**
+	 * Cancel subscription
+	 */
+	async cancelSubscription(): Promise<ApiResponse<CancelSubscriptionData>> {
+		return this.request<CancelSubscriptionData>('/api/subscriptions/cancel', {
+			method: 'POST'
+		});
+	}
+
+	/**
+	 * Reactivate cancelled subscription
+	 */
+	async reactivateSubscription(): Promise<ApiResponse<ReactivateSubscriptionData>> {
+		return this.request<ReactivateSubscriptionData>('/api/subscriptions/reactivate', {
+			method: 'POST'
+		});
+	}
+
+	// ===============================
+	// Payment API Methods
+	// ===============================
+
+	/**
+	 * Initiate a crypto payment
+	 */
+	async initiateCryptoPayment(
+		tier: SubscriptionTier,
+		chain: Chain
+	): Promise<ApiResponse<InitiateCryptoPaymentData>> {
+		return this.request<InitiateCryptoPaymentData>('/api/payments/crypto/initiate', {
+			method: 'POST',
+			body: { tier, chain }
+		});
+	}
+
+	/**
+	 * Verify a crypto payment transaction
+	 */
+	async verifyCryptoPayment(
+		txHash: string,
+		chain: Chain
+	): Promise<ApiResponse<VerifyCryptoPaymentData>> {
+		return this.request<VerifyCryptoPaymentData>('/api/payments/crypto/verify', {
+			method: 'POST',
+			body: { txHash, chain }
+		});
+	}
+
+	/**
+	 * Get payment history
+	 */
+	async getPaymentHistory(
+		limit?: number,
+		offset?: number
+	): Promise<ApiResponse<PaymentHistoryData>> {
+		const queryParams = new URLSearchParams();
+		if (limit !== undefined) queryParams.set('limit', limit.toString());
+		if (offset !== undefined) queryParams.set('offset', offset.toString());
+
+		const endpoint = `/api/payments/history${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+		return this.request<PaymentHistoryData>(endpoint);
+	}
+
+	/**
+	 * Get specific payment details
+	 */
+	async getPaymentDetails(paymentId: string): Promise<ApiResponse<PaymentDetailsData>> {
+		return this.request<PaymentDetailsData>(`/api/payments/${paymentId}`);
+	}
+
+	// ===============================
+	// Payment Method API Methods
+	// ===============================
+
+	/**
+	 * Get all payment methods
+	 */
+	async getPaymentMethods(): Promise<ApiResponse<PaymentMethodsData>> {
+		return this.request<PaymentMethodsData>('/api/payment-methods');
+	}
+
+	/**
+	 * Add a new payment method
+	 */
+	async addPaymentMethod(data: {
+		type: 'wallet' | 'stripe';
+		chain?: Chain;
+		walletAddress?: string;
+	}): Promise<ApiResponse<PaymentMethodCreateData>> {
+		return this.request<PaymentMethodCreateData>('/api/payment-methods', {
+			method: 'POST',
+			body: data
+		});
+	}
+
+	/**
+	 * Set default payment method
+	 */
+	async setDefaultPaymentMethod(
+		paymentMethodId: string
+	): Promise<ApiResponse<PaymentMethodUpdateData>> {
+		return this.request<PaymentMethodUpdateData>(
+			`/api/payment-methods/${paymentMethodId}/default`,
+			{
+				method: 'PUT'
+			}
+		);
+	}
+
+	/**
+	 * Remove a payment method
+	 */
+	async removePaymentMethod(
+		paymentMethodId: string
+	): Promise<ApiResponse<PaymentMethodDeleteData>> {
+		return this.request<PaymentMethodDeleteData>(
+			`/api/payment-methods/${paymentMethodId}`,
+			{
+				method: 'DELETE'
+			}
+		);
+	}
+
+	// ===============================
+	// Usage API Methods
+	// ===============================
+
+	/**
+	 * Get current usage
+	 */
+	async getCurrentUsage(): Promise<ApiResponse<CurrentUsageData>> {
+		return this.request<CurrentUsageData>('/api/usage/current');
+	}
+
+	/**
+	 * Get usage history
+	 */
+	async getUsageHistory(
+		startDate: string,
+		endDate: string
+	): Promise<ApiResponse<UsageHistoryData>> {
+		const queryParams = new URLSearchParams();
+		queryParams.set('startDate', startDate);
+		queryParams.set('endDate', endDate);
+
+		const endpoint = `/api/usage/history?${queryParams.toString()}`;
+		return this.request<UsageHistoryData>(endpoint);
+	}
+
+	/**
+	 * Export usage report
+	 */
+	async exportUsage(): Promise<ApiResponse<UsageExportData>> {
+		return this.request<UsageExportData>('/api/usage/export', {
+			method: 'POST'
+		});
+	}
+
+	// ===============================
+	// Billing API Methods
+	// ===============================
+
+	/**
+	 * Get billing history
+	 */
+	async getBillingHistory(
+		limit?: number,
+		offset?: number
+	): Promise<ApiResponse<BillingHistoryData>> {
+		const queryParams = new URLSearchParams();
+		if (limit !== undefined) queryParams.set('limit', limit.toString());
+		if (offset !== undefined) queryParams.set('offset', offset.toString());
+
+		const endpoint = `/api/billing/history${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+		return this.request<BillingHistoryData>(endpoint);
+	}
+
+	/**
+	 * Get specific invoice
+	 */
+	async getInvoice(invoiceId: string): Promise<ApiResponse<InvoiceDetailsData>> {
+		return this.request<InvoiceDetailsData>(`/api/billing/invoice/${invoiceId}`);
+	}
+
+	/**
+	 * Get next billing information
+	 */
+	async getNextBilling(): Promise<ApiResponse<NextBillingData>> {
+		return this.request<NextBillingData>('/api/billing/next');
+	}
+
+	// ===============================
+	// Feature API Methods
+	// ===============================
+
+	/**
+	 * Get available features for current subscription
+	 */
+	async getAvailableFeatures(): Promise<ApiResponse<AvailableFeaturesData>> {
+		return this.request<AvailableFeaturesData>('/api/features');
+	}
+
+	/**
+	 * Check if user has access to specific feature
+	 */
+	async checkFeatureAccess(featureName: string): Promise<ApiResponse<FeatureCheckData>> {
+		return this.request<FeatureCheckData>(`/api/features/${featureName}/check`);
 	}
 }
 
