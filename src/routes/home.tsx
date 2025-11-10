@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
-import { ArrowRight, Info } from 'react-feather';
+import { ArrowRight, Info, Sparkles, Rocket, Globe, Users, Github, BarChart, TrendingUp, Code2 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -16,6 +16,8 @@ import { useDragDrop } from '@/hooks/use-drag-drop';
 import { ImageUploadButton } from '@/components/image-upload-button';
 import { ImageAttachmentPreview } from '@/components/image-attachment-preview';
 import { SUPPORTED_IMAGE_MIME_TYPES } from '@/api-types';
+import { Button } from '@/components/ui/button';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Home() {
 	const navigate = useNavigate();
@@ -27,7 +29,6 @@ export default function Home() {
 
 	const { images, addImages, removeImage, clearImages, isProcessing } = useImageUpload({
 		onError: (error) => {
-			// TODO: Show error toast/notification
 			console.error('Image upload error:', error);
 		},
 	});
@@ -36,7 +37,6 @@ export default function Home() {
 		onFilesDropped: addImages,
 		accept: [...SUPPORTED_IMAGE_MIME_TYPES],
 	});
-
 
 	const placeholderPhrases = useMemo(() => [
 		"todo list app",
@@ -57,14 +57,12 @@ export default function Home() {
 		limit: 6,
 	});
 
-	// Discover section should appear only when enough apps are available and loading is done
 	const discoverReady = useMemo(() => !loading && (apps?.length ?? 0) > 5, [loading, apps]);
 
 	const handleCreateApp = (query: string, mode: AgentMode) => {
 		const encodedQuery = encodeURIComponent(query);
 		const encodedMode = encodeURIComponent(mode);
-		
-		// Encode images as JSON if present
+
 		const imageParam = images.length > 0 ? `&images=${encodeURIComponent(JSON.stringify(images))}` : '';
 		const intendedUrl = `/chat/new?query=${encodedQuery}&agentMode=${encodedMode}${imageParam}`;
 
@@ -78,18 +76,15 @@ export default function Home() {
 			return;
 		}
 
-		// User is already authenticated, navigate immediately
 		navigate(intendedUrl);
-		// Clear images after navigation
 		clearImages();
 	};
 
-	// Auto-resize textarea based on content
 	const adjustTextareaHeight = () => {
 		if (textareaRef.current) {
 			textareaRef.current.style.height = 'auto';
 			const scrollHeight = textareaRef.current.scrollHeight;
-			const maxHeight = 300; // Maximum height in pixels
+			const maxHeight = 300;
 			textareaRef.current.style.height =
 				Math.min(scrollHeight, maxHeight) + 'px';
 		}
@@ -99,7 +94,6 @@ export default function Home() {
 		adjustTextareaHeight();
 	}, []);
 
-	// Typewriter effect
 	useEffect(() => {
 		const currentPhrase = placeholderPhrases[currentPlaceholderPhraseIndex];
 
@@ -107,23 +101,21 @@ export default function Home() {
 			if (currentPlaceholderText.length < currentPhrase.length) {
 				const timeout = setTimeout(() => {
 					setCurrentPlaceholderText(currentPhrase.slice(0, currentPlaceholderText.length + 1));
-				}, 100); // Typing speed
+				}, 100);
 				return () => clearTimeout(timeout);
 			} else {
-				// Pause before erasing
 				const timeout = setTimeout(() => {
 					setIsPlaceholderTyping(false);
-				}, 2000); // Pause duration
+				}, 2000);
 				return () => clearTimeout(timeout);
 			}
 		} else {
 			if (currentPlaceholderText.length > 0) {
 				const timeout = setTimeout(() => {
 					setCurrentPlaceholderText(currentPlaceholderText.slice(0, -1));
-				}, 50); // Erasing speed
+				}, 50);
 				return () => clearTimeout(timeout);
 			} else {
-				// Move to next phrase
 				setCurrentPlaceholderPhraseIndex((prev) => (prev + 1) % placeholderPhrases.length);
 				setIsPlaceholderTyping(true);
 			}
@@ -132,47 +124,217 @@ export default function Home() {
 
 	const discoverLinkRef = useRef<HTMLDivElement>(null);
 
+	const features = [
+		{
+			icon: Sparkles,
+			title: "AI-Powered Generation",
+			description: "Generate full-stack applications from simple text descriptions using advanced AI models."
+		},
+		{
+			icon: Rocket,
+			title: "One-Click Deployment",
+			description: "Deploy your applications instantly to production with our serverless infrastructure."
+		},
+		{
+			icon: Globe,
+			title: "Custom Domains",
+			description: "Connect your own domain names and SSL certificates for professional deployments."
+		},
+		{
+			icon: Users,
+			title: "Real-Time Collaboration",
+			description: "Work together with your team in real-time with live code synchronization."
+		},
+		{
+			icon: Github,
+			title: "GitHub Integration",
+			description: "Seamlessly sync your projects with GitHub repositories and version control."
+		},
+		{
+			icon: BarChart,
+			title: "Built-in Analytics",
+			description: "Track usage, performance metrics, and user engagement out of the box."
+		}
+	];
+
 	return (
-		<div className="relative flex flex-col items-center size-full">
-			{/* Dotted background pattern - extends to full viewport */}
-			<div className="fixed inset-0 text-accent z-0 opacity-20 pointer-events-none">
-				<svg width="100%" height="100%">
-					<defs>
-						<pattern
-							id=":S2:"
-							viewBox="-6 -6 12 12"
-							patternUnits="userSpaceOnUse"
-							width="12"
-							height="12"
-						>
-							<circle
-								cx="0"
-								cy="0"
-								r="1"
-								fill="currentColor"
-							></circle>
-						</pattern>
-					</defs>
-					<rect
-						width="100%"
-						height="100%"
-						fill="url(#:S2:)"
-					></rect>
-				</svg>
+		<div className="relative flex flex-col items-center w-full min-h-full overflow-x-hidden">
+			{/* Animated gradient background */}
+			<div className="fixed inset-0 z-0 pointer-events-none">
+				<div className="absolute inset-0 bg-gradient-to-br from-[#0066FF]/5 via-bg-1 to-[#1E3A8A]/10 dark:from-[#0066FF]/10 dark:via-[#0A0A0A] dark:to-[#1E3A8A]/20" />
+				<div className="absolute inset-0 opacity-30 dark:opacity-20">
+					<svg width="100%" height="100%">
+						<defs>
+							<pattern
+								id="hero-dots"
+								viewBox="-6 -6 12 12"
+								patternUnits="userSpaceOnUse"
+								width="24"
+								height="24"
+							>
+								<circle
+									cx="0"
+									cy="0"
+									r="1.5"
+									fill="currentColor"
+									className="text-[#0066FF]"
+								></circle>
+							</pattern>
+						</defs>
+						<rect
+							width="100%"
+							height="100%"
+							fill="url(#hero-dots)"
+						></rect>
+					</svg>
+				</div>
 			</div>
-			
+
 			<LayoutGroup>
-				<div className="rounded-md w-full max-w-2xl overflow-hidden">
+				{/* Hero Section */}
+				<motion.section
+					layout
+					className="relative z-10 w-full max-w-6xl mx-auto px-4 pt-12 md:pt-20 pb-8"
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.6 }}
+				>
+					<div className="text-center space-y-6 mb-12">
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.2, duration: 0.6 }}
+						>
+							<h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
+								<span className="bg-clip-text text-transparent bg-gradient-to-r from-[#0066FF] via-[#0066FF] to-[#1E3A8A] dark:from-[#0066FF] dark:via-[#60A5FA] dark:to-[#0066FF]">
+									Build Full-Stack Apps
+								</span>
+								<br />
+								<span className="text-text-primary">with AI in Minutes</span>
+							</h1>
+						</motion.div>
+
+						<motion.p
+							className="text-lg sm:text-xl text-text-tertiary max-w-2xl mx-auto"
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.3, duration: 0.6 }}
+						>
+							Turn ideas into production-ready applications. No code required.
+						</motion.p>
+
+						<motion.div
+							className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.4, duration: 0.6 }}
+						>
+							<Button
+								size="lg"
+								className="bg-[#0066FF] hover:bg-[#0052CC] text-white shadow-lg hover:shadow-xl transition-all duration-200 text-base px-8 h-12"
+								onClick={() => {
+									const element = document.getElementById('app-creator');
+									element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+									textareaRef.current?.focus();
+								}}
+							>
+								<Sparkles className="mr-2 h-5 w-5" />
+								Start Building Free
+							</Button>
+							<Button
+								size="lg"
+								variant="outline"
+								className="text-base px-8 h-12 border-2 border-[#0066FF]/30 hover:border-[#0066FF] hover:bg-[#0066FF]/5"
+								onClick={() => navigate('/discover')}
+							>
+								<Code2 className="mr-2 h-5 w-5" />
+								View Templates
+							</Button>
+						</motion.div>
+					</div>
+				</motion.section>
+
+				{/* Features Grid */}
+				<motion.section
+					className="relative z-10 w-full max-w-6xl mx-auto px-4 py-12"
+					initial={{ opacity: 0, y: 30 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.5, duration: 0.6 }}
+				>
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{features.map((feature, index) => (
+							<motion.div
+								key={feature.title}
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: 0.6 + index * 0.1, duration: 0.5 }}
+							>
+								<Card className="h-full border-border-primary hover:border-[#0066FF]/50 transition-all duration-300 group hover:shadow-lg bg-bg-4/80 dark:bg-bg-2/80 backdrop-blur-sm">
+									<CardHeader>
+										<div className="flex items-start gap-4">
+											<div className="p-3 rounded-lg bg-[#0066FF]/10 dark:bg-[#0066FF]/20 group-hover:bg-[#0066FF]/20 dark:group-hover:bg-[#0066FF]/30 transition-colors duration-300">
+												<feature.icon className="h-6 w-6 text-[#0066FF]" />
+											</div>
+											<div className="flex-1">
+												<CardTitle className="text-lg mb-2 text-text-primary group-hover:text-[#0066FF] transition-colors duration-300">
+													{feature.title}
+												</CardTitle>
+												<CardDescription className="text-sm text-text-tertiary">
+													{feature.description}
+												</CardDescription>
+											</div>
+										</div>
+									</CardHeader>
+								</Card>
+							</motion.div>
+						))}
+					</div>
+				</motion.section>
+
+				{/* Social Proof Section */}
+				<motion.section
+					className="relative z-10 w-full max-w-6xl mx-auto px-4 py-12"
+					initial={{ opacity: 0, y: 30 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.8, duration: 0.6 }}
+				>
+					<div className="bg-gradient-to-r from-[#0066FF]/10 via-[#1E3A8A]/10 to-[#0066FF]/10 dark:from-[#0066FF]/20 dark:via-[#1E3A8A]/20 dark:to-[#0066FF]/20 rounded-2xl p-8 backdrop-blur-sm border border-[#0066FF]/20">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+							<div className="space-y-2">
+								<div className="flex items-center justify-center gap-2">
+									<Rocket className="h-5 w-5 text-[#0066FF]" />
+									<div className="text-4xl font-bold text-[#0066FF]">1,000+</div>
+								</div>
+								<div className="text-text-tertiary">Apps Built</div>
+							</div>
+							<div className="space-y-2">
+								<div className="flex items-center justify-center gap-2">
+									<Users className="h-5 w-5 text-[#0066FF]" />
+									<div className="text-4xl font-bold text-[#0066FF]">500+</div>
+								</div>
+								<div className="text-text-tertiary">Developers</div>
+							</div>
+							<div className="space-y-2">
+								<div className="flex items-center justify-center gap-2">
+									<TrendingUp className="h-5 w-5 text-[#0066FF]" />
+									<div className="text-4xl font-bold text-[#0066FF]">10,000+</div>
+								</div>
+								<div className="text-text-tertiary">Deployments</div>
+							</div>
+						</div>
+					</div>
+				</motion.section>
+
+				{/* App Creator Section */}
+				<div id="app-creator" className="w-full max-w-2xl mx-auto px-4 scroll-mt-24">
 					<motion.div
 						layout
 						transition={{ layout: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }}
-						className={clsx(
-							"px-6 p-8 flex flex-col items-center z-10",
-							discoverReady ? "mt-48" : "mt-[20vh] sm:mt-[24vh] md:mt-[28vh]"
-						)}>
-						<h1 className="text-shadow-sm text-shadow-red-200 dark:text-shadow-red-900 text-accent font-medium leading-[1.1] tracking-tight text-5xl w-full mb-4 bg-clip-text bg-gradient-to-r from-text-primary to-text-primary/90">
+						className="px-6 p-8 flex flex-col items-center z-10"
+					>
+						<h2 className="text-3xl font-semibold text-text-primary mb-6 text-center">
 							What should we build today?
-						</h1>
+						</h2>
 
 						<form
 							method="POST"
@@ -183,7 +345,7 @@ export default function Home() {
 							}}
 							className="flex z-10 flex-col w-full min-h-[150px] bg-bg-4 border border-accent/30 dark:border-accent/50 dark:bg-bg-2 rounded-[18px] shadow-textarea p-5 transition-all duration-200"
 						>
-							<div 
+							<div
 								className={clsx(
 									"flex-1 flex flex-col relative",
 									isDragging && "ring-2 ring-accent ring-offset-2 rounded-lg"
@@ -196,7 +358,7 @@ export default function Home() {
 									</div>
 								)}
 								<textarea
-									className="w-full resize-none ring-0 z-20 outline-0 placeholder:text-text-primary/60 text-text-primary"
+									className="w-full resize-none ring-0 z-20 outline-0 placeholder:text-text-primary/60 text-text-primary bg-transparent"
 									name="query"
 									value={query}
 									placeholder={`Create a ${currentPlaceholderText}`}
@@ -235,22 +397,21 @@ export default function Home() {
 								)}
 
 								<div className="flex items-center justify-end ml-4 gap-2">
-								<ImageUploadButton
-									onFilesSelected={addImages}
-									disabled={isProcessing}
-								/>
-								<button
-									type="submit"
-									disabled={!query.trim()}
-									className="bg-accent text-white p-1 rounded-md *:size-5 transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-								>
-									<ArrowRight />
-								</button>
-							</div>
+									<ImageUploadButton
+										onFilesSelected={addImages}
+										disabled={isProcessing}
+									/>
+									<button
+										type="submit"
+										disabled={!query.trim()}
+										className="bg-accent text-white p-1 rounded-md *:size-5 transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										<ArrowRight />
+									</button>
+								</div>
 							</div>
 						</form>
 					</motion.div>
-
 				</div>
 
 				<AnimatePresence>
@@ -315,18 +476,11 @@ export default function Home() {
 	);
 }
 
-
-
 type ArrowProps = {
-	/** Ref to the source element the arrow starts from */
 	sourceRef: React.RefObject<HTMLElement | null>;
-	/** Target point in viewport/client coordinates */
 	target: { x: number; y: number };
-	/** Curve intensity (0.1 - 1.5 is typical) */
 	curvature?: number;
-	/** Optional pixel offset from source element edge */
 	sourceOffset?: number;
-	/** If true, hides the arrow when the source is offscreen/not measurable */
 	hideWhenInvalid?: boolean;
 };
 
@@ -362,13 +516,11 @@ export const CurvedArrow: React.FC<ArrowProps> = ({
 
 		const endPoint: Point = { x: target.x, y: target.y };
 
-		// Choose an anchor on the source: midpoint of the side facing the target
 		const centers = {
 			right: { x: rect.right, y: rect.top + rect.height / 2 },
 			left: { x: rect.left, y: rect.top + rect.height / 2 },
 		};
 
-		// Distances to target from each side center
 		const dists = Object.fromEntries(
 			Object.entries(centers).map(([side, p]) => [
 				side,
@@ -379,7 +531,6 @@ export const CurvedArrow: React.FC<ArrowProps> = ({
 		const bestSide = (Object.entries(dists).sort((a, b) => a[1] - b[1])[0][0] ||
 			"right") as keyof typeof centers;
 
-		// Nudge start point slightly outside the element for visual clarity
 		const nudge = (p: Point, side: keyof typeof centers, offset: number) => {
 			switch (side) {
 				case "right":
@@ -395,7 +546,6 @@ export const CurvedArrow: React.FC<ArrowProps> = ({
 		setEnd(endPoint);
 	};
 
-	// Throttle updates with rAF to avoid layout thrash
 	const scheduleCompute = () => {
 		if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
 		rafRef.current = requestAnimationFrame(compute);
@@ -413,7 +563,6 @@ export const CurvedArrow: React.FC<ArrowProps> = ({
 		window.addEventListener("scroll", onScroll, { passive: true });
 		window.addEventListener("resize", onResize);
 
-		// Track source element size changes
 		const el = sourceRef.current;
 		if ("ResizeObserver" in window) {
 			roRef.current = new ResizeObserver(() => scheduleCompute());
@@ -437,8 +586,6 @@ export const CurvedArrow: React.FC<ArrowProps> = ({
 		const dx = end.x - start.x;
 		const dy = end.y - start.y;
 
-		// Control points: bend the curve based on the primary axis difference.
-		// This gives a nice S or C curve without sharp kinks.
 		const cpOffset = Math.max(Math.abs(dx), Math.abs(dy)) * curvature;
 
 		const c1: Point = { x: start.x + cpOffset * (dx >= 0 ? 1 : -1), y: start.y };
@@ -480,7 +627,6 @@ export const CurvedArrow: React.FC<ArrowProps> = ({
 
 			<path
 				d={d}
-				// stroke="var(--color-accent)"
 				stroke="var(--color-text-tertiary)"
 				strokeOpacity={0.20}
 				strokeWidth={1.6}
@@ -490,11 +636,9 @@ export const CurvedArrow: React.FC<ArrowProps> = ({
 				vectorEffect="non-scaling-stroke"
 				markerEnd="url(#discover-arrowhead)"
 			/>
-			{/* Soft squiggle overlay for hand-drawn feel */}
 			<g filter="url(#discover-squiggle)">
 				<path
 					d={d}
-					// stroke="var(--color-accent)"
 					stroke="var(--color-text-tertiary)"
 					strokeOpacity={0.12}
 					strokeWidth={1}

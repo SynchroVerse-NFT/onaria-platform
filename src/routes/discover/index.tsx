@@ -1,16 +1,18 @@
 import { useNavigate, useSearchParams } from 'react-router';
 import { motion } from 'framer-motion';
+import { useState, useMemo } from 'react';
 import { usePaginatedApps } from '@/hooks/use-paginated-apps';
 import { AppListContainer } from '@/components/shared/AppListContainer';
-import { AppFiltersForm } from '@/components/shared/AppFiltersForm';
-import { AppSortTabs } from '@/components/shared/AppSortTabs';
-import type { AppSortOption } from '@/api-types';
+import { FeaturedAppsCarousel } from '@/components/discover/FeaturedAppsCarousel';
+import { CommunityStatsBar } from '@/components/discover/CommunityStatsBar';
+import { AdvancedFilterBar } from '@/components/discover/AdvancedFilterBar';
+import type { AppSortOption, AppWithUserAndStats } from '@/api-types';
 
 export default function DiscoverPage() {
 	const navigate = useNavigate();
 	const [searchParams, setSearchParams] = useSearchParams();
+	const [category, setCategory] = useState('all');
 
-	// Derive initial sort from URL or localStorage, fallback to 'popular'
 	const allowedSorts: AppSortOption[] = ['recent', 'popular', 'trending', 'starred'];
 	const sortParam = searchParams.get('sort') as AppSortOption | null;
 	const savedSort = (typeof localStorage !== 'undefined' ? localStorage.getItem('discover.sort') : null) as AppSortOption | null;
@@ -19,30 +21,21 @@ export default function DiscoverPage() {
 		: (savedSort && allowedSorts.includes(savedSort) ? savedSort : 'popular');
 
 	const {
-		// Filter state
 		searchQuery,
 		setSearchQuery,
 		filterFramework,
 		sortBy,
 		period,
-
-		// Data state
 		apps,
 		loading,
 		loadingMore,
 		error,
 		totalCount,
 		hasMore,
-
-		// Form handlers
 		handleSearchSubmit,
 		handlePeriodChange,
 		handleFrameworkChange,
-
 		handleSortChange,
-
-		// Pagination handlers
-
 		refetch,
 		loadMore,
 	} = usePaginatedApps({
@@ -52,57 +45,100 @@ export default function DiscoverPage() {
 		limit: 20,
 	});
 
+	const featuredApps = useMemo(() => {
+		const typedApps = apps as AppWithUserAndStats[];
+		return typedApps
+			.filter(app => (app.starCount || 0) > 5 || (app.viewCount || 0) > 100)
+			.slice(0, 5);
+	}, [apps]);
+
+	const filteredApps = useMemo(() => {
+		if (category === 'all') return apps;
+		return apps.filter(app => {
+			const desc = app.description?.toLowerCase() || '';
+			const title = app.title?.toLowerCase() || '';
+			const categoryLower = category.toLowerCase();
+			return desc.includes(categoryLower) || title.includes(categoryLower);
+		});
+	}, [apps, category]);
+
+	const appsToday = useMemo(() => {
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		return apps.filter(app => {
+			if (!app.createdAt) return false;
+			const createdAt = new Date(app.createdAt);
+			return createdAt >= today;
+		}).length;
+	}, [apps]);
+
+	const uniqueUsers = useMemo(() => {
+		const userIds = new Set();
+		apps.forEach(app => {
+			const typedApp = app as AppWithUserAndStats;
+			if (typedApp.userId) {
+				userIds.add(typedApp.userId);
+			}
+		});
+		return userIds.size;
+	}, [apps]);
+
 	return (
-		<div className="min-h-screen">
+		<div className="min-h-screen bg-gradient-to-b from-bg-1 to-bg-2">
 			<div className="container mx-auto px-4 py-8">
 				<motion.div
 					initial={{ opacity: 0, y: -20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.5 }}
 				>
-					{/* Header */}
 					<div className="mb-8">
 						<h1 className="text-6xl font-bold mb-3 font-[departureMono] text-accent">
 							DISCOVER
 						</h1>
 						<p className="text-text-tertiary text-lg">
-							Explore apps built by the community
+							Explore amazing apps built by the community with AI
 						</p>
 					</div>
 
-					<div className="flex items-start gap-4 justify-between">
-						{/* Search and Filters */}
-						<AppFiltersForm
-							searchQuery={searchQuery}
-							onSearchChange={setSearchQuery}
-							onSearchSubmit={handleSearchSubmit}
-							searchPlaceholder="Search apps..."
-							showSearchButton={true}
-							filterFramework={filterFramework}
-							period={period}
-							onFrameworkChange={handleFrameworkChange}
-							onPeriodChange={handlePeriodChange}
-							sortBy={sortBy}
+					{featuredApps.length > 0 && (
+						<FeaturedAppsCarousel
+							apps={featuredApps}
+							onAppClick={(appId) => navigate(`/app/${appId}`)}
+						/>
+					)}
+
+					<CommunityStatsBar
+						totalApps={totalCount}
+						totalDevelopers={uniqueUsers}
+						appsToday={appsToday}
+						mostActiveCategory="AI"
 					/>
 
-						{/* Sort Tabs */}
-					<AppSortTabs
-						value={sortBy}
-						onValueChange={(v) => {
+					<AdvancedFilterBar
+						searchQuery={searchQuery}
+						onSearchChange={setSearchQuery}
+						onSearchSubmit={handleSearchSubmit}
+						category={category}
+						onCategoryChange={(cat) => {
+							setCategory(cat);
+							try { localStorage.setItem('discover.category', cat); } catch {}
+						}}
+						framework={filterFramework}
+						onFrameworkChange={handleFrameworkChange}
+						sortBy={sortBy}
+						onSortChange={(v) => {
 							handleSortChange(v);
-							// Persist to URL and localStorage
 							try { localStorage.setItem('discover.sort', v); } catch {}
 							const next = new URLSearchParams(searchParams);
 							next.set('sort', v);
 							setSearchParams(next, { replace: true });
 						}}
-						availableSorts={['recent', 'popular', 'trending', 'starred']}
+						period={period}
+						onPeriodChange={handlePeriodChange}
 					/>
-					</div>
 
-					{/* Unified App List */}
 					<AppListContainer
-						apps={apps}
+						apps={filteredApps}
 						loading={loading}
 						loadingMore={loadingMore}
 						error={error}

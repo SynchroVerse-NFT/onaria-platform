@@ -275,7 +275,7 @@ const AppMetadata = ({
 					<div className="flex items-center gap-2">
 						<Avatar className="h-8 w-8">
 							<AvatarImage src={app.userAvatar || undefined} />
-							<AvatarFallback className="text-[10px] bg-gradient-to-br from-red-200 to-red-300 font-semibold">
+							<AvatarFallback className="text-[10px] bg-gradient-to-br from-blue-200 to-blue-300 font-semibold">
 								{app.userName?.charAt(0).toUpperCase() || '?'}
 							</AvatarFallback>
 						</Avatar>

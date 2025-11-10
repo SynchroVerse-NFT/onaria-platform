@@ -9,7 +9,7 @@ function ErrorFallback({ error, resetError }: { error: Error | unknown; resetErr
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="max-w-md w-full space-y-6 text-center">
         <div className="flex justify-center">
-          <AlertCircle className="h-16 w-16 text-red-500" />
+          <AlertCircle className="h-16 w-16 text-blue-500" />
         </div>
         
         <div className="space-y-2">
@@ -21,7 +21,7 @@ function ErrorFallback({ error, resetError }: { error: Error | unknown; resetErr
         
         {import.meta.env.DEV && (
           <div className="bg-muted p-4 rounded-lg text-left">
-            <p className="font-mono text-sm text-red-600 break-all">
+            <p className="font-mono text-sm text-blue-600 break-all">
               {errorMessage}
             </p>
           </div>

@@ -24,12 +24,12 @@ const visibilityOptions = [
     color: 'from-green-500/20 to-emerald-500/20',
     activeColor: 'from-green-500/10 to-emerald-500/10'
   },
-  { 
-    value: 'private', 
-    label: 'Private', 
+  {
+    value: 'private',
+    label: 'Private',
     icon: Lock,
-    color: 'from-orange-500/20 to-red-500/20',
-    activeColor: 'from-orange-500/10 to-red-500/10'
+    color: 'from-blue-500/20 to-blue-600/20',
+    activeColor: 'from-blue-500/10 to-blue-600/10'
   },
 ];
 

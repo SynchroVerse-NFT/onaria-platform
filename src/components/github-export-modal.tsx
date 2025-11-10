@@ -18,7 +18,7 @@ const BUTTON_STYLES = {
     secondary: 'bg-bg-2 hover:bg-border text-text-primary py-2 px-4 rounded-lg transition-colors',
     ghost: 'bg-transparent hover:bg-bg-2 text-text-primary/60 hover:text-text-primary py-2 px-4 rounded-lg transition-colors',
     warning: 'bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg font-medium transition-colors',
-    danger: 'bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors'
+    danger: 'bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition-colors'
 } as const;
 
 // Helper functions
@@ -125,7 +125,7 @@ const StatusIndicator: React.FC<{ type: 'success' | 'warning' | 'error'; message
     const colors = {
         success: 'text-green-500',
         warning: 'text-yellow-500',
-        error: 'text-red-500'
+        error: 'text-blue-500'
     };
     const Icon = type === 'success' ? CheckCircle : AlertCircle;
     
@@ -354,7 +354,7 @@ export function GitHubExportModal({
                         ) : exportResult.repositoryAlreadyExists && exportResult.existingRepositoryUrl ? (
                             <StatusMessage
                                 icon={AlertCircle}
-                                iconColor="text-orange-500"
+                                iconColor="text-blue-500"
                                 title="Repository Already Exists"
                                 message="A repository with this name already exists on your GitHub account:"
                             >
@@ -384,7 +384,7 @@ export function GitHubExportModal({
                         ) : (
                             <StatusMessage
                                 icon={AlertCircle}
-                                iconColor="text-red-500"
+                                iconColor="text-blue-500"
                                 title="Export Failed"
                                 message={exportResult.error || 'An error occurred during export'}
                             >
