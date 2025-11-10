@@ -1,0 +1,173 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      # Basic Authentication
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
+
+      # Database Configuration
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:-n8n}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER:-n8n}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_SCHEMA=public
+
+      # Encryption and Security
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+
+      # Network Configuration
+      - WEBHOOK_URL=${WEBHOOK_URL:-https://n8n.yourdomain.com}
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-https}
+      - N8N_HOST=${N8N_DOMAIN:-n8n.yourdomain.com}
+      - N8N_PORT=${N8N_PORT:-5678}
+
+      # General Configuration
+      - GENERIC_TIMEZONE=${TIMEZONE:-UTC}
+      - N8N_LOG_LEVEL=${LOG_LEVEL:-info}
+      - N8N_LOG_OUTPUT=console
+
+      # Performance and Monitoring
+      - N8N_METRICS=true
+      - N8N_METRICS_PREFIX=n8n_
+
+      # Queue Configuration
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - EXECUTIONS_MODE=queue
+      - EXECUTIONS_PROCESS=main
+
+      # Execution Settings
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
+      - EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=true
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=336
+
+      # Endpoints Configuration
+      - N8N_ENDPOINT_WEBHOOK=webhook
+      - N8N_ENDPOINT_WEBHOOK_TEST=webhook-test
+      - N8N_DISABLE_PRODUCTION_MAIN_PROCESS=false
+
+      # User Management
+      - N8N_USER_MANAGEMENT_DISABLED=false
+      - N8N_EMAIL_MODE=smtp
+      - N8N_SMTP_HOST=${SMTP_HOST:-}
+      - N8N_SMTP_PORT=${SMTP_PORT:-587}
+      - N8N_SMTP_USER=${SMTP_USER:-}
+      - N8N_SMTP_PASS=${SMTP_PASS:-}
+      - N8N_SMTP_SENDER=${SMTP_SENDER:-noreply@yourdomain.com}
+
+      # License (for n8n Enterprise features)
+      - N8N_LICENSE_ACTIVATION_KEY=${N8N_LICENSE_KEY:-}
+
+      # Editor Configuration
+      - N8N_EDITOR_BASE_URL=${N8N_EDITOR_URL:-https://n8n.yourdomain.com}
+
+      # API Configuration
+      - N8N_API_KEY=${N8N_API_KEY:-}
+
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-custom-nodes:/home/node/.n8n/custom
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - n8n-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: n8n-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-n8n}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-n8n}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - n8n-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-n8n}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: n8n-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis_data:/data
+    networks:
+      - n8n-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Optional: Nginx reverse proxy for SSL termination
+  nginx:
+    image: nginx:alpine
+    container_name: n8n-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+    depends_on:
+      - n8n
+    networks:
+      - n8n-network
+    profiles:
+      - with-nginx
+
+  # Optional: Certbot for automatic SSL certificates
+  certbot:
+    image: certbot/certbot:latest
+    container_name: n8n-certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    profiles:
+      - with-nginx
+
+volumes:
+  n8n_data:
+    driver: local
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  certbot_conf:
+  certbot_www:
+
+networks:
+  n8n-network:
+    driver: bridge

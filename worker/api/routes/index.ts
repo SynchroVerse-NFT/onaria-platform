@@ -17,6 +17,10 @@ import { setupPaymentMethodRoutes } from './paymentMethodRoutes';
 import { setupUsageRoutes } from './usageRoutes';
 import { setupBillingRoutes } from './billingRoutes';
 import { setupFeatureRoutes } from './featureRoutes';
+import { setupWebhookRoutes } from './webhookRoutes';
+import { setupWorkflowTemplateRoutes } from './workflowTemplateRoutes';
+import { setupWorkflowInstanceRoutes } from './workflowInstanceRoutes';
+import { setupWorkflowExecutionRoutes } from './workflowExecutionRoutes';
 import { Hono } from "hono";
 import { AppEnv } from "../../types/appenv";
 
@@ -72,4 +76,10 @@ export function setupRoutes(app: Hono<AppEnv>): void {
     setupUsageRoutes(app);
     setupBillingRoutes(app);
     setupFeatureRoutes(app);
+
+    // Webhook and Workflow routes
+    setupWebhookRoutes(app);
+    setupWorkflowTemplateRoutes(app);
+    setupWorkflowInstanceRoutes(app);
+    setupWorkflowExecutionRoutes(app);
 }

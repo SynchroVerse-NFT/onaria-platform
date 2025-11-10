@@ -408,6 +408,32 @@ export class DeploymentManager extends BaseAgentService implements IDeploymentMa
                     tunnelURL: preview.tunnelURL ?? ''
                 });
 
+                // Emit deployment.complete event (non-blocking)
+                const state = this.getState();
+                if (state.inferenceContext.userId && preview.previewURL) {
+                    import('../../../services/webhooks/EventEmissionHelpers').then(({ emitDeploymentComplete }) => {
+                        import('../../../database/database').then(({ Database }) => {
+                            const database = new Database(this.getEnv());
+                            emitDeploymentComplete(
+                                this.getEnv(),
+                                database,
+                                state.inferenceContext.agentId,
+                                state.inferenceContext.userId!,
+                                {
+                                    deploymentUrl: preview.previewURL!,
+                                    environment: 'preview',
+                                    appName: state.blueprint.title || state.query.substring(0, 100),
+                                    instanceId: preview.runId
+                                }
+                            ).catch(error => {
+                                logger.error('Failed to emit deployment.complete event', { error });
+                            });
+                        });
+                    }).catch(error => {
+                        logger.error('Failed to load event emission helpers', { error });
+                    });
+                }
+
                 logger.info('Deployment succeeded', { attempt, sessionId: this.getSessionId() });
                 return preview;
                 

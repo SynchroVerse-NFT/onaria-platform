@@ -725,6 +725,371 @@ export const billingHistory = sqliteTable('billing_history', {
 }));
 
 // ========================================
+// WORKFLOW AUTOMATION AND WEBHOOKS
+// ========================================
+
+/**
+ * Workflows table - n8n workflow templates and configurations
+ */
+export const workflows = sqliteTable('workflows', {
+    id: text('id').primaryKey(),
+
+    // Workflow Identity
+    name: text('name').notNull(),
+    description: text('description'),
+    category: text('category').notNull(), // 'productivity', 'marketing', 'dev-ops', 'data', 'custom'
+
+    // Template Information
+    isTemplate: integer('is_template', { mode: 'boolean' }).default(false),
+    templateData: text('template_data', { mode: 'json' }), // n8n workflow JSON
+    iconUrl: text('icon_url'),
+
+    // Configuration
+    requiredSecrets: text('required_secrets', { mode: 'json' }).default('[]'), // Array of required secret types
+    configSchema: text('config_schema', { mode: 'json' }), // JSON schema for configuration
+
+    // Status and Visibility
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    isPublic: integer('is_public', { mode: 'boolean' }).default(false),
+
+    // Ownership
+    createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+    categoryIdx: index('workflows_category_idx').on(table.category),
+    isTemplateIdx: index('workflows_is_template_idx').on(table.isTemplate),
+    isPublicIdx: index('workflows_is_public_idx').on(table.isPublic),
+    createdByIdx: index('workflows_created_by_idx').on(table.createdBy),
+}));
+
+/**
+ * Workflow Instances table - User-deployed workflow instances in n8n
+ */
+export const workflowInstances = sqliteTable('workflow_instances', {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    workflowId: text('workflow_id').notNull().references(() => workflows.id, { onDelete: 'cascade' }),
+
+    // n8n Integration
+    n8nWorkflowId: text('n8n_workflow_id').notNull().unique(), // n8n's internal workflow ID
+    n8nWebhookUrl: text('n8n_webhook_url'), // Webhook URL from n8n
+
+    // Instance Configuration
+    name: text('name').notNull(), // User's custom name for this instance
+    config: text('config', { mode: 'json' }).default('{}'), // User-provided configuration
+
+    // Status
+    status: text('status', {
+        enum: ['active', 'inactive', 'error', 'paused']
+    }).default('inactive'),
+    lastExecutedAt: integer('last_executed_at', { mode: 'timestamp' }),
+    executionCount: integer('execution_count').default(0),
+    errorCount: integer('error_count').default(0),
+    lastError: text('last_error'),
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    activatedAt: integer('activated_at', { mode: 'timestamp' }),
+    deactivatedAt: integer('deactivated_at', { mode: 'timestamp' }),
+}, (table) => ({
+    userIdx: index('workflow_instances_user_idx').on(table.userId),
+    workflowIdx: index('workflow_instances_workflow_idx').on(table.workflowId),
+    statusIdx: index('workflow_instances_status_idx').on(table.status),
+    n8nWorkflowIdIdx: uniqueIndex('workflow_instances_n8n_workflow_id_idx').on(table.n8nWorkflowId),
+}));
+
+/**
+ * Workflow Executions table - Track workflow execution history
+ */
+export const workflowExecutions = sqliteTable('workflow_executions', {
+    id: text('id').primaryKey(),
+    instanceId: text('instance_id').notNull().references(() => workflowInstances.id, { onDelete: 'cascade' }),
+
+    // n8n Integration
+    n8nExecutionId: text('n8n_execution_id').notNull(),
+
+    // Execution Details
+    status: text('status', {
+        enum: ['running', 'success', 'error', 'waiting', 'canceled']
+    }).notNull(),
+    mode: text('mode', { enum: ['manual', 'trigger', 'webhook'] }).notNull(),
+
+    // Trigger Information
+    triggeredBy: text('triggered_by'), // Event type or 'manual'
+    triggerData: text('trigger_data', { mode: 'json' }), // Input data
+
+    // Results
+    resultData: text('result_data', { mode: 'json' }), // Output data
+    error: text('error'),
+
+    // Timing
+    startedAt: integer('started_at', { mode: 'timestamp' }).notNull(),
+    finishedAt: integer('finished_at', { mode: 'timestamp' }),
+    duration: integer('duration'), // Duration in milliseconds
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+    instanceIdx: index('workflow_executions_instance_idx').on(table.instanceId),
+    statusIdx: index('workflow_executions_status_idx').on(table.status),
+    startedAtIdx: index('workflow_executions_started_at_idx').on(table.startedAt),
+    n8nExecutionIdIdx: index('workflow_executions_n8n_execution_id_idx').on(table.n8nExecutionId),
+}));
+
+/**
+ * Webhooks table - User-configured webhooks for receiving events
+ */
+export const webhooks = sqliteTable('webhooks', {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+
+    // Webhook Configuration
+    name: text('name').notNull(), // User-friendly name
+    description: text('description'),
+    url: text('url').notNull(), // Target URL for webhook delivery
+    secret: text('secret').notNull(), // HMAC signing secret
+
+    // Event Subscription
+    events: text('events', { mode: 'json' }).notNull(), // Array of subscribed event types
+
+    // Filters and Conditions
+    filters: text('filters', { mode: 'json' }).default('{}'), // Optional event filters
+
+    // Security and Configuration
+    timeout: integer('timeout').default(30000), // Request timeout in ms
+    retryEnabled: integer('retry_enabled', { mode: 'boolean' }).default(true),
+    maxRetries: integer('max_retries').default(3),
+
+    // Headers
+    customHeaders: text('custom_headers', { mode: 'json' }).default('{}'), // Custom HTTP headers
+
+    // Status and Health
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    lastTriggeredAt: integer('last_triggered_at', { mode: 'timestamp' }),
+    lastSuccessAt: integer('last_success_at', { mode: 'timestamp' }),
+    lastFailureAt: integer('last_failure_at', { mode: 'timestamp' }),
+    consecutiveFailures: integer('consecutive_failures').default(0),
+
+    // Statistics
+    totalDeliveries: integer('total_deliveries').default(0),
+    successfulDeliveries: integer('successful_deliveries').default(0),
+    failedDeliveries: integer('failed_deliveries').default(0),
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+    userIdx: index('webhooks_user_idx').on(table.userId),
+    isActiveIdx: index('webhooks_is_active_idx').on(table.isActive),
+    lastTriggeredAtIdx: index('webhooks_last_triggered_at_idx').on(table.lastTriggeredAt),
+}));
+
+/**
+ * Webhook Logs table - Detailed webhook delivery logs
+ */
+export const webhookLogs = sqliteTable('webhook_logs', {
+    id: text('id').primaryKey(),
+    webhookId: text('webhook_id').notNull().references(() => webhooks.id, { onDelete: 'cascade' }),
+
+    // Request Details
+    eventType: text('event_type').notNull(),
+    payload: text('payload', { mode: 'json' }).notNull(),
+    url: text('url').notNull(), // URL at time of delivery (may change)
+
+    // Delivery Attempt
+    attemptNumber: integer('attempt_number').default(1),
+    status: text('status', {
+        enum: ['pending', 'success', 'failed', 'retrying']
+    }).notNull(),
+
+    // Response Details
+    statusCode: integer('status_code'),
+    responseBody: text('response_body'),
+    responseTime: integer('response_time'), // Response time in ms
+    error: text('error'),
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    deliveredAt: integer('delivered_at', { mode: 'timestamp' }),
+    nextRetryAt: integer('next_retry_at', { mode: 'timestamp' }),
+}, (table) => ({
+    webhookIdx: index('webhook_logs_webhook_idx').on(table.webhookId),
+    statusIdx: index('webhook_logs_status_idx').on(table.status),
+    createdAtIdx: index('webhook_logs_created_at_idx').on(table.createdAt),
+    nextRetryAtIdx: index('webhook_logs_next_retry_at_idx').on(table.nextRetryAt),
+    webhookStatusIdx: index('webhook_logs_webhook_status_idx').on(table.webhookId, table.status),
+}));
+
+// ========================================
+// N8N WORKFLOW INTEGRATION (NEW SCHEMA)
+// ========================================
+
+/**
+ * Webhooks table - User-configured webhooks for receiving events
+ * Platform-hosted n8n architecture: one n8n instance for all users
+ */
+export const webhooksNew = sqliteTable('webhooks', {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+
+    // Webhook Configuration
+    name: text('name').notNull(),
+    url: text('url').notNull(), // n8n webhook URL
+    secret: text('secret').notNull(), // HMAC signing secret
+
+    // Event Subscription
+    events: text('events').notNull(), // JSON array of event types ['app.created', 'app.deployed', etc.]
+
+    // Status and Health
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    lastTriggeredAt: integer('last_triggered_at', { mode: 'timestamp' }),
+    triggerCount: integer('trigger_count').default(0),
+    failureCount: integer('failure_count').default(0),
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+}, (table) => ({
+    userIdx: index('webhooks_user_id_idx').on(table.userId),
+    isActiveIdx: index('webhooks_is_active_idx').on(table.isActive),
+}));
+
+/**
+ * Webhook Logs table - Detailed webhook delivery logs
+ */
+export const webhookLogsNew = sqliteTable('webhook_logs', {
+    id: text('id').primaryKey(),
+    webhookId: text('webhook_id').notNull().references(() => webhooksNew.id, { onDelete: 'cascade' }),
+
+    // Request Details
+    eventType: text('event_type').notNull(), // 'app.created', 'app.deployed', etc.
+    payload: text('payload').notNull(), // JSON payload sent
+
+    // Response Details
+    responseStatus: integer('response_status'), // HTTP status code
+    responseBody: text('response_body'), // Response from webhook
+    responseTime: integer('response_time'), // Milliseconds
+    success: integer('success', { mode: 'boolean' }),
+    error: text('error'), // Error message if failed
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (table) => ({
+    webhookIdx: index('webhook_logs_webhook_id_idx').on(table.webhookId),
+    eventTypeIdx: index('webhook_logs_event_type_idx').on(table.eventType),
+    createdAtIdx: index('webhook_logs_created_at_idx').on(table.createdAt),
+}));
+
+/**
+ * Workflow Templates table - n8n workflow templates
+ */
+export const workflowTemplates = sqliteTable('workflow_templates', {
+    id: text('id').primaryKey(),
+
+    // Template Identity
+    name: text('name').notNull(),
+    description: text('description').notNull(),
+    category: text('category').notNull(), // 'lead_capture', 'notifications', 'analytics', etc.
+
+    // n8n Configuration
+    n8nWorkflowJson: text('n8n_workflow_json').notNull(), // Serialized n8n workflow
+    eventType: text('event_type').notNull(), // Primary event trigger
+
+    // Requirements
+    requiredServices: text('required_services'), // JSON array ['gmail', 'sheets', 'slack']
+
+    // Display
+    icon: text('icon'), // Icon identifier
+
+    // Status
+    isOfficial: integer('is_official', { mode: 'boolean' }).default(false), // Platform-provided template
+    usageCount: integer('usage_count').default(0),
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+}, (table) => ({
+    categoryIdx: index('workflow_templates_category_idx').on(table.category),
+    eventTypeIdx: index('workflow_templates_event_type_idx').on(table.eventType),
+    isOfficialIdx: index('workflow_templates_is_official_idx').on(table.isOfficial),
+}));
+
+/**
+ * Workflow Instances table - User-deployed workflow instances
+ */
+export const workflowInstancesNew = sqliteTable('workflow_instances', {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    templateId: text('template_id').references(() => workflowTemplates.id, { onDelete: 'set null' }),
+
+    // Instance Identity
+    name: text('name').notNull(),
+
+    // n8n Integration
+    n8nWorkflowId: text('n8n_workflow_id'), // ID in n8n system
+    webhookId: text('webhook_id').notNull().references(() => webhooksNew.id, { onDelete: 'cascade' }),
+
+    // Status
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    configuration: text('configuration'), // JSON config/credentials
+
+    // Execution Tracking
+    lastExecutionAt: integer('last_execution_at', { mode: 'timestamp' }),
+    executionCount: integer('execution_count').default(0),
+    successCount: integer('success_count').default(0),
+    failureCount: integer('failure_count').default(0),
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+}, (table) => ({
+    userIdx: index('workflow_instances_user_id_idx').on(table.userId),
+    templateIdx: index('workflow_instances_template_id_idx').on(table.templateId),
+    webhookIdx: index('workflow_instances_webhook_id_idx').on(table.webhookId),
+    isActiveIdx: index('workflow_instances_is_active_idx').on(table.isActive),
+}));
+
+/**
+ * Workflow Executions table - Track workflow execution history
+ */
+export const workflowExecutionsNew = sqliteTable('workflow_executions', {
+    id: text('id').primaryKey(),
+    workflowInstanceId: text('workflow_instance_id').notNull().references(() => workflowInstancesNew.id, { onDelete: 'cascade' }),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+
+    // Execution Details
+    eventType: text('event_type').notNull(),
+    triggerData: text('trigger_data').notNull(), // JSON trigger payload
+    status: text('status').notNull(), // 'success', 'failed', 'running', 'cancelled'
+
+    // n8n Integration
+    n8nExecutionId: text('n8n_execution_id'), // Execution ID in n8n
+
+    // Timing
+    startedAt: integer('started_at', { mode: 'timestamp' }).notNull(),
+    completedAt: integer('completed_at', { mode: 'timestamp' }),
+    duration: integer('duration'), // Milliseconds
+
+    // Results
+    errorMessage: text('error_message'),
+    logs: text('logs'), // JSON execution logs
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (table) => ({
+    workflowInstanceIdx: index('workflow_executions_workflow_instance_id_idx').on(table.workflowInstanceId),
+    userIdx: index('workflow_executions_user_id_idx').on(table.userId),
+    eventTypeIdx: index('workflow_executions_event_type_idx').on(table.eventType),
+    statusIdx: index('workflow_executions_status_idx').on(table.status),
+    createdAtIdx: index('workflow_executions_created_at_idx').on(table.createdAt),
+>>>>>>> feature/n8n-workflows
+}));
+
+// ========================================
 // SYSTEM CONFIGURATION
 // ========================================
 
@@ -819,6 +1184,37 @@ export type NewUsageMetric = typeof usageMetrics.$inferInsert;
 export type BillingHistory = typeof billingHistory.$inferSelect;
 export type NewBillingHistory = typeof billingHistory.$inferInsert;
 
+export type Workflow = typeof workflows.$inferSelect;
+export type NewWorkflow = typeof workflows.$inferInsert;
+
+export type WorkflowInstance = typeof workflowInstances.$inferSelect;
+export type NewWorkflowInstance = typeof workflowInstances.$inferInsert;
+
+export type WorkflowExecution = typeof workflowExecutions.$inferSelect;
+export type NewWorkflowExecution = typeof workflowExecutions.$inferInsert;
+
+export type Webhook = typeof webhooks.$inferSelect;
+export type NewWebhook = typeof webhooks.$inferInsert;
+
+export type WebhookLog = typeof webhookLogs.$inferSelect;
+export type NewWebhookLog = typeof webhookLogs.$inferInsert;
+
+// N8N Workflow Integration Types (New Schema)
+export type WebhookNew = typeof webhooksNew.$inferSelect;
+export type NewWebhookNew = typeof webhooksNew.$inferInsert;
+
+export type WebhookLogNew = typeof webhookLogsNew.$inferSelect;
+export type NewWebhookLogNew = typeof webhookLogsNew.$inferInsert;
+
+export type WorkflowTemplate = typeof workflowTemplates.$inferSelect;
+export type NewWorkflowTemplate = typeof workflowTemplates.$inferInsert;
+
+export type WorkflowInstanceNew = typeof workflowInstancesNew.$inferSelect;
+export type NewWorkflowInstanceNew = typeof workflowInstancesNew.$inferInsert;
+
+export type WorkflowExecutionNew = typeof workflowExecutionsNew.$inferSelect;
+export type NewWorkflowExecutionNew = typeof workflowExecutionsNew.$inferInsert;
+
 // Payment and Subscription Type Enums
 export type SubscriptionTier = 'free' | 'pro' | 'business' | 'enterprise' | 'byok';
 export type SubscriptionStatus = 'active' | 'pending' | 'expired' | 'cancelled' | 'past_due';
@@ -827,3 +1223,15 @@ export type CryptoPaymentStatus = 'pending' | 'confirming' | 'verified' | 'faile
 export type Chain = 'ethereum' | 'solana' | 'polygon' | 'base';
 export type PaymentMethodType = 'wallet' | 'stripe';
 export type BillingHistoryType = 'subscription' | 'upgrade' | 'overage' | 'refund';
+
+// Workflow Event Types (Enums)
+export type WorkflowEventType =
+  | 'app.created'
+  | 'app.deployed'
+  | 'app.error'
+  | 'app.exported'
+  | 'generation.complete'
+  | 'deployment.complete';
+
+export type WorkflowExecutionStatus = 'success' | 'failed' | 'running' | 'cancelled';
+export type WorkflowCategory = 'lead_capture' | 'notifications' | 'analytics' | 'automation' | 'integration';

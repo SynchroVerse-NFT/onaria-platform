@@ -449,6 +449,31 @@ type LimitExceededMessage = {
 	limit: number;
 };
 
+type WorkflowTriggeredMessage = {
+	type: 'workflow_triggered';
+	workflowId: string;
+	workflowName: string;
+	eventType: string;
+	timestamp: number;
+};
+
+type WorkflowExecutionUpdateMessage = {
+	type: 'workflow_execution_update';
+	executionId: string;
+	workflowId: string;
+	status: 'running' | 'success' | 'error' | 'waiting' | 'canceled';
+	progress?: number;
+};
+
+type WorkflowExecutionCompleteMessage = {
+	type: 'workflow_execution_complete';
+	executionId: string;
+	workflowId: string;
+	status: 'running' | 'success' | 'error' | 'waiting' | 'canceled';
+	duration: number;
+	error?: string;
+};
+
 export type WebSocketMessage =
 	| StateMessage
 	| AgentConnectedMessage
@@ -506,7 +531,10 @@ export type WebSocketMessage =
 	| ServerLogMessage
 	| UsageUpdatedMessage
 	| LimitWarningMessage
-	| LimitExceededMessage;
+	| LimitExceededMessage
+	| WorkflowTriggeredMessage
+	| WorkflowExecutionUpdateMessage
+	| WorkflowExecutionCompleteMessage;
 
 // A type representing all possible message type strings (e.g., 'generation_started', 'file_generating', etc.)
 export type WebSocketMessageType = WebSocketMessage['type'];

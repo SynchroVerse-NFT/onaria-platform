@@ -13,6 +13,7 @@ import {
 	Compass,
 	Sparkles,
 	CreditCard,
+	Zap,
 } from 'lucide-react';
 import './sidebar-overrides.css';
 import { useRecentApps, useFavoriteApps, useApps } from '@/hooks/use-apps';
@@ -611,6 +612,20 @@ export function AppSidebar() {
 									{!isCollapsed && (
 										<span className="text-text-primary/80 font-medium group-hover:text-primary transition-colors">
 											Pricing
+										</span>
+									)}
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									onClick={() => navigate('/workflows')}
+									tooltip="Workflows"
+									className="group hover:opacity-80 hover:cursor-pointer hover:bg-bg-1/50 transition-all duration-200"
+								>
+									<Zap className="h-6 w-6 text-text-primary/60 group-hover:text-primary/80 transition-colors" />
+									{!isCollapsed && (
+										<span className="text-text-primary/80 font-medium group-hover:text-primary transition-colors">
+											Workflows
 										</span>
 									)}
 								</SidebarMenuButton>

@@ -89,6 +89,10 @@
             {
                 "class_name": "DORateLimitStore",
                 "name": "DORateLimitStore"
+            },
+            {
+                "class_name": "WebhookQueue",
+                "name": "WEBHOOK_QUEUE"
             }
 		]
 	},
@@ -122,6 +126,12 @@
                 "DORateLimitStore"
             ],
             "tag": "v2"
+        },
+        {
+            "new_sqlite_classes": [
+                "WebhookQueue"
+            ],
+            "tag": "v3"
         }
 	],
 	"routes": [
@@ -145,12 +155,18 @@
         // Note: For GitHub exports, use noreply format to avoid email verification issues
         "GIT_AUTHOR_NAME": "Onaria Platform",
         "GIT_AUTHOR_EMAIL": "noreply@onaria.xyz",
-
         // Platform Wallet Addresses for Crypto Payments
         // IMPORTANT: Replace these with your actual wallet addresses before deploying
         "PLATFORM_WALLET_ETH": "0x0000000000000000000000000000000000000000",
         "PLATFORM_WALLET_SOL": "11111111111111111111111111111111",
-        "PLATFORM_WALLET_POLYGON": "0x0000000000000000000000000000000000000000"
+        "PLATFORM_WALLET_POLYGON": "0x0000000000000000000000000000000000000000",
+        // n8n Integration Configuration
+        "N8N_API_URL": "https://n8n.onaria.xyz",
+        "N8N_API_KEY": "",
+        "N8N_WEBHOOK_BASE_URL": "https://n8n.onaria.xyz/webhook",
+        // Webhook Configuration
+        "WEBHOOK_TIMEOUT_MS": "30000",
+        "WEBHOOK_MAX_RETRIES": "3"
     },
 	"workers_dev": false,
 	"preview_urls": false

@@ -408,3 +408,179 @@ export type {
   AvailableFeaturesData,
   FeatureCheckData
 } from 'worker/api/controllers/features/types';
+
+// ========================================
+// WEBHOOK AND WORKFLOW TYPES
+// ========================================
+
+/**
+ * Webhook event types that can trigger workflows
+ */
+export type WorkflowEventType =
+    | 'app.created'
+    | 'app.deployed'
+    | 'app.error'
+    | 'app.exported'
+    | 'generation.complete'
+    | 'deployment.complete';
+
+/**
+ * Workflow execution status
+ */
+export type WorkflowExecutionStatus = 'success' | 'failed' | 'running' | 'cancelled';
+
+/**
+ * Workflow category for organization
+ */
+export type WorkflowCategory = 'lead_capture' | 'notifications' | 'analytics' | 'automation' | 'integration';
+
+/**
+ * Webhook entity - user-defined HTTP endpoints that receive events
+ */
+export interface Webhook {
+    id: string;
+    userId: string;
+    name: string;
+    url: string;
+    events: WorkflowEventType[];
+    isActive: boolean;
+    lastTriggeredAt?: number;
+    triggerCount: number;
+    failureCount: number;
+    createdAt: number;
+    updatedAt: number;
+}
+
+/**
+ * Webhook delivery log entry
+ */
+export interface WebhookLog {
+    id: string;
+    webhookId: string;
+    eventType: string;
+    payload: Record<string, unknown>;
+    responseStatus?: number;
+    responseBody?: string;
+    responseTime: number;
+    success: boolean;
+    error?: string;
+    createdAt: number;
+}
+
+/**
+ * Workflow template - predefined workflow blueprints
+ */
+export interface WorkflowTemplate {
+    id: string;
+    name: string;
+    description: string;
+    category: WorkflowCategory;
+    eventType: WorkflowEventType;
+    requiredServices: string[];
+    icon: string;
+    isOfficial: boolean;
+    usageCount: number;
+}
+
+/**
+ * Workflow instance - instantiated workflow from template
+ */
+export interface WorkflowInstance {
+    id: string;
+    userId: string;
+    templateId?: string;
+    name: string;
+    n8nWorkflowId?: string;
+    webhookId: string;
+    isActive: boolean;
+    configuration: Record<string, unknown>;
+    lastExecutionAt?: number;
+    executionCount: number;
+    successCount: number;
+    failureCount: number;
+    createdAt: number;
+    updatedAt: number;
+}
+
+/**
+ * Workflow execution record
+ */
+export interface WorkflowExecution {
+    id: string;
+    workflowInstanceId: string;
+    userId: string;
+    eventType: string;
+    triggerData: Record<string, unknown>;
+    status: WorkflowExecutionStatus;
+    n8nExecutionId?: string;
+    startedAt: number;
+    completedAt?: number;
+    duration?: number;
+    errorMessage?: string;
+    logs?: Record<string, unknown>;
+}
+
+/**
+ * Webhook delivery result for testing
+ */
+export interface DeliveryResult {
+    status: number;
+    body?: string;
+    error?: string;
+    duration: number;
+}
+
+// ========================================
+// WEBHOOK AND WORKFLOW API RESPONSE TYPES
+// ========================================
+
+/**
+ * n8n workflow JSON structure (simplified)
+ */
+export interface N8nWorkflowJson {
+    name: string;
+    nodes: Array<Record<string, unknown>>;
+    connections: Record<string, unknown>;
+    settings: Record<string, unknown>;
+}
+
+// Webhook API Response Types
+export type {
+    WebhookCreateData,
+    WebhooksListData,
+    WebhookData,
+    WebhookUpdateData,
+    WebhookDeleteData,
+    WebhookTestData,
+    WebhookRegenerateSecretData,
+    WebhookLogsData,
+} from 'worker/api/controllers/webhooks/types';
+
+export type {
+    EventEmitData,
+} from 'worker/api/controllers/webhooks/events/types';
+
+// Workflow Template API Response Types
+export type {
+    WorkflowTemplatesListData,
+    WorkflowTemplateData,
+    WorkflowTemplatePreviewData,
+} from 'worker/api/controllers/workflows/templates/types';
+
+// Workflow Instance API Response Types
+export type {
+    WorkflowInstanceCreateData,
+    WorkflowInstancesListData,
+    WorkflowInstanceData,
+    WorkflowInstanceUpdateData,
+    WorkflowInstanceStatusData,
+    WorkflowInstanceDeleteData,
+} from 'worker/api/controllers/workflows/instances/types';
+
+// Workflow Execution API Response Types
+export type {
+    WorkflowExecutionsListData,
+    WorkflowExecutionData,
+    WorkflowExecutionRetryData,
+    WorkflowStatsData,
+} from 'worker/api/controllers/workflows/executions/types';

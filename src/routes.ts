@@ -11,6 +11,7 @@ import AppView from './routes/app';
 import DiscoverPage from './routes/discover';
 import TemplatesPage from './routes/templates';
 import PricingPage from './routes/pricing';
+import WorkflowsPage from './routes/workflows';
 import { ProtectedRoute } from './routes/protected-route';
 
 const routes = [
@@ -53,6 +54,10 @@ const routes = [
 			{
 				path: 'pricing',
 				Component: PricingPage,
+			},
+			{
+				path: 'workflows',
+				element: React.createElement(ProtectedRoute, { children: React.createElement(WorkflowsPage) }),
 			},
 		],
 	},

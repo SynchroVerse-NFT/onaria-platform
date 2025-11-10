@@ -79,7 +79,35 @@ import type{
 	InvoiceDetailsData,
 	NextBillingData,
 	AvailableFeaturesData,
-	FeatureCheckData
+	FeatureCheckData,
+	Webhook,
+	WebhookLog,
+	WorkflowTemplate,
+	WorkflowInstance,
+	WorkflowExecution,
+	WorkflowEventType,
+	DeliveryResult,
+	WebhookCreateData,
+	WebhooksListData,
+	WebhookData,
+	WebhookUpdateData,
+	WebhookDeleteData,
+	WebhookTestData,
+	WebhookRegenerateSecretData,
+	WebhookLogsData,
+	WorkflowTemplatesListData,
+	WorkflowTemplateData,
+	WorkflowTemplatePreviewData,
+	WorkflowInstanceCreateData,
+	WorkflowInstancesListData,
+	WorkflowInstanceData,
+	WorkflowInstanceUpdateData,
+	WorkflowInstanceStatusData,
+	WorkflowInstanceDeleteData,
+	WorkflowExecutionsListData,
+	WorkflowExecutionData,
+	WorkflowExecutionRetryData,
+	WorkflowStatsData,
 } from '@/api-types';
 import {
     
@@ -1453,6 +1481,312 @@ class ApiClient {
 	 */
 	async checkFeatureAccess(featureName: string): Promise<ApiResponse<FeatureCheckData>> {
 		return this.request<FeatureCheckData>(`/api/features/${featureName}/check`);
+	}
+
+	// ===============================
+	// Webhooks API Methods
+	// ===============================
+
+	/**
+	 * Create a new webhook
+	 */
+	async createWebhook(data: {
+		name: string;
+		url: string;
+		events: WorkflowEventType[];
+	}): Promise<ApiResponse<WebhookCreateData>> {
+		return this.request<WebhookCreateData>('/api/webhooks', {
+			method: 'POST',
+			body: data,
+		});
+	}
+
+	/**
+	 * Get user's webhooks
+	 */
+	async getWebhooks(isActive?: boolean): Promise<ApiResponse<WebhooksListData>> {
+		const queryParams = new URLSearchParams();
+		if (isActive !== undefined) {
+			queryParams.set('isActive', isActive.toString());
+		}
+		const endpoint = `/api/webhooks${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+		return this.request<WebhooksListData>(endpoint);
+	}
+
+	/**
+	 * Get specific webhook
+	 */
+	async getWebhook(id: string): Promise<ApiResponse<WebhookData>> {
+		return this.request<WebhookData>(`/api/webhooks/${id}`);
+	}
+
+	/**
+	 * Update webhook
+	 */
+	async updateWebhook(
+		id: string,
+		data: Partial<Omit<Webhook, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'triggerCount' | 'failureCount'>>
+	): Promise<ApiResponse<WebhookUpdateData>> {
+		return this.request<WebhookUpdateData>(`/api/webhooks/${id}`, {
+			method: 'PUT',
+			body: data,
+		});
+	}
+
+	/**
+	 * Delete webhook
+	 */
+	async deleteWebhook(id: string): Promise<ApiResponse<WebhookDeleteData>> {
+		return this.request<WebhookDeleteData>(`/api/webhooks/${id}`, {
+			method: 'DELETE',
+		});
+	}
+
+	/**
+	 * Test webhook
+	 */
+	async testWebhook(
+		id: string,
+		payload?: Record<string, unknown>
+	): Promise<ApiResponse<WebhookTestData>> {
+		return this.request<WebhookTestData>(`/api/webhooks/${id}/test`, {
+			method: 'POST',
+			body: { payload },
+		});
+	}
+
+	/**
+	 * Regenerate webhook secret
+	 */
+	async regenerateWebhookSecret(
+		id: string
+	): Promise<ApiResponse<WebhookRegenerateSecretData>> {
+		return this.request<WebhookRegenerateSecretData>(
+			`/api/webhooks/${id}/regenerate-secret`,
+			{
+				method: 'POST',
+			}
+		);
+	}
+
+	/**
+	 * Get webhook delivery logs
+	 */
+	async getWebhookLogs(
+		id: string,
+		params?: { limit?: number; offset?: number; success?: boolean }
+	): Promise<ApiResponse<WebhookLogsData>> {
+		const queryParams = new URLSearchParams();
+		if (params?.limit) queryParams.set('limit', params.limit.toString());
+		if (params?.offset) queryParams.set('offset', params.offset.toString());
+		if (params?.success !== undefined) {
+			queryParams.set('success', params.success.toString());
+		}
+
+		const endpoint = `/api/webhooks/${id}/logs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+		return this.request<WebhookLogsData>(endpoint);
+	}
+
+	// ===============================
+	// Workflow Templates API Methods
+	// ===============================
+
+	/**
+	 * Get available workflow templates
+	 */
+	async getWorkflowTemplates(
+		category?: string
+	): Promise<ApiResponse<WorkflowTemplatesListData>> {
+		const queryParams = new URLSearchParams();
+		if (category) queryParams.set('category', category);
+
+		const endpoint = `/api/workflows/templates${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+		return this.request<WorkflowTemplatesListData>(endpoint);
+	}
+
+	/**
+	 * Get specific workflow template
+	 */
+	async getWorkflowTemplate(
+		id: string
+	): Promise<ApiResponse<WorkflowTemplateData>> {
+		return this.request<WorkflowTemplateData>(
+			`/api/workflows/templates/${id}`
+		);
+	}
+
+	/**
+	 * Preview workflow template in n8n format
+	 */
+	async previewWorkflowTemplate(
+		id: string
+	): Promise<ApiResponse<WorkflowTemplatePreviewData>> {
+		return this.request<WorkflowTemplatePreviewData>(
+			`/api/workflows/templates/${id}/preview`,
+			{
+				method: 'POST',
+			}
+		);
+	}
+
+	// ===============================
+	// Workflow Instances API Methods
+	// ===============================
+
+	/**
+	 * Create workflow instance from template
+	 */
+	async createWorkflowInstance(data: {
+		templateId: string;
+		name: string;
+		configuration: Record<string, unknown>;
+	}): Promise<ApiResponse<WorkflowInstanceCreateData>> {
+		return this.request<WorkflowInstanceCreateData>(
+			'/api/workflows/instances',
+			{
+				method: 'POST',
+				body: data,
+			}
+		);
+	}
+
+	/**
+	 * Get user's workflow instances
+	 */
+	async getWorkflowInstances(
+		isActive?: boolean
+	): Promise<ApiResponse<WorkflowInstancesListData>> {
+		const queryParams = new URLSearchParams();
+		if (isActive !== undefined) {
+			queryParams.set('isActive', isActive.toString());
+		}
+
+		const endpoint = `/api/workflows/instances${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+		return this.request<WorkflowInstancesListData>(endpoint);
+	}
+
+	/**
+	 * Get specific workflow instance
+	 */
+	async getWorkflowInstance(
+		id: string
+	): Promise<ApiResponse<WorkflowInstanceData>> {
+		return this.request<WorkflowInstanceData>(
+			`/api/workflows/instances/${id}`
+		);
+	}
+
+	/**
+	 * Update workflow instance
+	 */
+	async updateWorkflowInstance(
+		id: string,
+		data: Partial<Pick<WorkflowInstance, 'name' | 'configuration'>>
+	): Promise<ApiResponse<WorkflowInstanceUpdateData>> {
+		return this.request<WorkflowInstanceUpdateData>(
+			`/api/workflows/instances/${id}`,
+			{
+				method: 'PUT',
+				body: data,
+			}
+		);
+	}
+
+	/**
+	 * Activate workflow instance
+	 */
+	async activateWorkflow(
+		id: string
+	): Promise<ApiResponse<WorkflowInstanceStatusData>> {
+		return this.request<WorkflowInstanceStatusData>(
+			`/api/workflows/instances/${id}/activate`,
+			{
+				method: 'POST',
+			}
+		);
+	}
+
+	/**
+	 * Deactivate workflow instance
+	 */
+	async deactivateWorkflow(
+		id: string
+	): Promise<ApiResponse<WorkflowInstanceStatusData>> {
+		return this.request<WorkflowInstanceStatusData>(
+			`/api/workflows/instances/${id}/deactivate`,
+			{
+				method: 'POST',
+			}
+		);
+	}
+
+	/**
+	 * Delete workflow instance
+	 */
+	async deleteWorkflowInstance(
+		id: string
+	): Promise<ApiResponse<WorkflowInstanceDeleteData>> {
+		return this.request<WorkflowInstanceDeleteData>(
+			`/api/workflows/instances/${id}`,
+			{
+				method: 'DELETE',
+			}
+		);
+	}
+
+	// ===============================
+	// Workflow Executions API Methods
+	// ===============================
+
+	/**
+	 * Get workflow executions
+	 */
+	async getWorkflowExecutions(params?: {
+		instanceId?: string;
+		status?: string;
+		limit?: number;
+		offset?: number;
+	}): Promise<ApiResponse<WorkflowExecutionsListData>> {
+		const queryParams = new URLSearchParams();
+		if (params?.instanceId) queryParams.set('instanceId', params.instanceId);
+		if (params?.status) queryParams.set('status', params.status);
+		if (params?.limit) queryParams.set('limit', params.limit.toString());
+		if (params?.offset) queryParams.set('offset', params.offset.toString());
+
+		const endpoint = `/api/workflows/executions${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+		return this.request<WorkflowExecutionsListData>(endpoint);
+	}
+
+	/**
+	 * Get specific workflow execution
+	 */
+	async getWorkflowExecution(
+		id: string
+	): Promise<ApiResponse<WorkflowExecutionData>> {
+		return this.request<WorkflowExecutionData>(
+			`/api/workflows/executions/${id}`
+		);
+	}
+
+	/**
+	 * Retry failed workflow execution
+	 */
+	async retryWorkflowExecution(
+		id: string
+	): Promise<ApiResponse<WorkflowExecutionRetryData>> {
+		return this.request<WorkflowExecutionRetryData>(
+			`/api/workflows/executions/${id}/retry`,
+			{
+				method: 'POST',
+			}
+		);
+	}
+
+	/**
+	 * Get workflow execution statistics
+	 */
+	async getWorkflowStats(): Promise<ApiResponse<WorkflowStatsData>> {
+		return this.request<WorkflowStatsData>('/api/workflows/stats');
 	}
 }
 
