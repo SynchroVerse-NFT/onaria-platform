@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { AuthButton } from '../auth/auth-button';
+import { WalletHeaderButton } from '../wallet/wallet-header-button';
 import { ThemeToggle } from '../theme-toggle';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/auth-context';
@@ -96,6 +97,7 @@ export function GlobalHeader() {
 							/>
 						)} */}
 							<ThemeToggle />
+							<WalletHeaderButton />
 							<AuthButton />
 						</motion.div>
 					</div>
