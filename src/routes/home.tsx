@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
-import { ArrowRight, Info, Sparkles, Rocket, Globe, Users, Github, BarChart, TrendingUp, Code2 } from 'lucide-react';
+import { ArrowRight, Info, Sparkles, Code2 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -17,7 +17,6 @@ import { ImageUploadButton } from '@/components/image-upload-button';
 import { ImageAttachmentPreview } from '@/components/image-attachment-preview';
 import { SUPPORTED_IMAGE_MIME_TYPES } from '@/api-types';
 import { Button } from '@/components/ui/button';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Home() {
 	const navigate = useNavigate();
@@ -124,39 +123,6 @@ export default function Home() {
 
 	const discoverLinkRef = useRef<HTMLDivElement>(null);
 
-	const features = [
-		{
-			icon: Sparkles,
-			title: "AI-Powered Generation",
-			description: "Generate full-stack applications from simple text descriptions using advanced AI models."
-		},
-		{
-			icon: Rocket,
-			title: "One-Click Deployment",
-			description: "Deploy your applications instantly to production with our serverless infrastructure."
-		},
-		{
-			icon: Globe,
-			title: "Custom Domains",
-			description: "Connect your own domain names and SSL certificates for professional deployments."
-		},
-		{
-			icon: Users,
-			title: "Real-Time Collaboration",
-			description: "Work together with your team in real-time with live code synchronization."
-		},
-		{
-			icon: Github,
-			title: "GitHub Integration",
-			description: "Seamlessly sync your projects with GitHub repositories and version control."
-		},
-		{
-			icon: BarChart,
-			title: "Built-in Analytics",
-			description: "Track usage, performance metrics, and user engagement out of the box."
-		}
-	];
-
 	return (
 		<div className="relative flex flex-col items-center w-full min-h-full overflow-x-hidden">
 			{/* Animated gradient background */}
@@ -251,77 +217,6 @@ export default function Home() {
 								View Templates
 							</Button>
 						</motion.div>
-					</div>
-				</motion.section>
-
-				{/* Features Grid */}
-				<motion.section
-					className="relative z-10 w-full max-w-6xl mx-auto px-4 py-12"
-					initial={{ opacity: 0, y: 30 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.5, duration: 0.6 }}
-				>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{features.map((feature, index) => (
-							<motion.div
-								key={feature.title}
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: 0.6 + index * 0.1, duration: 0.5 }}
-							>
-								<Card className="h-full border-border-primary hover:border-[#0066FF]/50 transition-all duration-300 group hover:shadow-lg bg-bg-4/80 dark:bg-bg-2/80 backdrop-blur-sm">
-									<CardHeader>
-										<div className="flex items-start gap-4">
-											<div className="p-3 rounded-lg bg-[#0066FF]/10 dark:bg-[#0066FF]/20 group-hover:bg-[#0066FF]/20 dark:group-hover:bg-[#0066FF]/30 transition-colors duration-300">
-												<feature.icon className="h-6 w-6 text-[#0066FF]" />
-											</div>
-											<div className="flex-1">
-												<CardTitle className="text-lg mb-2 text-text-primary group-hover:text-[#0066FF] transition-colors duration-300">
-													{feature.title}
-												</CardTitle>
-												<CardDescription className="text-sm text-text-tertiary">
-													{feature.description}
-												</CardDescription>
-											</div>
-										</div>
-									</CardHeader>
-								</Card>
-							</motion.div>
-						))}
-					</div>
-				</motion.section>
-
-				{/* Social Proof Section */}
-				<motion.section
-					className="relative z-10 w-full max-w-6xl mx-auto px-4 py-12"
-					initial={{ opacity: 0, y: 30 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.8, duration: 0.6 }}
-				>
-					<div className="bg-gradient-to-r from-[#0066FF]/10 via-[#1E3A8A]/10 to-[#0066FF]/10 dark:from-[#0066FF]/20 dark:via-[#1E3A8A]/20 dark:to-[#0066FF]/20 rounded-2xl p-8 backdrop-blur-sm border border-[#0066FF]/20">
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-							<div className="space-y-2">
-								<div className="flex items-center justify-center gap-2">
-									<Rocket className="h-5 w-5 text-[#0066FF]" />
-									<div className="text-4xl font-bold text-[#0066FF]">1,000+</div>
-								</div>
-								<div className="text-text-tertiary">Apps Built</div>
-							</div>
-							<div className="space-y-2">
-								<div className="flex items-center justify-center gap-2">
-									<Users className="h-5 w-5 text-[#0066FF]" />
-									<div className="text-4xl font-bold text-[#0066FF]">500+</div>
-								</div>
-								<div className="text-text-tertiary">Developers</div>
-							</div>
-							<div className="space-y-2">
-								<div className="flex items-center justify-center gap-2">
-									<TrendingUp className="h-5 w-5 text-[#0066FF]" />
-									<div className="text-4xl font-bold text-[#0066FF]">10,000+</div>
-								</div>
-								<div className="text-text-tertiary">Deployments</div>
-							</div>
-						</div>
 					</div>
 				</motion.section>
 
