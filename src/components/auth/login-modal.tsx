@@ -381,7 +381,7 @@ export function LoginModal({
 											<button
 												type="button"
 												onClick={() => setShowPassword(!showPassword)}
-												className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+												className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
 												disabled={isLoading}
 											>
 												{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -389,27 +389,33 @@ export function LoginModal({
 											{validationErrors.password && (
 												<p className="mt-1 text-sm text-destructive">{validationErrors.password}</p>
 											)}
-											{mode === 'register' && (
-												<PasswordRequirements password={password} />
-											)}
 										</div>
 
 										{mode === 'register' && (
-											<div>
+											<div className="relative">
 												<input
-													type="password"
+													type={showPassword ? 'text' : 'password'}
 													placeholder="Confirm password"
 													value={confirmPassword}
 													onChange={(e) => setConfirmPassword(e.target.value)}
 													className={clsx(
-														'w-full p-3 rounded-lg border bg-background transition-colors',
+														'w-full p-3 pr-10 rounded-lg border bg-background transition-colors',
 														validationErrors.confirmPassword ? 'border-destructive' : 'border-border focus:border-primary'
 													)}
 													disabled={isLoading}
 												/>
+												<button
+													type="button"
+													onClick={() => setShowPassword(!showPassword)}
+													className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+													disabled={isLoading}
+												>
+													{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+												</button>
 												{validationErrors.confirmPassword && (
 													<p className="mt-1 text-sm text-destructive">{validationErrors.confirmPassword}</p>
 												)}
+												<PasswordRequirements password={password} confirmPassword={confirmPassword} />
 											</div>
 										)}
 

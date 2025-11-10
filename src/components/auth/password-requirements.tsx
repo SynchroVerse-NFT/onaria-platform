@@ -32,11 +32,15 @@ const requirements: PasswordRequirement[] = [
 
 interface PasswordRequirementsProps {
 	password: string;
+	confirmPassword?: string;
 	show?: boolean;
 }
 
-export function PasswordRequirements({ password, show = true }: PasswordRequirementsProps) {
+export function PasswordRequirements({ password, confirmPassword, show = true }: PasswordRequirementsProps) {
 	if (!show) return null;
+
+	const passwordsMatch = confirmPassword !== undefined && password.length > 0 && confirmPassword.length > 0 && password === confirmPassword;
+	const showPasswordsMatch = confirmPassword !== undefined && (password.length > 0 || confirmPassword.length > 0);
 
 	return (
 		<motion.div
@@ -82,6 +86,36 @@ export function PasswordRequirements({ password, show = true }: PasswordRequirem
 					</div>
 				);
 			})}
+			{confirmPassword !== undefined && (
+				<div
+					className={clsx(
+						'flex items-center gap-2 transition-colors',
+						showPasswordsMatch && passwordsMatch && 'text-green-600 dark:text-green-400',
+						showPasswordsMatch && !passwordsMatch && 'text-muted-foreground',
+						!showPasswordsMatch && 'text-muted-foreground'
+					)}
+				>
+					<div
+						className={clsx(
+							'flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center transition-colors',
+							showPasswordsMatch && passwordsMatch && 'bg-green-600/20 dark:bg-green-400/20',
+							showPasswordsMatch && !passwordsMatch && 'bg-muted',
+							!showPasswordsMatch && 'bg-muted'
+						)}
+					>
+						{showPasswordsMatch && passwordsMatch ? (
+							<Check className="w-3 h-3 text-green-600 dark:text-green-400" />
+						) : showPasswordsMatch && !passwordsMatch ? (
+							<X className="w-3 h-3 text-muted-foreground" />
+						) : (
+							<div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
+						)}
+					</div>
+					<span className={clsx('text-xs', showPasswordsMatch && passwordsMatch && 'font-medium')}>
+						Passwords match
+					</span>
+				</div>
+			)}
 		</motion.div>
 	);
 }
