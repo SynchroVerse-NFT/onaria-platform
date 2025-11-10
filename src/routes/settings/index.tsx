@@ -4,11 +4,11 @@ import {
 	Eye,
 	EyeOff,
 	Github,
-    Smartphone,
+	Smartphone,
 	Trash2,
 	Key,
 	Lock,
-    Settings,
+	Settings,
 } from 'lucide-react';
 import { ModelConfigTabs } from '@/components/model-config-tabs';
 import type {
@@ -56,6 +56,7 @@ import {
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 import { ByokApiKeysModal } from '@/components/byok-api-keys-modal';
+import { WalletSettings } from './wallet-settings';
 
 // Import provider logos (reusing existing pattern from BYOK modal)
 import OpenAILogo from '@/assets/provider-logos/openai.svg?react';
@@ -1669,6 +1670,11 @@ export default function SettingsPage() {
 							</Dialog>
 						</CardContent>
 					</Card>
+
+					{/* Wallet Section */}
+					<div id="wallet">
+						<WalletSettings />
+					</div>
 
 					{/* Security Section */}
 					<Card id="security">

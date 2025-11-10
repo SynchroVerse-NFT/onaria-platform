@@ -413,6 +413,42 @@ type ServerLogMessage = {
 	source?: string;
 };
 
+type UsageUpdatedMessage = {
+	type: 'usage_updated';
+	usage: {
+		aiGenerations: { current: number; limit: number; percentage: number; remaining: number; allowed: boolean };
+		apps: { current: number; limit: number; percentage: number; remaining: number; allowed: boolean };
+		workflows: { current: number; limit: number; percentage: number; remaining: number; allowed: boolean };
+	};
+	limits: {
+		aiGenerations: number;
+		apps: number;
+		workflows: number;
+	};
+	percentages: {
+		ai: number;
+		apps: number;
+		workflows: number;
+	};
+};
+
+type LimitWarningMessage = {
+	type: 'limit_warning';
+	operation: string;
+	percentage: number;
+	remaining: number;
+	limit: number;
+	threshold: number;
+};
+
+type LimitExceededMessage = {
+	type: 'limit_exceeded';
+	operation: string;
+	currentTier: string;
+	suggestedTier: string;
+	limit: number;
+};
+
 export type WebSocketMessage =
 	| StateMessage
 	| AgentConnectedMessage
@@ -467,7 +503,10 @@ export type WebSocketMessage =
 	| ModelConfigsInfoMessage
 	| TerminalCommandMessage
 	| TerminalOutputMessage
-	| ServerLogMessage;
+	| ServerLogMessage
+	| UsageUpdatedMessage
+	| LimitWarningMessage
+	| LimitExceededMessage;
 
 // A type representing all possible message type strings (e.g., 'generation_started', 'file_generating', etc.)
 export type WebSocketMessageType = WebSocketMessage['type'];

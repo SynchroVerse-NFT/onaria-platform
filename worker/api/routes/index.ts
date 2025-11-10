@@ -10,9 +10,15 @@ import { setupGitHubExporterRoutes } from './githubExporterRoutes';
 import { setupCodegenRoutes } from './codegenRoutes';
 import { setupScreenshotRoutes } from './imagesRoutes';
 import { setupSentryRoutes } from './sentryRoutes';
+import { setupStatusRoutes } from './statusRoutes';
+import { setupSubscriptionRoutes } from './subscriptionRoutes';
+import { setupPaymentRoutes } from './paymentRoutes';
+import { setupPaymentMethodRoutes } from './paymentMethodRoutes';
+import { setupUsageRoutes } from './usageRoutes';
+import { setupBillingRoutes } from './billingRoutes';
+import { setupFeatureRoutes } from './featureRoutes';
 import { Hono } from "hono";
 import { AppEnv } from "../../types/appenv";
-import { setupStatusRoutes } from './statusRoutes';
 
 export function setupRoutes(app: Hono<AppEnv>): void {
     // Health check route
@@ -58,4 +64,12 @@ export function setupRoutes(app: Hono<AppEnv>): void {
 
     // Screenshot serving routes (public)
     setupScreenshotRoutes(app);
+
+    // Subscription and payment routes
+    setupSubscriptionRoutes(app);
+    setupPaymentRoutes(app);
+    setupPaymentMethodRoutes(app);
+    setupUsageRoutes(app);
+    setupBillingRoutes(app);
+    setupFeatureRoutes(app);
 }
