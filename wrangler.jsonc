@@ -58,8 +58,8 @@
 	"containers": [
 		{
 			"class_name": "UserAppSandboxService",
-			"image": "./SandboxDockerfile",
-            // "image": "registry.cloudflare.com/vibesdk-production-userappsandboxservice:cfe197fc",
+            // "image": "./SandboxDockerfile",
+            "image": "registry.cloudflare.com/b8f6f3323cd90ef8795b8164cf633c14/onaria-platform-userappsandboxservice:27f016ac",
             // Altering max_instances value will have no effect. Please use the MAX_SANDBOX_INSTANCES var instead.
 			"max_instances": 10,
             // ATTENTION: Altering instance_type value will have no effect. Please use the SANDBOX_INSTANCE_TYPE var instead.
