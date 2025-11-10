@@ -566,7 +566,7 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         this.logger().info(`Blueprint generated successfully for agent ${this.getAgentId()}`);
         // Save the app to database (authenticated users only)
         const appService = new AppService(this.env);
-        await appService.createApp({
+        const appData = {
             id: this.state.inferenceContext.agentId,
             userId: this.state.inferenceContext.userId,
             sessionToken: null,
@@ -575,16 +575,44 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             originalPrompt: this.state.query,
             finalPrompt: this.state.query,
             framework: this.state.blueprint.frameworks?.[0],
-            visibility: 'private',
-            status: 'generating',
+            visibility: 'private' as const,
+            status: 'generating' as const,
             createdAt: new Date(),
             updatedAt: new Date()
-        });
-        this.logger().info(`App saved successfully to database for agent ${this.state.inferenceContext.agentId}`, { 
-            agentId: this.state.inferenceContext.agentId, 
+        };
+
+        await appService.createApp(appData);
+
+        this.logger().info(`App saved successfully to database for agent ${this.state.inferenceContext.agentId}`, {
+            agentId: this.state.inferenceContext.agentId,
             userId: this.state.inferenceContext.userId,
             visibility: 'private'
         });
+
+        // Emit app.created event (non-blocking)
+        if (this.state.inferenceContext.userId) {
+            const { emitAppCreated } = await import('../../services/webhooks/EventEmissionHelpers');
+            const db = await import('../../database/database');
+            const database = new db.Database(this.env);
+
+            // Use ctx.waitUntil if available to ensure event emission completes
+            // but don't block the main operation
+            emitAppCreated(
+                this.env,
+                database,
+                appData.id,
+                this.state.inferenceContext.userId,
+                {
+                    appName: appData.title,
+                    templateName: this.state.inferenceContext.templateName,
+                    framework: appData.framework,
+                    originalPrompt: appData.originalPrompt
+                }
+            ).catch(error => {
+                this.logger().error('Failed to emit app.created event', { error });
+            });
+        }
+
         this.logger().info(`Agent initialized successfully for agent ${this.state.inferenceContext.agentId}`);
     }
 
@@ -1101,6 +1129,31 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         const numFilesGenerated = this.fileManager.getGeneratedFilePaths().length;
         this.logger().info(`Finalization complete. Generated ${numFilesGenerated}/${this.getTotalFiles()} files.`);
 
+        // Emit generation.complete event (non-blocking)
+        if (this.state.inferenceContext.userId) {
+            const generationEndTime = Date.now();
+            const generationStartTime = this.state.createdAt?.getTime() || generationEndTime;
+            const duration = generationEndTime - generationStartTime;
+
+            const { emitGenerationComplete } = await import('../../services/webhooks/EventEmissionHelpers');
+            const db = await import('../../database/database');
+            const database = new db.Database(this.env);
+
+            emitGenerationComplete(
+                this.env,
+                database,
+                this.state.inferenceContext.agentId,
+                this.state.inferenceContext.userId,
+                {
+                    filesGenerated: numFilesGenerated,
+                    duration,
+                    appName: this.state.blueprint.title || this.state.query.substring(0, 100)
+                }
+            ).catch(error => {
+                this.logger().error('Failed to emit generation.complete event', { error });
+            });
+        }
+
         // Transition to IDLE - generation complete
         return CurrentDevState.REVIEWING;
     }
@@ -1450,6 +1503,30 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                     message: "Runtime errors found",
                     count: errors.length
                 });
+
+                // Emit app.error event for first error (non-blocking)
+                if (this.state.inferenceContext.userId && errors[0]) {
+                    const firstError = errors[0];
+                    const { emitAppError } = await import('../../services/webhooks/EventEmissionHelpers');
+                    const db = await import('../../database/database');
+                    const database = new db.Database(this.env);
+
+                    emitAppError(
+                        this.env,
+                        database,
+                        this.state.inferenceContext.agentId,
+                        this.state.inferenceContext.userId,
+                        {
+                            errorType: firstError.type || 'runtime_error',
+                            errorMessage: firstError.message || 'Unknown runtime error',
+                            stackTrace: firstError.stack,
+                            appName: this.state.blueprint.title || this.state.query.substring(0, 100),
+                            source: 'runtime'
+                        }
+                    ).catch(error => {
+                        this.logger().error('Failed to emit app.error event', { error });
+                    });
+                }
             }
 
             return errors;
@@ -2390,13 +2467,34 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                 commitSha: result.commitSha
             });
 
-            this.logger().info('GitHub export completed successfully', { 
+            this.logger().info('GitHub export completed successfully', {
                 repositoryUrl: options.repositoryHtmlUrl,
                 commitSha: result.commitSha
             });
-            
-            return { 
-                success: true, 
+
+            // Emit app.exported event (non-blocking)
+            if (this.state.inferenceContext.userId) {
+                const { emitGitHubExport } = await import('../../services/webhooks/EventEmissionHelpers');
+                const db = await import('../../database/database');
+                const database = new db.Database(this.env);
+
+                emitGitHubExport(
+                    this.env,
+                    database,
+                    agentId || '',
+                    this.state.inferenceContext.userId,
+                    {
+                        repositoryUrl: options.repositoryHtmlUrl || '',
+                        isPrivate: options.isPrivate,
+                        appName: this.state.blueprint.title || this.state.query.substring(0, 100)
+                    }
+                ).catch(error => {
+                    this.logger().error('Failed to emit app.exported event', { error });
+                });
+            }
+
+            return {
+                success: true,
                 repositoryUrl: options.repositoryHtmlUrl,
                 cloneUrl: options.cloneUrl
             };

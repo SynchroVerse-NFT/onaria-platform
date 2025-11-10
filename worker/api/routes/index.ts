@@ -10,9 +10,13 @@ import { setupGitHubExporterRoutes } from './githubExporterRoutes';
 import { setupCodegenRoutes } from './codegenRoutes';
 import { setupScreenshotRoutes } from './imagesRoutes';
 import { setupSentryRoutes } from './sentryRoutes';
+import { setupStatusRoutes } from './statusRoutes';
+import { setupWebhookRoutes } from './webhookRoutes';
+import { setupWorkflowTemplateRoutes } from './workflowTemplateRoutes';
+import { setupWorkflowInstanceRoutes } from './workflowInstanceRoutes';
+import { setupWorkflowExecutionRoutes } from './workflowExecutionRoutes';
 import { Hono } from "hono";
 import { AppEnv } from "../../types/appenv";
-import { setupStatusRoutes } from './statusRoutes';
 
 export function setupRoutes(app: Hono<AppEnv>): void {
     // Health check route
@@ -58,4 +62,10 @@ export function setupRoutes(app: Hono<AppEnv>): void {
 
     // Screenshot serving routes (public)
     setupScreenshotRoutes(app);
+
+    // Webhook and Workflow routes
+    setupWebhookRoutes(app);
+    setupWorkflowTemplateRoutes(app);
+    setupWorkflowInstanceRoutes(app);
+    setupWorkflowExecutionRoutes(app);
 }

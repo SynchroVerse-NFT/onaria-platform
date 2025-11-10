@@ -9,6 +9,7 @@ import Settings from './routes/settings/index';
 import AppsPage from './routes/apps';
 import AppView from './routes/app';
 import DiscoverPage from './routes/discover';
+import WorkflowsPage from './routes/workflows';
 import { ProtectedRoute } from './routes/protected-route';
 
 const routes = [
@@ -43,6 +44,10 @@ const routes = [
 			{
 				path: 'discover',
 				Component: DiscoverPage,
+			},
+			{
+				path: 'workflows',
+				element: React.createElement(ProtectedRoute, { children: React.createElement(WorkflowsPage) }),
 			},
 		],
 	},
