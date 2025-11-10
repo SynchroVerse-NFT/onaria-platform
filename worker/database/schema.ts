@@ -1086,7 +1086,6 @@ export const workflowExecutionsNew = sqliteTable('workflow_executions', {
     eventTypeIdx: index('workflow_executions_event_type_idx').on(table.eventType),
     statusIdx: index('workflow_executions_status_idx').on(table.status),
     createdAtIdx: index('workflow_executions_created_at_idx').on(table.createdAt),
->>>>>>> feature/n8n-workflows
 }));
 
 // ========================================
