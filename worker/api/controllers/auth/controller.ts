@@ -7,12 +7,13 @@ import { SessionService } from '../../../database/services/SessionService';
 import { UserService } from '../../../database/services/UserService';
 import { ApiKeyService } from '../../../database/services/ApiKeyService';
 import { generateApiKey } from '../../../utils/cryptoUtils';
-import { 
-    loginSchema, 
-    registerSchema, 
+import {
+    loginSchema,
+    registerSchema,
     oauthProviderSchema
 } from './authSchemas';
 import { SecurityError } from 'shared/types/errors';
+import { ZodError } from 'zod';
 import { 
     formatAuthResponse,
     mapUserResponse, 
@@ -85,10 +86,18 @@ export class AuthController extends BaseController {
             
             return response;
         } catch (error) {
+            if (error instanceof ZodError) {
+                const firstError = error.errors[0];
+                return AuthController.createErrorResponse(
+                    firstError.message,
+                    400
+                );
+            }
+
             if (error instanceof SecurityError) {
                 return AuthController.createErrorResponse(error.message, error.statusCode);
             }
-            
+
             return AuthController.handleError(error, 'register user');
         }
     }
@@ -140,10 +149,18 @@ export class AuthController extends BaseController {
             
             return response;
         } catch (error) {
+            if (error instanceof ZodError) {
+                const firstError = error.errors[0];
+                return AuthController.createErrorResponse(
+                    firstError.message,
+                    400
+                );
+            }
+
             if (error instanceof SecurityError) {
                 return AuthController.createErrorResponse(error.message, error.statusCode);
             }
-            
+
             return AuthController.handleError(error, 'login user');
         }
     }

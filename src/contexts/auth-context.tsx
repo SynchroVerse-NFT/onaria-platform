@@ -135,7 +135,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(null);
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      // 401 errors are expected when not logged in - don't log them
+      if (error instanceof Error && !error.message.includes('Authentication required')) {
+        console.error('Auth check failed:', error);
+      }
       setUser(null);
       setToken(null);
       setSession(null);
