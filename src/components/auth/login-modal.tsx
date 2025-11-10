@@ -9,6 +9,7 @@ import { X, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 import { useAuth } from '@/contexts/auth-context';
+import { PasswordRequirements, validatePasswordRequirements } from './password-requirements';
 // import {
 // 	validateEmail,
 // 	validatePassword,
@@ -113,7 +114,9 @@ export function LoginModal({
 		// Basic password validation
 		if (!password) {
 			errors.password = 'Password is required';
-		} else if (password.length < 8) {
+		} else if (mode === 'register' && !validatePasswordRequirements(password)) {
+			errors.password = 'Password does not meet all requirements';
+		} else if (mode === 'login' && password.length < 8) {
 			errors.password = 'Password must be at least 8 characters';
 		}
 
@@ -385,6 +388,9 @@ export function LoginModal({
 											</button>
 											{validationErrors.password && (
 												<p className="mt-1 text-sm text-destructive">{validationErrors.password}</p>
+											)}
+											{mode === 'register' && (
+												<PasswordRequirements password={password} />
 											)}
 										</div>
 
