@@ -111,6 +111,7 @@ export class AuthService extends BaseService {
             
             // Create user
             const userId = generateId();
+            const now = new Date();
 
             // Store user as verified immediately (no OTP verification required)
             await this.database.insert(schema.users).values({
@@ -120,8 +121,9 @@ export class AuthService extends BaseService {
                 displayName: data.name || data.email.split('@')[0],
                 emailVerified: true, // Set as verified immediately
                 provider: 'email',
-                providerId: userId
-                // createdAt and updatedAt will use database defaults (CURRENT_TIMESTAMP)
+                providerId: userId,
+                createdAt: now,
+                updatedAt: now
             });
             
             // Get the created user

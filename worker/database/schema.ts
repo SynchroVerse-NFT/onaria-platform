@@ -42,8 +42,8 @@ export const users = sqliteTable('users', {
     isSuspended: integer('is_suspended', { mode: 'boolean' }).default(false),
     
     // Metadata
-    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
     lastActiveAt: integer('last_active_at', { mode: 'timestamp' }),
     
     // Soft delete
@@ -175,8 +175,8 @@ export const apps = sqliteTable('apps', {
     screenshotCapturedAt: integer('screenshot_captured_at', { mode: 'timestamp' }), // When screenshot was last captured
     
     // Metadata
-    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
     lastDeployedAt: integer('last_deployed_at', { mode: 'timestamp' }),
 }, (table) => ({
     userIdx: index('apps_user_idx').on(table.userId),
@@ -281,8 +281,8 @@ export const appComments = sqliteTable('app_comments', {
     // Removed likeCount and replyCount - use COUNT() queries with proper indexes instead
     
     // Metadata
-    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 }, (table) => ({
     appIdx: index('app_comments_app_idx').on(table.appId),
     userIdx: index('app_comments_user_idx').on(table.userId),
@@ -475,8 +475,8 @@ export const userSecrets = sqliteTable('user_secrets', {
     isActive: integer('is_active', { mode: 'boolean' }).default(true),
     
     // Metadata
-    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 }, (table) => ({
     userIdx: index('user_secrets_user_idx').on(table.userId),
     providerIdx: index('user_secrets_provider_idx').on(table.provider),
