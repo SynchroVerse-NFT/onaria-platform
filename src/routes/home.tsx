@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
-import { ArrowRight, Info, Sparkles, Code2 } from 'lucide-react';
+import { ArrowRight, Info } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -16,7 +16,6 @@ import { useDragDrop } from '@/hooks/use-drag-drop';
 import { ImageUploadButton } from '@/components/image-upload-button';
 import { ImageAttachmentPreview } from '@/components/image-attachment-preview';
 import { SUPPORTED_IMAGE_MIME_TYPES } from '@/api-types';
-import { Button } from '@/components/ui/button';
 
 export default function Home() {
 	const navigate = useNavigate();
@@ -157,69 +156,6 @@ export default function Home() {
 			</div>
 
 			<LayoutGroup>
-				{/* Hero Section */}
-				<motion.section
-					layout
-					className="relative z-10 w-full max-w-6xl mx-auto px-4 pt-12 md:pt-20 pb-8"
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.6 }}
-				>
-					<div className="text-center space-y-6 mb-12">
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.2, duration: 0.6 }}
-						>
-							<h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-								<span className="bg-clip-text text-transparent bg-gradient-to-r from-[#0066FF] via-[#0066FF] to-[#1E3A8A] dark:from-[#0066FF] dark:via-[#60A5FA] dark:to-[#0066FF]">
-									Build Full-Stack Apps
-								</span>
-								<br />
-								<span className="text-text-primary">with AI in Minutes</span>
-							</h1>
-						</motion.div>
-
-						<motion.p
-							className="text-lg sm:text-xl text-text-tertiary max-w-2xl mx-auto"
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.3, duration: 0.6 }}
-						>
-							Turn ideas into production-ready applications. No code required.
-						</motion.p>
-
-						<motion.div
-							className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.4, duration: 0.6 }}
-						>
-							<Button
-								size="lg"
-								className="bg-[#0066FF] hover:bg-[#0052CC] text-white shadow-lg hover:shadow-xl transition-all duration-200 text-base px-8 h-12"
-								onClick={() => {
-									const element = document.getElementById('app-creator');
-									element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-									textareaRef.current?.focus();
-								}}
-							>
-								<Sparkles className="mr-2 h-5 w-5" />
-								Start Building Free
-							</Button>
-							<Button
-								size="lg"
-								variant="outline"
-								className="text-base px-8 h-12 border-2 border-[#0066FF]/30 hover:border-[#0066FF] hover:bg-[#0066FF]/5"
-								onClick={() => navigate('/discover')}
-							>
-								<Code2 className="mr-2 h-5 w-5" />
-								View Templates
-							</Button>
-						</motion.div>
-					</div>
-				</motion.section>
-
 				{/* App Creator Section */}
 				<div id="app-creator" className="w-full max-w-2xl mx-auto px-4 scroll-mt-24">
 					<motion.div
@@ -228,7 +164,7 @@ export default function Home() {
 						className="px-6 p-8 flex flex-col items-center z-10"
 					>
 						<h2 className="text-3xl font-semibold text-text-primary mb-6 text-center">
-							What should we build today?
+							No code-build + Deploy Apps and Workflow powered by $ARIA AI
 						</h2>
 
 						<form
