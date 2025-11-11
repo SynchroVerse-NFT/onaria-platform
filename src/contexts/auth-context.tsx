@@ -293,6 +293,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (refreshTimerRef.current) {
         clearInterval(refreshTimerRef.current);
       }
+      // Clear CSRF token to prevent stale token usage
+      apiClient.clearCsrfToken();
       navigate('/');
     }
   }, [navigate]);

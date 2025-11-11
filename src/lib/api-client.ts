@@ -219,6 +219,13 @@ class ApiClient {
 		await this.fetchCsrfToken();
 	}
 
+	/**
+	 * Clear CSRF token from memory
+	 * Should be called after logout to prevent using stale tokens
+	 */
+	clearCsrfToken(): void {
+		this.csrfTokenInfo = null;
+	}
 
 	/**
 	 * Check if CSRF token is expired
