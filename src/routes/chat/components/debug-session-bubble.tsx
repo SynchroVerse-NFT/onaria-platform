@@ -66,10 +66,10 @@ transition={{ duration: 0.2 }}
 className="my-4"
 >
 <div className={clsx(
-"rounded-lg border overflow-hidden bg-bg-2",
-isActive && "border-accent/30",
-!isActive && hasError && "border-red-500/30",
-!isActive && !hasError && "border-green-500/30"
+"rounded-lg border overflow-hidden backdrop-blur-sm relative",
+isActive && "bg-gradient-to-br from-cosmic-purple/10 to-cosmic-blue/10 border-cosmic-purple/30 shadow-sm shadow-cosmic-purple/5",
+!isActive && hasError && "bg-red-500/5 border-red-500/30",
+!isActive && !hasError && "bg-green-500/5 border-green-500/30"
 )}>
 {/* Header */}
 <button
@@ -83,7 +83,7 @@ isExpanded && "border-b border-border-primary/30"
 <div className="flex items-center gap-2.5 flex-1 min-w-0">
 {/* Status icon - minimal */}
 {isActive ? (
-<Loader className="size-4 text-accent animate-spin shrink-0" />
+<Loader className="size-4 text-cosmic-purple animate-spin shrink-0" />
 ) : hasError ? (
 <AlertTriangle className="size-4 text-red-500 shrink-0" />
 ) : (
@@ -93,12 +93,12 @@ isExpanded && "border-b border-border-primary/30"
 {/* Title */}
 <span className={clsx(
 "text-sm font-medium",
-isActive && "text-accent",
+isActive && "bg-gradient-to-r from-cosmic-purple to-cosmic-blue bg-clip-text text-transparent",
 hasError && !isActive && "text-red-500",
 !isActive && !hasError && "text-green-500"
 )}>
-{isActive ? 'Deep Debugging' : 
- hasError ? 'Debugging Failed' : 
+{isActive ? 'Deep Debugging' :
+ hasError ? 'Debugging Failed' :
  'Debugging Complete'}
 </span>
 
@@ -176,14 +176,15 @@ animate={{ opacity: 1, y: 0 }}
 exit={{ opacity: 0, y: 10 }}
 onClick={scrollToBottom}
 className={clsx(
-"absolute bottom-3 right-3 size-8 rounded-md",
-"bg-bg-3 hover:bg-bg-3/80 border border-border-primary/30",
+"absolute bottom-3 right-3 size-8 rounded-md group",
+"bg-cosmic-blue/10 hover:bg-cosmic-blue/20 border border-cosmic-blue/30 backdrop-blur-sm",
 "flex items-center justify-center",
-"transition-colors"
+"transition-all duration-200 shadow-sm hover:shadow-cosmic-blue/20"
 )}
 title="Scroll to bottom"
 >
-<ArrowDown className="size-4 text-text-secondary" />
+<div className="absolute inset-0 bg-cosmic-blue/5 rounded-md opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300 -z-10" />
+<ArrowDown className="size-4 text-cosmic-blue relative z-10" />
 </motion.button>
 )}
 </AnimatePresence>

@@ -54,9 +54,9 @@ export function AppActionsDropdown({
     }
   };
 
-  const buttonClasses = showOnHover 
-    ? `opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-bg-3/80 cursor-pointer ${className}`
-    : `hover:bg-bg-3/80 cursor-pointer ${className}`;
+  const buttonClasses = showOnHover
+    ? `opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-blue-500/20 hover:backdrop-blur-md hover:border-purple-400/30 cursor-pointer ${className}`
+    : `hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-blue-500/20 hover:backdrop-blur-md hover:border-purple-400/30 cursor-pointer ${className}`;
 
   return (
     <>
@@ -75,14 +75,14 @@ export function AppActionsDropdown({
             <span className="sr-only">App actions</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-48 bg-gradient-to-br from-bg-1/95 via-bg-1/90 to-bg-1/95 backdrop-blur-xl border-purple-500/20 shadow-[0_0_30px_rgba(168,85,247,0.15)]">
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
               setIsDeleteDialogOpen(true);
             }}
-            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+            className="text-red-400 focus:text-red-300 focus:bg-gradient-to-r focus:from-red-500/20 focus:to-orange-500/20 hover:bg-gradient-to-r hover:from-red-500/20 hover:to-orange-500/20"
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Delete app

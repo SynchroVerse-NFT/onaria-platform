@@ -92,7 +92,7 @@ function AppMenuItem({
 			<SidebarMenuButton
 				asChild
 				tooltip={app.title}
-				className="cursor-pointer transition-opacity hover:opacity-75 pr-0"
+				className="cursor-pointer transition-all duration-200 hover:bg-accent/5 hover:border-accent/10 border border-transparent rounded-md pr-0"
 			>
 				<a
 					href={`/app/${app.id}`}
@@ -203,10 +203,16 @@ export function AppSidebar() {
 			<Sidebar
 				collapsible="icon"
 				className={cn(
-					'bg-bg-2 transition-all duration-300 ease-in-out',
+					'relative transition-all duration-300 ease-in-out overflow-hidden',
+					'bg-gradient-to-b from-bg-1 via-bg-2 to-bg-1',
+					'border-r border-border-primary/50'
 				)}
 			>
-				<SidebarContent className="mt-2">
+				{/* Subtle cosmic glow overlay */}
+				<div className="absolute inset-0 pointer-events-none z-0">
+					<div className="absolute inset-0 bg-gradient-to-br from-accent/[0.02] via-transparent to-accent/[0.01]" />
+				</div>
+				<SidebarContent className="mt-2 relative z-10">
 					{/* Build Button */}
 					<SidebarGroup>
 						<SidebarGroupContent>
@@ -222,10 +228,13 @@ export function AppSidebar() {
 											<TooltipTrigger asChild>
 												<button
 													className={cn(
-														'group flex w-full border-[0.5px] border-bg-2 items-center gap-2 font-medium hover:opacity-80 hover:cursor-pointer p-2 rounded-md cursor-hand text-text-secondary hover:text-text-primary',
-														isCollapsed
-															? 'justify-center bg-accent'
-															: 'justify-start bg-accent',
+														'group relative flex w-full items-center gap-2 font-medium p-2 rounded-md cursor-pointer',
+														'bg-gradient-to-r from-accent to-accent/90',
+														'border border-accent/30 shadow-sm',
+														'transition-all duration-200',
+														'hover:shadow-lg hover:shadow-accent/20 hover:border-accent/50',
+														'hover:scale-[1.02] active:scale-[0.98]',
+														isCollapsed ? 'justify-center' : 'justify-start',
 													)}
 													onClick={() => {
 														// Collapse sidebar when starting a new build
@@ -235,9 +244,9 @@ export function AppSidebar() {
 														navigate('/');
 													}}
 												>
-													<Plus className="h-4 w-4 text-neutral-50" />
+													<Plus className="h-4 w-4 text-white drop-shadow-sm" />
 													{!isCollapsed && (
-														<span className="font-medium text-neutral-50">
+														<span className="font-medium text-white drop-shadow-sm">
 															New build
 														</span>
 													)}
@@ -567,7 +576,7 @@ export function AppSidebar() {
 					)}
 				</SidebarContent>
 
-				<SidebarFooter>
+				<SidebarFooter className="relative z-10">
 					{user && (
 						<SidebarMenu>
 							<SidebarMenuItem>
@@ -575,11 +584,11 @@ export function AppSidebar() {
 									id="discover-link"
 									onClick={() => navigate('/discover')}
 									tooltip="Discover"
-									className="group hover:opacity-80 hover:cursor-pointer hover:bg-bg-1/50 transition-all duration-200"
+									className="group hover:cursor-pointer hover:bg-accent/5 transition-all duration-200 border border-transparent hover:border-accent/10 rounded-md"
 								>
-									<Compass className="h-6 w-6 text-text-primary/60 group-hover:text-primary/80 transition-colors" />
+									<Compass className="h-6 w-6 text-text-primary/60 group-hover:text-accent group-hover:drop-shadow-[0_0_8px_rgba(246,130,31,0.3)] transition-all duration-200" />
 									{!isCollapsed && (
-										<span className="text-text-primary/80 font-medium group-hover:text-primary transition-colors">
+										<span className="text-text-primary/80 font-medium group-hover:text-accent transition-colors">
 											Discover
 										</span>
 									)}
@@ -589,11 +598,11 @@ export function AppSidebar() {
 								<SidebarMenuButton
 									onClick={() => navigate('/settings')}
 									tooltip="Settings"
-									className="group hover:opacity-80 hover:cursor-pointer hover:bg-bg-1/50 transition-all duration-200"
+									className="group hover:cursor-pointer hover:bg-accent/5 transition-all duration-200 border border-transparent hover:border-accent/10 rounded-md"
 								>
-									<Settings className="h-6 w-6 text-text-primary/60 group-hover:text-primary/80 transition-colors" />
+									<Settings className="h-6 w-6 text-text-primary/60 group-hover:text-accent group-hover:drop-shadow-[0_0_8px_rgba(246,130,31,0.3)] transition-all duration-200" />
 									{!isCollapsed && (
-										<span className="font-medium text-text-primary/80 group-hover:text-primary transition-colors">
+										<span className="font-medium text-text-primary/80 group-hover:text-accent transition-colors">
 											Settings
 										</span>
 									)}

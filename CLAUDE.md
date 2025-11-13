@@ -253,3 +253,5 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 - Test thoroughly before submitting
 - update the version before every deployment
 - verify live page at onaria.xyz after deployments
+- You are working on a whitelabeled VibeSDK from Cloudflare, dont try to guess on how to handle issues, check the cloudflare vibesdk repo for the correct reference
+- Use chrome dev tools mcp to test the frontend in the localhost or the live site if asked, do not use playwright

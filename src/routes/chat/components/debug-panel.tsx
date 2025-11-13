@@ -300,7 +300,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
         { id: 'generation', label: 'Generation', color: 'bg-blue-100 border-blue-300' },
         { id: 'phase', label: 'Phases', color: 'bg-green-100 border-green-300' },
         { id: 'file', label: 'Files', color: 'bg-purple-100 border-purple-300' },
-        { id: 'deployment', label: 'Deployment', color: 'bg-orange-100 border-orange-300' },
+        { id: 'deployment', label: 'Deployment', color: 'bg-cyan-100 border-cyan-300' },
         { id: 'system', label: 'System', color: 'bg-red-100 border-red-300' }
       ];
       
@@ -521,14 +521,14 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed bottom-6 right-6 z-50 p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-105 ${
           (errorCount > 0 || warningCount > 0) && !isOpen
-            ? 'bg-red-500 text-white animate-pulse'
-            : 'bg-zinc-800 text-white hover:bg-zinc-700'
+            ? 'bg-gradient-to-br from-red-500 to-orange-600 text-white animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.5)]'
+            : 'bg-gradient-to-br from-[#0d0e1f] to-[#1a1b2e] text-white hover:from-[#1a1b2e] hover:to-[#0d0e1f] dark:shadow-[0_0_15px_rgba(100,181,246,0.2)]'
         }`}
         title={`Debug Console (${errorCount + warningCount} issues)`}
       >
         <Bug className="w-4 h-4" />
         {(errorCount > 0 || warningCount > 0) && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+          <span className="absolute -top-2 -right-2 bg-gradient-to-br from-red-500 to-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.6)]">
             {errorCount > 0 ? errorCount : warningCount}
           </span>
         )}
@@ -537,20 +537,20 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
       {/* Debug Panel */}
       <div
         ref={panelRef}
-        className={`fixed right-0 top-0 h-full bg-bg-3 dark:bg-bg-4 shadow-2xl border-l border-border-primary z-[60] transform transition-all duration-300 ease-in-out flex flex-col ${
+        className={`fixed right-0 top-0 h-full bg-bg-3 dark:bg-gradient-to-br dark:from-[#0a0b1a] dark:via-[#0d0e1f] dark:to-[#0a0b1a] shadow-2xl border-l border-border-primary dark:border-[#64b5f6]/20 z-[60] transform transition-all duration-300 ease-in-out flex flex-col ${
           isMaximized ? 'w-[80vw]' : 'w-[600px]'
         } ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border-primary bg-gradient-to-r from-muted to-accent">
+        <div className="flex items-center justify-between p-4 border-b border-border-primary dark:border-[#64b5f6]/20 bg-gradient-to-r from-muted to-accent dark:from-[#0d0e1f]/90 dark:via-[#1a1b2e]/70 dark:to-[#0d0e1f]/90 backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <Bug className="w-5 h-5 text-text-primary" />
             <h3 className="font-semibold text-text-primary">Debug Console</h3>
-            <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
+            <span className="bg-blue-100 text-blue-700 dark:bg-[#64b5f6]/20 dark:text-[#64b5f6] text-xs px-2 py-1 rounded-full border border-transparent dark:border-[#64b5f6]/30">
               {filteredMessages.length}/{messages.length}
             </span>
             {bookmarkedMessages.size > 0 && (
-              <span className="bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <span className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 text-xs px-2 py-1 rounded-full flex items-center gap-1 border border-transparent dark:border-amber-400/30">
                 <Bookmark className="w-3 h-3" />
                 {bookmarkedMessages.size}
               </span>
@@ -624,14 +624,14 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
         </div>
 
         {/* Filters */}
-        <div className="p-3 border-b border-border-primary dark:border-border-primary bg-bg-3/30 dark:bg-bg-3/20">
+        <div className="p-3 border-b border-border-primary dark:border-[#64b5f6]/20 bg-bg-3/30 dark:bg-[#0d0e1f]/30 backdrop-blur-sm">
           <div className="flex gap-2 mb-3">
             <input
               type="text"
               placeholder="Search messages..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-3 py-1.5 text-sm bg-input border border-border-primary rounded focus:outline-none focus:ring-2 focus:ring-ring text-text-primary"
+              className="flex-1 px-3 py-1.5 text-sm bg-input border border-border-primary dark:border-[#64b5f6]/30 dark:bg-[#1a1b2e]/50 rounded focus:outline-none focus:ring-2 focus:ring-ring dark:focus:ring-[#64b5f6]/50 text-text-primary"
             />
           </div>
           <div className="flex gap-1 flex-wrap">
@@ -652,8 +652,8 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                 }}
                 className={`px-3 py-1 text-xs rounded-full transition-all ${
                   filter === key
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-bg-3 text-text-primary hover:bg-bg-3 border border-border-primary'
+                    ? 'bg-blue-500 text-white dark:bg-gradient-to-r dark:from-[#64b5f6] dark:to-[#a855f7] dark:shadow-[0_0_10px_rgba(100,181,246,0.4)]'
+                    : 'bg-bg-3 text-text-primary hover:bg-bg-3 dark:bg-[#1a1b2e]/50 dark:hover:bg-[#1a1b2e]/80 border border-border-primary dark:border-[#64b5f6]/20'
                 }`}
               >
                 {label} ({count})
@@ -663,7 +663,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
           
           {/* WebSocket Category Filters - Show only when WebSocket filter is active */}
           {filter === 'websocket' && (
-            <div className="mt-3 pt-3 border-t border-border-primary">
+            <div className="mt-3 pt-3 border-t border-border-primary dark:border-[#64b5f6]/20">
               <div className="text-xs text-text-tertiary mb-2 font-medium">WebSocket Message Types:</div>
               <div className="flex gap-1 flex-wrap">
                 {[
@@ -679,8 +679,8 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                     onClick={() => setWsFilter(key)}
                     className={`px-2 py-1 text-xs rounded transition-all ${
                       wsFilter === key
-                        ? 'bg-purple-600 text-white dark:bg-purple-700'
-                        : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-200 dark:hover:bg-purple-900/40 dark:border-purple-800'
+                        ? 'bg-purple-600 text-white dark:bg-gradient-to-r dark:from-[#a855f7] dark:to-[#64b5f6] dark:shadow-[0_0_8px_rgba(168,85,247,0.4)]'
+                        : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 dark:bg-[#a855f7]/20 dark:text-purple-300 dark:hover:bg-[#a855f7]/30 dark:border-[#a855f7]/30'
                     }`}
                   >
                     {label} ({count})
@@ -699,27 +699,27 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
               {analyticsData ? (
                 <>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{analyticsData.totalMessages}</div>
-                      <div className="text-sm text-blue-800">Total Messages</div>
+                    <div className="bg-blue-50 dark:bg-gradient-to-br dark:from-[#64b5f6]/20 dark:to-[#a855f7]/20 dark:border dark:border-[#64b5f6]/30 p-4 rounded-lg backdrop-blur-sm">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-[#64b5f6]">{analyticsData.totalMessages}</div>
+                      <div className="text-sm text-blue-800 dark:text-blue-300">Total Messages</div>
                     </div>
-                    <div className="bg-red-50 p-4 rounded-lg">
-                      <div className="text-2xl font-bold text-red-600">{analyticsData.errorRate}%</div>
-                      <div className="text-sm text-red-800">Error Rate</div>
+                    <div className="bg-red-50 dark:bg-gradient-to-br dark:from-red-500/20 dark:to-orange-600/20 dark:border dark:border-red-400/30 p-4 rounded-lg backdrop-blur-sm">
+                      <div className="text-2xl font-bold text-red-600 dark:text-red-400">{analyticsData.errorRate}%</div>
+                      <div className="text-sm text-red-800 dark:text-red-300">Error Rate</div>
                     </div>
-                    <div className="bg-yellow-50 p-4 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600">{analyticsData.warningRate}%</div>
-                      <div className="text-sm text-yellow-800">Warning Rate</div>
+                    <div className="bg-yellow-50 dark:bg-gradient-to-br dark:from-yellow-500/20 dark:to-amber-500/20 dark:border dark:border-yellow-400/30 p-4 rounded-lg backdrop-blur-sm">
+                      <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{analyticsData.warningRate}%</div>
+                      <div className="text-sm text-yellow-800 dark:text-yellow-300">Warning Rate</div>
                     </div>
-                    <div className="bg-green-50 p-4 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{analyticsData.intervals.avg}</div>
-                      <div className="text-sm text-green-800">Avg Interval</div>
+                    <div className="bg-green-50 dark:bg-gradient-to-br dark:from-emerald-500/20 dark:to-teal-500/20 dark:border dark:border-emerald-400/30 p-4 rounded-lg backdrop-blur-sm">
+                      <div className="text-2xl font-bold text-green-600 dark:text-emerald-400">{analyticsData.intervals.avg}</div>
+                      <div className="text-sm text-green-800 dark:text-emerald-300">Avg Interval</div>
                     </div>
                   </div>
                   
                   {/* Statistical Analysis */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-bg-3/50 p-4 rounded-lg">
+                    <div className="bg-bg-3/50 dark:bg-[#1a1b2e]/50 dark:border dark:border-[#64b5f6]/20 p-4 rounded-lg backdrop-blur-sm">
                       <h4 className="font-medium text-text-primary mb-2">Response Time Statistics</h4>
                       <div className="space-y-1 text-sm">
                         <div>Average: <span className="font-mono">{analyticsData.intervals.avg}</span></div>
@@ -727,20 +727,20 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                         <div>P99: <span className="font-mono">{analyticsData.intervals.p99}</span></div>
                       </div>
                     </div>
-                    <div className="bg-purple-50 p-4 rounded-lg">
-                      <h4 className="font-medium text-purple-800 mb-2 flex items-center gap-2">
+                    <div className="bg-purple-50 dark:bg-gradient-to-br dark:from-[#a855f7]/20 dark:to-[#64b5f6]/20 dark:border dark:border-[#a855f7]/30 p-4 rounded-lg backdrop-blur-sm">
+                      <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2 flex items-center gap-2">
                         <BarChart3 className="w-4 h-4" />
                         WebSocket Activity
                       </h4>
-                      <div className="text-lg font-bold text-purple-600">{analyticsData.wsMessages} messages</div>
-                      <div className="text-sm text-purple-700">Last 24h: {analyticsData.last24h} messages</div>
+                      <div className="text-lg font-bold text-purple-600 dark:text-purple-400">{analyticsData.wsMessages} messages</div>
+                      <div className="text-sm text-purple-700 dark:text-purple-300">Last 24h: {analyticsData.last24h} messages</div>
                     </div>
-                    <div className="bg-amber-50 p-4 rounded-lg">
-                      <h4 className="font-medium text-amber-800 mb-2">Performance Score</h4>
-                      <div className="text-2xl font-bold text-amber-600">
+                    <div className="bg-amber-50 dark:bg-gradient-to-br dark:from-amber-500/20 dark:to-yellow-500/20 dark:border dark:border-amber-400/30 p-4 rounded-lg backdrop-blur-sm">
+                      <h4 className="font-medium text-amber-800 dark:text-amber-300 mb-2">Performance Score</h4>
+                      <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
                         {analyticsData.errorRate === '0' ? '100' : (100 - parseFloat(analyticsData.errorRate)).toFixed(0)}%
                       </div>
-                      <div className="text-sm text-amber-700">System Health</div>
+                      <div className="text-sm text-amber-700 dark:text-amber-300">System Health</div>
                     </div>
                   </div>
                   
@@ -750,7 +750,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                     
                     {/* File Generation - Special Enhanced Display */}
                     {analyticsData.operations.fileGeneration.duration.count > 0 && (
-                      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-6">
+                      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-[#a855f7]/10 dark:to-[#64b5f6]/10 border border-purple-200 dark:border-[#a855f7]/30 rounded-xl p-6 backdrop-blur-sm">
                         <div className="flex items-center gap-3 mb-4">
                           <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
                           <h5 className="font-bold text-purple-900 text-lg">📝 File Generation Performance</h5>
@@ -1005,13 +1005,13 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                     key={message.id}
                     className={`border-l-4 rounded-r-lg p-3 pr-10 transition-all relative ${
                       message.type === 'error'
-                        ? 'border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-400'
+                        ? 'border-red-500 bg-red-50 dark:bg-gradient-to-r dark:from-red-500/10 dark:to-orange-600/10 dark:border-red-400 dark:shadow-[0_0_10px_rgba(239,68,68,0.2)]'
                         : message.type === 'warning'
-                        ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-400'
+                        ? 'border-yellow-500 bg-yellow-50 dark:bg-gradient-to-r dark:from-yellow-500/10 dark:to-amber-500/10 dark:border-yellow-400'
                         : message.type === 'websocket'
-                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-400'
-                        : 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400'
-                    } ${bookmarkedMessages.has(message.id) ? 'ring-2 ring-amber-300' : ''}`}
+                        ? 'border-purple-500 bg-purple-50 dark:bg-gradient-to-r dark:from-purple-500/10 dark:to-blue-500/10 dark:border-purple-400'
+                        : 'border-blue-500 bg-blue-50 dark:bg-gradient-to-r dark:from-blue-500/10 dark:to-purple-500/10 dark:border-[#64b5f6]'
+                    } ${bookmarkedMessages.has(message.id) ? 'ring-2 ring-amber-300 dark:ring-amber-400/50' : ''}`}
                   >
                     {/* Bookmark Button */}
                     <button
@@ -1035,7 +1035,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                           {message.type}
                         </span>
                         {message.messageType && (
-                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-mono dark:bg-purple-900/40 dark:text-purple-200 dark:border dark:border-purple-800">
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-mono dark:bg-[#a855f7]/20 dark:text-purple-300 dark:border dark:border-[#a855f7]/40">
                             {message.messageType}
                           </span>
                         )}
@@ -1058,7 +1058,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                           {isExpanded ? 'Hide details' : 'Show details'}
                         </button>
                         {isExpanded && (
-                          <pre className="mt-2 text-xs bg-bg-3 dark:bg-zinc-900 p-2 rounded overflow-x-auto text-text-tertiary whitespace-pre-wrap max-h-40">
+                          <pre className="mt-2 text-xs bg-bg-3 dark:bg-[#0a0b1a]/80 dark:border dark:border-[#64b5f6]/20 p-2 rounded overflow-x-auto text-text-tertiary whitespace-pre-wrap max-h-40">
                             {message.details}
                           </pre>
                         )}

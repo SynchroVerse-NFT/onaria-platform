@@ -55,7 +55,6 @@ export function updatePhaseFileStatus(
             if (fileContents !== undefined) {
                 fileInPhase.contents = fileContents;
             }
-            console.log(`File ${status} in phase ${phase.name}: ${filePath}`);
             break;
         }
     }

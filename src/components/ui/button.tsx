@@ -5,20 +5,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer relative overflow-hidden",
   {
     variants: {
       variant: {
         default:
-          "bg-text-secondary text-bg-3 shadow-xs hover:bg-text-secondary/90",
+          "bg-text-secondary text-bg-3 shadow-xs hover:bg-text-secondary/90 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700",
         destructive:
-          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-destructive text-white shadow-xs hover:bg-destructive/90 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700",
         outline:
-          "border bg-bg-3 dark:bg-bg-2 shadow-xs hover:bg-bg-4 hover:text-text-secondary dark:border-bg-4",
+          "border bg-bg-3 dark:bg-bg-2 shadow-xs hover:bg-bg-4 hover:text-text-secondary dark:border-bg-4 hover:border-text-secondary/20 hover:shadow-sm hover:scale-[1.01] active:scale-[0.99]",
         secondary:
-          "bg-bg-2 text-text-secondary shadow-xs hover:bg-bg-2/80",
+          "bg-bg-2 text-text-secondary shadow-xs hover:bg-bg-2/80 hover:shadow-sm hover:scale-[1.01] active:scale-[0.99]",
         ghost:
-          "hover:bg-accent hover:text-text-secondary dark:hover:bg-accent/50 text-text-primary",
+          "hover:bg-accent hover:text-text-secondary dark:hover:bg-accent/50 text-text-primary hover:scale-[1.01] active:scale-[0.99]",
         link: "text-text-primary underline-offset-4 hover:underline",
       },
       size: {

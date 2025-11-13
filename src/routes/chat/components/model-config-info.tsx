@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 import type { ModelConfig, UserModelConfigWithMetadata } from '@/api-types';
 import type { AgentDisplayConfig } from '@/components/model-config-tabs';
 
@@ -130,17 +131,28 @@ function ConfigInfoCard({
   const currentModel = userConfig?.name || defaultConfig?.name;
   const modelDisplayName = getModelDisplayName(currentModel);
   const providerInfo = getProviderInfo(currentModel);
-  
+
   const temperature = userConfig?.temperature ?? defaultConfig?.temperature;
   const maxTokens = userConfig?.max_tokens ?? defaultConfig?.max_tokens;
   const reasoningEffort = userConfig?.reasoning_effort ?? defaultConfig?.reasoning_effort;
 
   return (
-    <div className="p-4 border rounded-lg bg-bg-3/50 space-y-3">
-      <div className="flex items-start justify-between gap-2">
+    <div className="p-4 border rounded-lg bg-bg-3/50 space-y-3 relative overflow-hidden group hover:border-purple-500/20 transition-all">
+      {isCustomized && (
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 pointer-events-none" />
+      )}
+      <div className="flex items-start justify-between gap-2 relative z-10">
         <div className="flex items-start gap-2 min-w-0 flex-1">
-          <div className="p-1 rounded-sm bg-bg-3">
-            <Settings className="h-3 w-3" />
+          <div className={cn(
+            "p-1 rounded-sm transition-all",
+            isCustomized
+              ? "bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20"
+              : "bg-bg-3"
+          )}>
+            <Settings className={cn(
+              "h-3 w-3",
+              isCustomized && "text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"
+            )} />
           </div>
           <div className="min-w-0 flex-1">
             <h6 className="font-medium text-sm mb-1 text-text-secondary" title={agent.name}>
@@ -151,8 +163,14 @@ function ConfigInfoCard({
             </p>
           </div>
         </div>
-        
-        <Badge variant={isCustomized ? "default" : "outline"} className="text-xs shrink-0">
+
+        <Badge
+          variant={isCustomized ? "default" : "outline"}
+          className={cn(
+            "text-xs shrink-0",
+            isCustomized && "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white border-purple-500"
+          )}
+        >
           {isCustomized ? "Custom" : "Default"}
         </Badge>
       </div>
@@ -226,11 +244,12 @@ export function ModelConfigInfo({ configs, onRequestConfigs, loading }: ModelCon
     <>
       <button
         onClick={handleOpen}
-        className="group relative flex items-center gap-1.5 p-1.5 group-hover:pl-2 group-hover:pr-2.5 rounded-full group-hover:rounded-md transition-all duration-300 ease-in-out hover:bg-bg-4 border border-transparent hover:border-border-primary hover:shadow-sm overflow-hidden"
+        className="group relative flex items-center gap-1.5 p-1.5 group-hover:pl-2 group-hover:pr-2.5 rounded-full group-hover:rounded-md transition-all duration-300 ease-in-out hover:bg-gradient-to-r hover:from-blue-500/10 hover:via-purple-500/10 hover:to-pink-500/10 border border-transparent hover:border-purple-500/20 hover:shadow-lg hover:shadow-purple-500/20 overflow-hidden"
         title="View current model configurations"
       >
-        <Info className="size-3.5 text-text-primary/60 group-hover:text-brand-primary transition-colors duration-300 flex-shrink-0" />
-        <span className="max-w-0 group-hover:max-w-[75px] opacity-0 group-hover:opacity-100 overflow-hidden transition-all duration-300 ease-in-out whitespace-nowrap text-xs font-medium text-text-primary">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-blue-500/5 group-hover:via-purple-500/5 group-hover:to-pink-500/5 transition-all duration-300 pointer-events-none" />
+        <Info className="size-3.5 text-text-primary/60 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-500 group-hover:via-purple-500 group-hover:to-pink-500 transition-all duration-300 flex-shrink-0 relative z-10" />
+        <span className="max-w-0 group-hover:max-w-[75px] opacity-0 group-hover:opacity-100 overflow-hidden transition-all duration-300 ease-in-out whitespace-nowrap text-xs font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 relative z-10">
           Model Info
         </span>
       </button>

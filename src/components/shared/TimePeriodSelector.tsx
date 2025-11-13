@@ -36,13 +36,17 @@ export const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
 
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-      <SelectTrigger className={className}>
-        <Calendar className="h-4 w-4" />
+      <SelectTrigger className={`bg-gradient-to-r from-bg-2/80 to-bg-2/60 backdrop-blur-md border-purple-500/20 hover:border-purple-400/30 focus:border-purple-400/40 focus:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all duration-200 ${className}`}>
+        <Calendar className="h-4 w-4 text-purple-400/70" />
         <SelectValue />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="bg-gradient-to-br from-bg-1/95 via-bg-1/90 to-bg-1/95 backdrop-blur-xl border-purple-500/20 shadow-[0_0_30px_rgba(168,85,247,0.15)]">
         {TIME_PERIODS.map((period) => (
-          <SelectItem key={period.value} value={period.value}>
+          <SelectItem
+            key={period.value}
+            value={period.value}
+            className="focus:bg-gradient-to-r focus:from-purple-500/20 focus:to-blue-500/20 hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-blue-500/20"
+          >
             {period.label}
           </SelectItem>
         ))}

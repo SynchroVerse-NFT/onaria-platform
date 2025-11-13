@@ -29,6 +29,7 @@ export default defineConfig({
 		svgr(),
 		cloudflare({
 			configPath: 'wrangler.jsonc',
+			enableContainers: false,
 		}),
 		tailwindcss(),
 		// sentryVitePlugin({

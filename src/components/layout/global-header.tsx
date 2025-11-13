@@ -32,11 +32,14 @@ export function GlobalHeader() {
 				initial={{ y: -10, opacity: 0 }}
 				animate={{ y: 0, opacity: 1 }}
 				transition={{ duration: 0.2, ease: 'easeOut' }}
-				className={clsx("sticky top-0 z-50", pathname !== "/" && "bg-bg-3")}
+				className={clsx(
+					"sticky top-0 z-50",
+					pathname !== "/" && "backdrop-blur-md bg-bg-3/80 border-b border-accent/10"
+				)}
 			>
 				<div className="relative">
-					{/* Subtle gradient accent */}
-					<div className="absolute inset-0 z-0" />
+					{/* Cosmic gradient accent */}
+					<div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-accent/5 to-transparent" />
 
 					{/* Main content */}
 					<div className="relative z-10 grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-2">
@@ -51,7 +54,7 @@ export function GlobalHeader() {
 								}}
 								className='flex items-center'
 							>
-								<SidebarTrigger className="h-8 w-8 text-text-primary rounded-md hover:bg-orange-50/40 transition-colors duration-200" />
+								<SidebarTrigger className="h-8 w-8 text-text-primary rounded-md hover:bg-accent/10 hover:text-accent transition-all duration-200 border border-transparent hover:border-accent/20" />
 								<CloudflareLogo
 									className="flex-shrink-0 mx-auto transition-all duration-300"
 									style={{

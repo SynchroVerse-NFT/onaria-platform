@@ -37,6 +37,18 @@ runner/downloads
 /generated/prisma
 test.ts
 temp/
+New-FrontEnd-Design/
+test-logs/
+
+# Temporary and backup files
+nul
+*.backup
+tsconfig.tsbuildinfo
+fix-ai-gateway.patch
+run-test.ps1
+test-model-config.ps1
+test-model-config.sh
+test-model-config.ts
 
 templates
 debugging.ipynb
@@ -52,3 +64,6 @@ debug-tools/extracted
 
 # Temporary downloaded files
 template_catalog.json
+
+# Documentation files
+*.md

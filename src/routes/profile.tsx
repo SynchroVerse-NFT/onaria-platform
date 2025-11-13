@@ -100,14 +100,14 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-3">
+    <div className="min-h-screen bg-bg-1">
       {/* Profile Header */}
       <div className="container mx-auto px-4 py-8">
         <div className="pb-8">
           <div className="flex flex-col md:flex-row items-center gap-6">
-            <Avatar className="h-24 w-24 ring-4 ring-background shadow-xl">
+            <Avatar className="h-24 w-24 ring-4 ring-cosmic-blue/50 shadow-xl shadow-cosmic-purple/20">
               <AvatarImage src={user?.avatarUrl} />
-              <AvatarFallback className="text-2xl bg-gradient-to-br from-[#f48120] to-[#faae42] text-white">
+              <AvatarFallback className="text-2xl bg-gradient-to-br from-cosmic-blue to-cosmic-purple text-white">
                 {user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
@@ -164,38 +164,38 @@ export default function Profile() {
       <div className="container mx-auto px-4 py-8">
         {/* Stats Overview */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <Card className="text-center hover:shadow-lg hover:scale-[1.02] transition-all dark:bg-bg-4/50">
+          <Card className="text-center hover:shadow-lg hover:shadow-cosmic-blue/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-blue/20">
             <CardContent className="pt-6 relative overflow-hidden">
-              <Code2 className="h-32 w-32 text-blue-500 absolute -top-10 -left-6 opacity-10" />
-              <p className="text-6xl font-semibold text-gray-700">{statsLoading ? '-' : stats?.appCount}</p>
-              <p className="text-md text-gray-500">Total Apps</p>
+              <Code2 className="h-32 w-32 text-cosmic-blue absolute -top-10 -left-6 opacity-10" />
+              <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-blue to-cosmic-purple bg-clip-text text-transparent">{statsLoading ? '-' : stats?.appCount}</p>
+              <p className="text-md text-text-tertiary">Total Apps</p>
             </CardContent>
           </Card>
-          
-          <Card className="text-center hover:shadow-lg hover:scale-[1.02] transition-all dark:bg-bg-4/50">
+
+          <Card className="text-center hover:shadow-lg hover:shadow-cosmic-purple/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-purple/20">
             <CardContent className="pt-6 relative overflow-hidden">
-              <Globe className="h-32 w-32 text-green-500 absolute -top-10 -left-6 opacity-20" />
-              <p className="text-6xl font-semibold text-gray-700">{statsLoading ? '-' : stats?.publicAppCount}</p>
-              <p className="text-md text-gray-500">Public Apps</p>
+              <Globe className="h-32 w-32 text-cosmic-purple absolute -top-10 -left-6 opacity-10" />
+              <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-purple to-cosmic-pink bg-clip-text text-transparent">{statsLoading ? '-' : stats?.publicAppCount}</p>
+              <p className="text-md text-text-tertiary">Public Apps</p>
             </CardContent>
           </Card>
-          
-          <Card className="text-center hover:shadow-lg hover:scale-[1.02] transition-all dark:bg-bg-4/50">
+
+          <Card className="text-center hover:shadow-lg hover:shadow-cosmic-pink/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-pink/20">
             <CardContent className="pt-6 relative overflow-hidden">
-              <Activity className="h-32 w-32 text-purple-500 absolute -top-10 -left-6 opacity-10" />
-              <p className="text-6xl font-semibold text-gray-700">{statsLoading ? '-' : stats?.totalViewsReceived}</p>
-              <p className="text-md text-gray-500">Total Views</p>
+              <Activity className="h-32 w-32 text-cosmic-pink absolute -top-10 -left-6 opacity-10" />
+              <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-pink to-cosmic-orange bg-clip-text text-transparent">{statsLoading ? '-' : stats?.totalViewsReceived}</p>
+              <p className="text-md text-text-tertiary">Total Views</p>
             </CardContent>
           </Card>
-          
-          <Card className="text-center hover:shadow-lg hover:scale-[1.02] transition-all dark:bg-bg-4/50">
+
+          <Card className="text-center hover:shadow-lg hover:shadow-cosmic-blue/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-blue/20">
             <CardContent className="pt-6 relative overflow-hidden">
-              <Star className="h-32 w-32 text-yellow-500 absolute -top-10 -left-6 opacity-20" />
-              <p className="text-6xl font-semibold text-gray-700">{statsLoading ? '-' : stats?.totalLikesReceived}</p>
-              <p className="text-md text-gray-500">Total Likes</p>
+              <Star className="h-32 w-32 text-cosmic-orange absolute -top-10 -left-6 opacity-10" />
+              <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-orange to-cosmic-blue bg-clip-text text-transparent">{statsLoading ? '-' : stats?.totalLikesReceived}</p>
+              <p className="text-md text-text-tertiary">Total Likes</p>
             </CardContent>
           </Card>
-          
+
         </div>
 
         <Tabs defaultValue="about" className="space-y-6">
@@ -207,9 +207,9 @@ export default function Profile() {
           </TabsList>
 
           <TabsContent value="about" className="space-y-6">
-            <Card className="dark:bg-bg-4/50 max-w-xl">
-              <CardHeader className='border-b'>
-                <CardTitle>Profile Information</CardTitle>
+            <Card className="bg-bg-3/50 backdrop-blur-sm border-cosmic-blue/20 max-w-xl">
+              <CardHeader className='border-b border-cosmic-blue/20'>
+                <CardTitle className="text-cosmic-blue">Profile Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -278,9 +278,9 @@ export default function Profile() {
           </TabsContent>
 
           <TabsContent value="apps">
-            <Card className="dark:bg-bg-4/50 max-w-xl">
-              <CardHeader className='border-b'>
-                <CardTitle>Recent Applications</CardTitle>
+            <Card className="bg-bg-3/50 backdrop-blur-sm border-cosmic-purple/20 max-w-xl">
+              <CardHeader className='border-b border-cosmic-purple/20'>
+                <CardTitle className="text-cosmic-purple">Recent Applications</CardTitle>
               </CardHeader>
               <CardContent>
                 {appsLoading ? (
@@ -293,14 +293,14 @@ export default function Profile() {
                 ) : recentApps && recentApps.length > 0 ? (
                   <div className="space-y-4">
                     {recentApps.slice(0, 5).map((app) => (
-                      <div 
+                      <div
                         key={app.id}
-                        className="flex items-center justify-between p-4 rounded-lg border hover:bg-bg-3/50 transition-colors cursor-pointer"
+                        className="flex items-center justify-between p-4 rounded-lg border border-cosmic-blue/10 hover:border-cosmic-blue/30 hover:bg-cosmic-blue/5 transition-all cursor-pointer"
                         onClick={() => navigate(`/app/${app.id}`)}
                       >
                         <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-bg-3 flex items-center justify-center">
-                            <Code2 className="h-6 w-6" />
+                          <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-cosmic-blue/20 to-cosmic-purple/20 flex items-center justify-center">
+                            <Code2 className="h-6 w-6 text-cosmic-blue" />
                           </div>
                           <div>
                             <h4 className="font-medium">{app.title}</h4>
@@ -334,9 +334,9 @@ export default function Profile() {
           </TabsContent>
 
           <TabsContent value="achievements">
-            <Card className="dark:bg-bg-4/50 max-w-xl">
-              <CardHeader>
-                <CardTitle>Achievements</CardTitle>
+            <Card className="bg-bg-3/50 backdrop-blur-sm border-cosmic-pink/20 max-w-xl">
+              <CardHeader className="border-b border-cosmic-pink/20">
+                <CardTitle className="text-cosmic-pink">Achievements</CardTitle>
               </CardHeader>
               <CardContent>
                 {statsLoading ? (
@@ -350,10 +350,10 @@ export default function Profile() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {achievements.map((achievement, index) => {
                       return (
-                        <div key={index} className="p-4 rounded-lg border hover:shadow-md transition-shadow">
+                        <div key={index} className="p-4 rounded-lg border border-cosmic-pink/20 hover:border-cosmic-pink/40 hover:shadow-md hover:shadow-cosmic-pink/10 transition-all">
                           <div className="flex items-start gap-4">
-                            <div className="p-3 rounded-lg bg-bg-3 text-text-tertiary">
-                              <Trophy className="h-6 w-6" />
+                            <div className="p-3 rounded-lg bg-gradient-to-br from-cosmic-pink/20 to-cosmic-orange/20">
+                              <Trophy className="h-6 w-6 text-cosmic-pink" />
                             </div>
                             <div className="flex-1">
                               <h4 className="font-medium">{achievement}</h4>
@@ -378,9 +378,9 @@ export default function Profile() {
           </TabsContent>
 
           <TabsContent value="activity">
-            <Card className="dark:bg-bg-4/50 max-w-xl">
-              <CardHeader>
-                <CardTitle>Activity Timeline</CardTitle>
+            <Card className="bg-bg-3/50 backdrop-blur-sm border-cosmic-orange/20 max-w-xl">
+              <CardHeader className="border-b border-cosmic-orange/20">
+                <CardTitle className="text-cosmic-orange">Activity Timeline</CardTitle>
               </CardHeader>
               <CardContent>
                 {activityLoading ? (
@@ -393,12 +393,12 @@ export default function Profile() {
                 ) : activities && activities.length > 0 ? (
                   <div className="space-y-4">
                     {activities.map((activity, index) => (
-                      <div key={index} className="flex items-start gap-4 pb-4 border-b last:border-0">
+                      <div key={index} className="flex items-start gap-4 pb-4 border-b border-cosmic-blue/10 last:border-0">
                         <div className={cn(
                           "p-2 rounded-lg",
-                          activity.type === 'created' && "bg-green-500/10 text-green-600",
-                          activity.type === 'updated' && "bg-blue-500/10 text-blue-600",
-                          activity.type === 'favorited' && "bg-yellow-500/10 text-yellow-600"
+                          activity.type === 'created' && "bg-cosmic-blue/10 text-cosmic-blue",
+                          activity.type === 'updated' && "bg-cosmic-purple/10 text-cosmic-purple",
+                          activity.type === 'favorited' && "bg-cosmic-orange/10 text-cosmic-orange"
                         )}>
                           {activity.type === 'created' && <Zap className="h-4 w-4" />}
                           {activity.type === 'updated' && <Edit3 className="h-4 w-4" />}

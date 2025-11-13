@@ -5,19 +5,22 @@ import { ThemeProvider } from './contexts/theme-context';
 import { Toaster } from './components/ui/sonner';
 import { AppLayout } from './components/layout/app-layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import AnimationWrapper from './components/animations/AnimationWrapper';
 
 export default function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <AuthProvider>
-          <AuthModalProvider>
-            <AppLayout>
-              <Outlet />
-            </AppLayout>
-            <Toaster richColors position="top-right" />
-          </AuthModalProvider>
-        </AuthProvider>
+        <AnimationWrapper defaultIntensity="high" respectReducedMotion={true}>
+          <AuthProvider>
+            <AuthModalProvider>
+              <AppLayout>
+                <Outlet />
+              </AppLayout>
+              <Toaster richColors position="top-right" />
+            </AuthModalProvider>
+          </AuthProvider>
+        </AnimationWrapper>
       </ThemeProvider>
     </ErrorBoundary>
   );

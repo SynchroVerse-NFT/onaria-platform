@@ -19,17 +19,22 @@ function sanitizeMessageForDisplay(message: string): string {
 
 export function UserMessage({ message }: { message: string }) {
 	const sanitizedMessage = sanitizeMessageForDisplay(message);
-	
+
 	return (
-		<div className="flex gap-3">
+		<div className="flex gap-3 group">
 			<div className="align-text-top pl-1">
-				<div className="size-6 flex items-center justify-center rounded-full bg-accent text-text-on-brand">
-					<span className="text-xs">U</span>
+				<div className="size-6 flex items-center justify-center rounded-full bg-gradient-to-br from-cosmic-blue to-cosmic-purple text-white shadow-lg shadow-cosmic-blue/20 transition-all duration-300 group-hover:shadow-cosmic-purple/30 group-hover:scale-105">
+					<span className="text-xs font-medium">U</span>
 				</div>
 			</div>
 			<div className="flex flex-col gap-2 min-w-0">
 				<div className="font-medium text-text-50">You</div>
-				<Markdown className="text-text-primary/80">{sanitizedMessage}</Markdown>
+				<div className="relative">
+					<div className="absolute inset-0 bg-gradient-to-r from-cosmic-blue/5 via-cosmic-purple/5 to-cosmic-pink/5 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+					<div className="relative bg-bg-3/50 backdrop-blur-sm border border-cosmic-blue/10 rounded-lg px-4 py-2.5 shadow-sm group-hover:border-cosmic-purple/20 transition-all duration-300">
+						<Markdown className="text-text-primary/90">{sanitizedMessage}</Markdown>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
@@ -130,9 +135,9 @@ function DeepDebugTranscript({ transcript }: { transcript: ConversationMessage[]
 	});
 	
 	return (
-		<div className="flex flex-col gap-3 p-3 rounded-md bg-surface-tertiary/50 border-l-2 border-accent/30">
-			<div className="flex items-center gap-2 text-xs font-medium text-accent">
-				<MessageSquare className="size-3" />
+		<div className="flex flex-col gap-3 p-3 rounded-md bg-gradient-to-br from-cosmic-purple/10 to-cosmic-blue/10 backdrop-blur-sm border border-cosmic-purple/20 shadow-sm shadow-cosmic-purple/5">
+			<div className="flex items-center gap-2 text-xs font-medium bg-gradient-to-r from-cosmic-purple to-cosmic-blue bg-clip-text text-transparent">
+				<MessageSquare className="size-3 text-cosmic-purple" />
 				<span>Deep Debugger Transcript</span>
 			</div>
 			{transcript.map((msg, idx) => {
@@ -186,25 +191,28 @@ export function ToolStatusIndicator({ event }: { event: ToolEvent }) {
 	const [isExpanded, setIsExpanded] = useState(false);
 	const hasResult = event.status === 'success' && event.result;
 	const isDeepDebug = event.name === 'deep_debug';
-	
-	const statusText = event.status === 'start' ? 'Running' : 
-	                   event.status === 'success' ? 'Completed' : 
+
+	const statusText = event.status === 'start' ? 'Running' :
+	                   event.status === 'success' ? 'Completed' :
 	                   'Error';
-	
-	const StatusIcon = event.status === 'start' ? LoaderCircle : 
-	                   event.status === 'success' ? Check : 
+
+	const StatusIcon = event.status === 'start' ? LoaderCircle :
+	                   event.status === 'success' ? Check :
 	                   AlertTriangle;
-	
-	const iconClass = event.status === 'start' ? 'size-3 animate-spin' : 'size-3';
-	
+
+	const iconClass = event.status === 'start' ? 'size-3 animate-spin text-cosmic-blue' : 'size-3';
+
 	return (
 		<div className="flex flex-col gap-2">
 			<button
 				onClick={() => hasResult && setIsExpanded(!isExpanded)}
 				className={clsx(
-					'flex items-center gap-1.5 text-xs',
-					isDeepDebug ? 'text-accent font-medium' : 'text-text-tertiary',
-					hasResult && 'cursor-pointer hover:text-text-secondary transition-colors'
+					'flex items-center gap-1.5 text-xs rounded-md px-2 py-1 -mx-2 transition-all duration-200',
+					isDeepDebug
+						? 'text-cosmic-purple font-medium hover:bg-cosmic-purple/5'
+						: 'text-text-tertiary hover:bg-bg-3',
+					hasResult && 'cursor-pointer hover:text-text-secondary',
+					event.status === 'start' && 'bg-cosmic-blue/5 border border-cosmic-blue/20'
 				)}
 				disabled={!hasResult}
 			>
@@ -216,13 +224,13 @@ export function ToolStatusIndicator({ event }: { event: ToolEvent }) {
 					isExpanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />
 				)}
 			</button>
-			
+
 			{isExpanded && hasResult && event.result && (
 				<div className={clsx(
-					'p-3 rounded-md text-xs font-mono border overflow-auto',
-					isDeepDebug 
-						? 'bg-surface-tertiary/30 border-accent/20 max-h-[600px]' 
-						: 'bg-surface-secondary border-border max-h-96'
+					'p-3 rounded-md text-xs font-mono border overflow-auto backdrop-blur-sm transition-all duration-200',
+					isDeepDebug
+						? 'bg-bg-3/80 border-cosmic-purple/20 max-h-[600px] shadow-sm shadow-cosmic-purple/5'
+						: 'bg-bg-2/80 border-cosmic-blue/10 max-h-96'
 				)}>
 					<ToolResultRenderer result={event.result} toolName={event.name} />
 				</div>
@@ -344,20 +352,40 @@ export function AIMessage({
 	}
 	
 	return (
-		<div className="flex gap-3">
+		<div className="flex gap-3 group">
 			<div className="align-text-top pl-1">
-				<AIAvatar className="size-6 text-orange-500" />
+				<div className="relative">
+					<div className="absolute inset-0 rounded-full bg-gradient-to-br from-cosmic-orange/20 to-cosmic-pink/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+					<AIAvatar className="size-6 text-cosmic-orange relative drop-shadow-sm group-hover:scale-105 transition-transform duration-300" />
+				</div>
 			</div>
 			<div className="flex flex-col gap-2 min-w-0">
-				<div className="font-mono font-medium text-text-50">Orange</div>
-				
+				<div className="font-mono font-medium text-text-50 flex items-center gap-2">
+					<span className="bg-gradient-to-r from-cosmic-orange to-cosmic-pink bg-clip-text text-transparent">Orange</span>
+					{isThinking && (
+						<div className="flex gap-1">
+							<div className="w-1 h-1 rounded-full bg-cosmic-blue animate-bounce" style={{ animationDelay: '0ms' }} />
+							<div className="w-1 h-1 rounded-full bg-cosmic-purple animate-bounce" style={{ animationDelay: '150ms' }} />
+							<div className="w-1 h-1 rounded-full bg-cosmic-pink animate-bounce" style={{ animationDelay: '300ms' }} />
+						</div>
+					)}
+				</div>
+
 				{/* Message content with inline tool events (from streaming) */}
 				{orderedContent.length > 0 && (
-					<div className={clsx(isThinking && 'animate-pulse')}>
-						<MessageContentRenderer content={sanitizedMessage} toolEvents={inlineToolEvents} />
+					<div className="relative">
+						<div className="absolute inset-0 bg-gradient-to-r from-cosmic-purple/5 via-cosmic-blue/5 to-cosmic-pink/5 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+						<div className={clsx(
+							"relative bg-bg-2/80 backdrop-blur-sm border rounded-lg px-4 py-2.5 shadow-sm transition-all duration-300",
+							isThinking
+								? "border-cosmic-purple/30 shadow-cosmic-purple/10 animate-pulse"
+								: "border-cosmic-blue/10 group-hover:border-cosmic-blue/20"
+						)}>
+							<MessageContentRenderer content={sanitizedMessage} toolEvents={inlineToolEvents} />
+						</div>
 					</div>
 				)}
-				
+
 				{/* Completed tools (from restoration) - shown at end */}
 				{topToolEvents.length > 0 && (
 					<div className="flex flex-col gap-1.5 mt-1">

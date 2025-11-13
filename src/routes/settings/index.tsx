@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-// import { useNavigate } from 'react-router';
 import {
 	Eye,
 	EyeOff,
@@ -25,7 +24,6 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/auth-context';
-// import { useTheme } from '@/contexts/theme-context';
 import { Badge } from '@/components/ui/badge';
 import {
 	AlertDialog,
@@ -70,9 +68,6 @@ export default function SettingsPage() {
 	const [activeSessions, setActiveSessions] = useState<
 		ActiveSessionsData & { loading: boolean }
 	>({ sessions: [], loading: true });
-
-	// API Keys state - commented out since not used
-	// const [apiKeys, setApiKeys] = useState<ApiKeysData & { loading: boolean }>({ keys: [], loading: true });
 
 	// User Secrets state
 	const [userSecrets, setUserSecrets] = useState<{
@@ -123,44 +118,6 @@ export default function SettingsPage() {
 		loadUserSecrets();
 		loadModelConfigs(); // Refresh model configs since BYOK provider availability changed
 	};
-
-	// const handleSaveProfile = async () => {
-	// 	if (isSaving) return;
-
-	// 	try {
-	// 		setIsSaving(true);
-
-	// 		const response = await fetch('/api/auth/profile', {
-	// 			method: 'PUT',
-	// 			credentials: 'include',
-	// 			headers: {
-	// 				'Content-Type': 'application/json',
-	// 			},
-	// 			body: JSON.stringify({
-	// 				...profileData,
-	// 				theme: currentTheme,
-	// 			}),
-	// 		});
-
-	// 		const data = await response.json();
-
-	// 		if (response.ok && data.success) {
-	// 			toast.success('Profile settings saved');
-	// 			// Theme context is already updated by handleThemeChange
-	// 			// Refresh user data in auth context
-	// 			await refreshUser();
-	// 		} else {
-	// 			toast.error(
-	// 				data.error?.message || 'Failed to save profile settings',
-	// 			);
-	// 		}
-	// 	} catch (error) {
-	// 		console.error('Profile save error:', error);
-	// 		toast.error('Failed to save profile settings');
-	// 	} finally {
-	// 		setIsSaving(false);
-	// 	}
-	// };
 
 	// Helper function to format camelCase to human readable
 	const formatAgentConfigName = React.useCallback((key: string) => {
@@ -516,111 +473,26 @@ export default function SettingsPage() {
 		<div className="min-h-screen bg-bg-3 relative">
 			<main className="container mx-auto px-4 py-8 max-w-4xl">
 				<div className="space-y-8">
-					{/* Page Header */}
-					<div>
-						<h1 className="text-4xl font-bold font-[departureMono] text-red-500">
-							SETTINGS
-						</h1>
-						<p className="text-text-tertiary mt-2">
-							Manage your account settings and preferences
-						</p>
+					{/* Page Header with Cosmic Styling */}
+					<div className="relative">
+						<div className="absolute inset-0 bg-gradient-to-r from-cosmic-blue/10 via-cosmic-purple/10 to-cosmic-pink/10 rounded-lg blur-xl opacity-50"></div>
+						<div className="relative">
+							<h1 className="text-4xl font-bold font-[DepartureMono] bg-gradient-to-r from-cosmic-blue via-cosmic-purple to-cosmic-pink bg-clip-text text-transparent">
+								SETTINGS
+							</h1>
+							<p className="text-text-tertiary mt-2">
+								Manage your account settings and preferences
+							</p>
+						</div>
 					</div>
 
-					{/* Integrations Section */}
-					{/* <Card id="integrations">
+					{/* Model Configuration Section with Cosmic Styling */}
+					<Card id="model-configs" className="bg-bg-3/50 backdrop-blur-sm border-cosmic-blue/20 hover:border-cosmic-blue/30 transition-all duration-300 hover:shadow-lg hover:shadow-cosmic-blue/10">
 						<CardHeader variant="minimal">
-							<div className="flex items-center gap-3 border-b w-full py-3 text-text-primary">
-								<Link className="h-4 w-4" />
+							<div className="flex items-center gap-3 border-b border-cosmic-blue/20 w-full py-3 text-text-primary">
+								<Settings className="h-5 w-5 text-cosmic-blue" />
 								<div>
-									<CardTitle>Integrations</CardTitle>
-								</div>
-							</div>
-						</CardHeader>
-						<CardContent className="space-y-4 px-6 mt-6">
-							{githubIntegration.loading ? (
-								<div className="flex items-center gap-3">
-									<Settings className="h-5 w-5 animate-spin text-text-tertiary" />
-									<span className="text-sm text-text-tertiary">
-										Loading GitHub integration status...
-									</span>
-								</div>
-							) : githubIntegration.hasIntegration ? (
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-3">
-										<div className="h-10 w-10 rounded-full bg-[#24292e] flex items-center justify-center">
-											<Github className="h-5 w-5 text-white" />
-										</div>
-										<div>
-											<p className="font-medium">
-												GitHub Connected
-											</p>
-											<p className="text-sm text-text-tertiary">
-												@
-												{
-													githubIntegration.githubUsername
-												}
-											</p>
-										</div>
-									</div>
-									<div className="flex items-center gap-2">
-										<Badge
-											variant="secondary"
-											className="bg-green-100 text-green-800"
-										>
-											Connected
-										</Badge>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={handleDisconnectGithub}
-											className="gap-2"
-										>
-											<Unlink className="h-4 w-4" />
-											Disconnect
-										</Button>
-									</div>
-								</div>
-							) : (
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-3">
-										<div className="h-10 w-10 rounded-full bg-bg-2 border-bg-1 dark:border-bg-4 border flex items-center justify-center">
-											<Github className="h-5 w-5 text-text-tertiary" />
-										</div>
-										<div>
-											<p className="font-medium">
-												GitHub App for Exports
-											</p>
-											<div className="flex items-center justify-between">
-												<span className="text-text-primary text-xs">
-													Connect your GitHub account to export generated code directly to
-													repositories
-												</span>
-												{githubIntegration.loading && (
-													<RefreshCw className="w-3 h-3 text-text-primary/60 animate-spin" />
-												)}
-											</div>
-										</div>
-									</div>
-									<Button
-										onClick={handleConnectGithub}
-										className="gap-2 bg-text-primary hover:bg-[#1a1e22] text-bg-1"
-									>
-										<Github className="h-4 w-4" />
-										Install GitHub App
-									</Button>
-								</div>
-							)}
-						</CardContent>
-					</Card> */}
-
-					{/* Model Configuration Section */}
-					<Card id="model-configs">
-						<CardHeader variant="minimal">
-							<div className="flex items-center gap-3 border-b w-full py-3 text-text-primary">
-								{' '}
-								<Settings className="h-5 w-5" />
-								<div>
-									<CardTitle>
+									<CardTitle className="text-cosmic-blue">
 										AI Model Configurations
 									</CardTitle>
 								</div>
@@ -652,7 +524,7 @@ export default function SettingsPage() {
 											});
 										}
 									}}
-									className="gap-2 shrink-0"
+									className="gap-2 shrink-0 border-cosmic-blue/30 hover:border-cosmic-blue/50 hover:bg-cosmic-blue/5 hover:text-cosmic-blue transition-all"
 								>
 									<Key className="h-4 w-4" />
 									Manage Keys
@@ -677,214 +549,21 @@ export default function SettingsPage() {
 						</CardContent>
 					</Card>
 
-					{/* User Secrets Section */}
-					<Card id="secrets">
+					{/* User Secrets Section with Cosmic Styling */}
+					<Card id="secrets" className="bg-bg-3/50 backdrop-blur-sm border-cosmic-purple/20 hover:border-cosmic-purple/30 transition-all duration-300 hover:shadow-lg hover:shadow-cosmic-purple/10">
 						<CardHeader variant="minimal">
-							<div className="flex items-center gap-3 border-b w-full py-3 text-text-primary">
-								<Key className="h-5 w-5" />
+							<div className="flex items-center gap-3 border-b border-cosmic-purple/20 w-full py-3 text-text-primary">
+								<Key className="h-5 w-5 text-cosmic-purple" />
 								<div>
-									<CardTitle>API Keys & Secrets</CardTitle>
+									<CardTitle className="text-cosmic-purple">API Keys & Secrets</CardTitle>
 								</div>
 							</div>
 						</CardHeader>
 						<CardContent className="space-y-3 mt-4 px-6">
-							{/* App Environment Variables Section */}
-							{/* <div className="space-y-4">
-								<div className="flex justify-between items-center">
-									<div>
-										<h4 className="font-medium">
-											Environment Variables for the
-											generated apps
-										</h4>
-									</div>
-									<Dialog
-										open={secretDialog}
-										onOpenChange={(open) => {
-											if (open) {
-												setSelectedTemplate(null);
-												setIsCustomSecret(false);
-												setNewSecret({
-													templateId: '',
-													name: '',
-													envVarName: '',
-													value: '',
-													environment: 'production',
-													description: '',
-												});
-											}
-											setSecretDialog(open);
-										}}
-									>
-										<DialogTrigger asChild>
-											<Button size="sm" className="gap-2">
-												<Plus className="h-4 w-4" />
-												Add Env Vars
-											</Button>
-										</DialogTrigger>
-									</Dialog>
-								</div>
-
-								{userSecrets.loading ? (
-									<div className="flex items-center gap-3">
-										<Settings className="h-5 w-5 animate-spin text-text-tertiary" />
-										<span className="text-sm text-text-tertiary">
-											Loading secrets...
-										</span>
-									</div>
-								) : userSecrets.secrets.length === 0 ? (
-									<div className="text-center py-8 border-2 border-dashed dark:border-bg-4 rounded-lg">
-										<Key className="h-8 w-8 text-text-tertiary mx-auto mb-2" />
-										<p className="text-sm text-text-tertiary">
-											Add API keys and secrets that your
-											generated apps can use
-										</p>
-									</div>
-								) : (
-									<div className="space-y-3">
-										{userSecrets.secrets
-											.filter(
-												(secret) =>
-													!secret.secretType.endsWith(
-														'_BYOK',
-													),
-											)
-											.map((secret) => (
-												<div
-													key={secret.id}
-													className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
-														secret.isActive
-															? 'bg-bg-4'
-															: 'bg-bg-3/20 border-dashed opacity-70'
-													}`}
-												>
-													<div className="flex items-center gap-3">
-														<div
-															className={`flex items-center justify-center w-8 h-8 rounded-md border shadow-sm ${
-																secret.isActive
-																	? 'bg-white'
-																	: 'bg-bg-3 border-dashed opacity-60'
-															}`}
-														>
-															{getProviderLogo(
-																secret.provider,
-																`h-5 w-5 ${secret.isActive ? '' : 'opacity-60'}`,
-															)}
-														</div>
-														<div>
-															<p
-																className={`font-medium ${secret.isActive ? '' : 'opacity-60'}`}
-															>
-																{secret.name}
-															</p>
-															<div className="flex items-center gap-2 mt-1">
-																<Badge
-																	variant={
-																		secret.isActive
-																			? 'default'
-																			: 'outline'
-																	}
-																	className={`text-xs ${secret.isActive ? '' : 'opacity-60'}`}
-																>
-																	{secret.isActive
-																		? 'Active'
-																		: 'Inactive'}
-																</Badge>
-																<Badge
-																	variant="outline"
-																	className={`text-xs ${secret.isActive ? '' : 'opacity-60'}`}
-																>
-																	{
-																		secret.provider
-																	}
-																</Badge>
-																<Badge
-																	variant="secondary"
-																	className={`text-xs ${secret.isActive ? '' : 'opacity-60'}`}
-																>
-																	{secret.secretType.replace(
-																		'_',
-																		' ',
-																	)}
-																</Badge>
-																<span className="text-xs text-text-tertiary">
-																	{
-																		secret.keyPreview
-																	}
-																</span>
-															</div>
-															{secret.description && (
-																<p className="text-xs text-text-tertiary mt-1">
-																	{
-																		secret.description
-																	}
-																</p>
-															)}
-														</div>
-													</div>
-													<div className="flex items-center gap-2">
-														<AlertDialog>
-															<AlertDialogTrigger
-																asChild
-															>
-																<Button
-																	variant="outline"
-																	size="sm"
-																	className="text-destructive hover:text-destructive"
-																>
-																	<Trash2 className="h-4 w-4" />
-																</Button>
-															</AlertDialogTrigger>
-															<AlertDialogContent>
-																<AlertDialogHeader>
-																	<AlertDialogTitle>
-																		Delete
-																		Secret
-																	</AlertDialogTitle>
-																	<AlertDialogDescription>
-																		Are you
-																		sure you
-																		want to
-																		delete "
-																		{
-																			secret.name
-																		}
-																		"? This
-																		action
-																		cannot
-																		be
-																		undone.
-																	</AlertDialogDescription>
-																</AlertDialogHeader>
-																<AlertDialogFooter>
-																	<AlertDialogCancel>
-																		Cancel
-																	</AlertDialogCancel>
-																	<AlertDialogAction
-																		onClick={() =>
-																			handleDeleteSecret(
-																				secret.id,
-																			)
-																		}
-																		className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-																	>
-																		Delete
-																	</AlertDialogAction>
-																</AlertDialogFooter>
-															</AlertDialogContent>
-														</AlertDialog>
-													</div>
-												</div>
-											))}
-									</div>
-								)}
-							</div> */}
-
-							{/* <Separator /> */}
-
 							{/* BYOK API Keys Section */}
 							<div className="space-y-4">
 								<div className="flex justify-between items-center">
-									<h4 className="font-medium">
+									<h4 className="font-medium text-cosmic-purple">
 										BYOK Provider Keys
 									</h4>
 									<Button
@@ -892,7 +571,7 @@ export default function SettingsPage() {
 										variant="outline"
 										onClick={() => setByokModalOpen(true)}
                                         disabled // DISABLED: BYOK Disabled for security reasons
-										className="gap-2"
+										className="gap-2 border-cosmic-purple/30 opacity-60"
 									>
 										<Key className="h-4 w-4" />
 										{/* Manage BYOK Keys */}
@@ -909,8 +588,8 @@ export default function SettingsPage() {
 
 									if (byokSecrets.length === 0) {
 										return (
-											<div className="text-center py-6 border-2 border-dashed dark:border-bg-4 border-muted rounded-lg">
-												<Key className="h-8 w-8 text-text-tertiary mx-auto mb-2" />
+											<div className="text-center py-6 border-2 border-dashed border-cosmic-purple/30 rounded-lg bg-cosmic-purple/5 backdrop-blur-sm">
+												<Key className="h-8 w-8 text-cosmic-purple/60 mx-auto mb-2" />
 
 												<p className="text-sm text-text-tertiary">
 													{/* Add your LLM keys to use
@@ -922,11 +601,11 @@ export default function SettingsPage() {
 									}
 
 									return (
-										<div className="rounded-lg bg-bg-3/50 p-4">
+										<div className="rounded-lg bg-cosmic-purple/5 backdrop-blur-sm border border-cosmic-purple/20 p-4">
 											<div className="flex items-center justify-between mb-3">
 												<div className="flex items-center gap-2">
-													<div className="w-2 h-2 bg-green-500 rounded-full"></div>
-													<span className="text-sm font-medium">
+													<div className="w-2 h-2 bg-cosmic-purple rounded-full animate-pulse shadow-lg shadow-cosmic-purple/50"></div>
+													<span className="text-sm font-medium text-cosmic-purple">
 														{byokSecrets.length}{' '}
 														provider
 														{byokSecrets.length !==
@@ -956,10 +635,10 @@ export default function SettingsPage() {
 													return (
 														<div
 															key={secret.id}
-															className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${
+															className={`flex items-center justify-between p-3 border rounded-lg transition-all duration-300 ${
 																secret.isActive
-																	? 'bg-white/50 dark:bg-gray-800/50'
-																	: 'bg-bg-3/20 border-dashed opacity-70'
+																	? 'bg-white/50 dark:bg-gray-800/50 border-cosmic-purple/30 hover:border-cosmic-purple/50 hover:shadow-md hover:shadow-cosmic-purple/10'
+																	: 'bg-bg-3/20 border-dashed opacity-70 border-cosmic-purple/20'
 															}`}
 														>
 															<div className="flex items-center gap-3">
@@ -1086,7 +765,7 @@ export default function SettingsPage() {
 												<Button
 													variant="link"
 													size="sm"
-													className="text-xs p-0 h-auto ml-1"
+													className="text-xs p-0 h-auto ml-1 text-cosmic-purple hover:text-cosmic-pink transition-colors"
 													onClick={() => {
 														const modelConfigsSection =
 															document.getElementById(
@@ -1113,14 +792,14 @@ export default function SettingsPage() {
 								})()}
 							</div>
 
-							{/* Add Secret Dialog */}
+							{/* Add Secret Dialog with Cosmic Styling */}
 							<Dialog
 								open={secretDialog}
 								onOpenChange={resetSecretDialog}
 							>
-								<DialogContent className="max-w-lg">
+								<DialogContent className="max-w-lg border-cosmic-purple/30 bg-bg-3/95 backdrop-blur-md">
 									<DialogHeader>
-										<DialogTitle>
+										<DialogTitle className="text-cosmic-purple">
 											Add API Key or Secret
 										</DialogTitle>
 										<DialogDescription>
@@ -1159,7 +838,7 @@ export default function SettingsPage() {
 																				template.id
 																			}
 																			variant="outline"
-																			className="justify-start h-auto p-3 text-left"
+																			className="justify-start h-auto p-3 text-left border-cosmic-purple/20 hover:border-cosmic-purple/40 hover:bg-cosmic-purple/5 transition-all"
 																			onClick={() => {
 																				setSelectedTemplate(
 																					template.id,
@@ -1257,7 +936,7 @@ export default function SettingsPage() {
 
 													<Button
 														variant="outline"
-														className="w-full justify-start h-auto p-3"
+														className="w-full justify-start h-auto p-3 border-cosmic-purple/20 hover:border-cosmic-purple/40 hover:bg-cosmic-purple/5 transition-all"
 														onClick={() =>
 															setIsCustomSecret(
 																true,
@@ -1303,14 +982,14 @@ export default function SettingsPage() {
 
 													return (
 														<>
-															<div className="flex items-center gap-3 p-3 bg-bg-3/50 rounded-lg">
+															<div className="flex items-center gap-3 p-3 bg-cosmic-purple/10 border border-cosmic-purple/20 rounded-lg backdrop-blur-sm">
 																<span className="text-xl">
 																	{
 																		template.icon
 																	}
 																</span>
 																<div>
-																	<h4 className="font-medium">
+																	<h4 className="font-medium text-cosmic-purple">
 																		{
 																			template.displayName
 																		}
@@ -1346,7 +1025,7 @@ export default function SettingsPage() {
 
 															<div className="space-y-3">
 																<div>
-																	<Label>
+																	<Label className="text-cosmic-purple">
 																		Environment
 																		Variable
 																		Name
@@ -1356,7 +1035,7 @@ export default function SettingsPage() {
 																			template.envVarName
 																		}
 																		disabled
-																		className="bg-bg-3"
+																		className="bg-cosmic-purple/5 border-cosmic-purple/30"
 																	/>
 																	<p className="text-xs text-text-tertiary mt-1">
 																		This
@@ -1375,7 +1054,7 @@ export default function SettingsPage() {
 																</div>
 
 																<div>
-																	<Label htmlFor="templateValue">
+																	<Label htmlFor="templateValue" className="text-cosmic-purple">
 																		Value
 																	</Label>
 																	<div className="relative">
@@ -1406,7 +1085,7 @@ export default function SettingsPage() {
 																					}),
 																				)
 																			}
-																			className="pr-10"
+																			className="pr-10 border-cosmic-purple/30 focus-visible:border-cosmic-purple focus-visible:ring-cosmic-purple/20"
 																		/>
 																		<Button
 																			type="button"
@@ -1428,13 +1107,13 @@ export default function SettingsPage() {
 																	</div>
 																</div>
 
-																<div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-3">
-																	<h5 className="font-medium text-blue-900 dark:text-blue-100 text-sm mb-1">
+																<div className="rounded-lg bg-cosmic-blue/10 dark:bg-cosmic-blue/5 border border-cosmic-blue/30 p-3 backdrop-blur-sm">
+																	<h5 className="font-medium text-cosmic-blue text-sm mb-1">
 																		How to
 																		get
 																		this:
 																	</h5>
-																	<p className="text-xs text-blue-700 dark:text-blue-300">
+																	<p className="text-xs text-text-secondary">
 																		{
 																			template.instructions
 																		}
@@ -1478,7 +1157,7 @@ export default function SettingsPage() {
 												</div>
 
 												<div>
-													<Label htmlFor="customName">
+													<Label htmlFor="customName" className="text-cosmic-purple">
 														Display Name
 													</Label>
 													<Input
@@ -1495,11 +1174,12 @@ export default function SettingsPage() {
 																}),
 															)
 														}
+														className="border-cosmic-purple/30 focus-visible:border-cosmic-purple focus-visible:ring-cosmic-purple/20"
 													/>
 												</div>
 
 												<div>
-													<Label htmlFor="customEnvVar">
+													<Label htmlFor="customEnvVar" className="text-cosmic-purple">
 														Environment Variable
 														Name
 													</Label>
@@ -1518,6 +1198,7 @@ export default function SettingsPage() {
 																}),
 															)
 														}
+														className="border-cosmic-purple/30 focus-visible:border-cosmic-purple focus-visible:ring-cosmic-purple/20"
 													/>
 													<p className="text-xs text-text-tertiary mt-1">
 														Must be uppercase
@@ -1527,7 +1208,7 @@ export default function SettingsPage() {
 												</div>
 
 												<div>
-													<Label htmlFor="customValue">
+													<Label htmlFor="customValue" className="text-cosmic-purple">
 														Value
 													</Label>
 													<div className="relative">
@@ -1552,7 +1233,7 @@ export default function SettingsPage() {
 																	}),
 																)
 															}
-															className="pr-10"
+															className="pr-10 border-cosmic-purple/30 focus-visible:border-cosmic-purple focus-visible:ring-cosmic-purple/20"
 														/>
 														<Button
 															type="button"
@@ -1575,7 +1256,7 @@ export default function SettingsPage() {
 												</div>
 
 												<div>
-													<Label htmlFor="customDescription">
+													<Label htmlFor="customDescription" className="text-cosmic-purple">
 														Description (Optional)
 													</Label>
 													<Textarea
@@ -1595,6 +1276,7 @@ export default function SettingsPage() {
 															)
 														}
 														rows={2}
+														className="border-cosmic-purple/30 focus-visible:border-cosmic-purple focus-visible:ring-cosmic-purple/20"
 													/>
 												</div>
 											</div>
@@ -1604,7 +1286,7 @@ export default function SettingsPage() {
 										{(selectedTemplate ||
 											isCustomSecret) && (
 											<div>
-												<Label htmlFor="environment">
+												<Label htmlFor="environment" className="text-cosmic-purple">
 													Environment
 												</Label>
 												<Select
@@ -1621,10 +1303,10 @@ export default function SettingsPage() {
 														)
 													}
 												>
-													<SelectTrigger>
+													<SelectTrigger className="border-cosmic-purple/30 focus-visible:border-cosmic-purple focus-visible:ring-cosmic-purple/20">
 														<SelectValue />
 													</SelectTrigger>
-													<SelectContent>
+													<SelectContent className="border-cosmic-purple/30">
 														<SelectItem value="production">
 															Production
 														</SelectItem>
@@ -1644,6 +1326,7 @@ export default function SettingsPage() {
 										<Button
 											variant="outline"
 											onClick={resetSecretDialog}
+											className="border-cosmic-purple/30 hover:border-cosmic-purple/50"
 										>
 											Cancel
 										</Button>
@@ -1658,6 +1341,7 @@ export default function SettingsPage() {
 															!newSecret.envVarName)) ||
 													isSavingSecret
 												}
+												className="bg-gradient-to-r from-cosmic-purple to-cosmic-pink hover:shadow-lg hover:shadow-cosmic-purple/30 transition-all"
 											>
 												{isSavingSecret
 													? 'Saving...'
@@ -1670,13 +1354,13 @@ export default function SettingsPage() {
 						</CardContent>
 					</Card>
 
-					{/* Security Section */}
-					<Card id="security">
+					{/* Security Section with Cosmic Styling */}
+					<Card id="security" className="bg-bg-3/50 backdrop-blur-sm border-cosmic-pink/20 hover:border-cosmic-pink/30 transition-all duration-300 hover:shadow-lg hover:shadow-cosmic-pink/10">
 						<CardHeader variant="minimal">
-							<div className="flex items-center gap-3 border-b w-full py-3 text-text-primary">
-								<Lock className="h-5 w-5" />
+							<div className="flex items-center gap-3 border-b border-cosmic-pink/20 w-full py-3 text-text-primary">
+								<Lock className="h-5 w-5 text-cosmic-pink" />
 								<div>
-									<CardTitle className="text-lg">
+									<CardTitle className="text-lg text-cosmic-pink">
 										Security
 									</CardTitle>
 								</div>
@@ -1685,15 +1369,15 @@ export default function SettingsPage() {
 						<CardContent className="space-y-3 mt-2 px-6">
 							{/* Connected Accounts */}
 							<div className="space-y-2">
-								<h4 className="font-medium">
+								<h4 className="font-medium text-cosmic-pink">
 									Connected Accounts
 								</h4>
-								<div className="flex items-center justify-between">
+								<div className="flex items-center justify-between p-3 rounded-lg border border-cosmic-pink/20 bg-cosmic-pink/5 hover:border-cosmic-pink/30 transition-all duration-300">
 									<div className="flex items-center gap-3">
-										<div className="h-5 w-5 rounded-full bg-bg-3 flex items-center justify-center">
-											{user?.provider === 'google'
+										<div className="h-10 w-10 rounded-full bg-gradient-to-br from-cosmic-pink/20 to-cosmic-purple/20 flex items-center justify-center ring-2 ring-cosmic-pink/30">
+											<span className="text-lg">{user?.provider === 'google'
 												? '🇬'
-												: '🐙'}
+												: '🐙'}</span>
 										</div>
 										<div>
 											<p className="text-sm font-medium capitalize">
@@ -1704,7 +1388,7 @@ export default function SettingsPage() {
 											</p>
 										</div>
 									</div>
-									<Badge variant="secondary">Connected</Badge>
+									<Badge variant="secondary" className="bg-cosmic-pink/20 text-cosmic-pink border-cosmic-pink/30">Connected</Badge>
 								</div>
 							</div>
 
@@ -1712,10 +1396,10 @@ export default function SettingsPage() {
 
 							{/* Active Sessions */}
 							<div className="space-y-2">
-								<h4 className="font-medium">Active Sessions</h4>
+								<h4 className="font-medium text-cosmic-pink">Active Sessions</h4>
 								{activeSessions.loading ? (
-									<div className="flex items-center gap-3">
-										<Settings className="h-5 w-5 animate-spin text-text-tertiary" />
+									<div className="flex items-center gap-3 p-3 rounded-lg border border-cosmic-pink/20 bg-cosmic-pink/5">
+										<Settings className="h-5 w-5 animate-spin text-cosmic-pink" />
 										<span className="text-sm text-text-tertiary">
 											Loading active sessions...
 										</span>
@@ -1724,7 +1408,7 @@ export default function SettingsPage() {
 									activeSessions.sessions.map((session) => (
 										<div
 											key={session.id}
-											className="flex items-center justify-between"
+											className="flex items-center justify-between p-3 rounded-lg border border-cosmic-pink/20 bg-cosmic-pink/5 hover:border-cosmic-pink/30 transition-all duration-300"
 										>
 											<div className="flex items-center gap-3">
 												<Smartphone className="h-5 w-5 text-text-tertiary" />
@@ -1744,7 +1428,7 @@ export default function SettingsPage() {
 											</div>
 											<div className="flex items-center gap-2">
 												{session.isCurrent ? (
-													<div className="bg-green-400 size-3 rounded-full ring-green-200 ring-2 animate-pulse"></div>
+													<div className="bg-cosmic-pink size-3 rounded-full ring-cosmic-pink/50 ring-2 animate-pulse shadow-lg shadow-cosmic-pink/50"></div>
 												) : (
 													<Button
 														variant="outline"
@@ -1754,7 +1438,7 @@ export default function SettingsPage() {
 																session.id,
 															)
 														}
-														className="text-destructive hover:text-destructive"
+														className="text-destructive hover:text-destructive border-cosmic-pink/30 hover:border-destructive/50"
 													>
 														Revoke
 													</Button>
@@ -1767,12 +1451,14 @@ export default function SettingsPage() {
 						</CardContent>
 					</Card>
 
-					<div className="space-y-4 p-3">
-						<h4 className="font-medium text-destructive">
+					{/* Danger Zone with Cosmic Styling */}
+					<div className="space-y-4 p-6 rounded-lg border-2 border-dashed border-destructive/30 bg-destructive/5 backdrop-blur-sm">
+						<h4 className="font-medium text-destructive flex items-center gap-2">
+							<span className="text-lg">⚠️</span>
 							Danger Zone
 						</h4>
 
-						<div className="flex items-center justify-between">
+						<div className="flex items-center justify-between p-4 rounded-lg border border-destructive/20 bg-bg-3/50">
 							<div>
 								<p className="font-medium text-text-primary">Delete Account</p>
 								<p className="text-sm text-text-tertiary">
@@ -1783,7 +1469,7 @@ export default function SettingsPage() {
 								<AlertDialogTrigger asChild>
 									<Button
 										variant="destructive"
-										className="gap-2"
+										className="gap-2 hover:shadow-lg hover:shadow-destructive/20 transition-all"
 									>
 										<Trash2 className="h-4 w-4" />
 										Delete Account

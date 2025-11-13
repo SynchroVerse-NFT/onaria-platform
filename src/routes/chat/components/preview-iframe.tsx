@@ -66,11 +66,10 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 					cache: 'no-cache',
 					signal: AbortSignal.timeout(8000),
 				});
-                console.log('Preview availability test response:', response, response.headers.forEach((value, key) => console.log("Header: ",key, value)));
-				
+
+	
 				if (!response.ok) {
-					console.log('Preview not ready (status:', response.status, ')');
-					return null;
+						return null;
 				}
 				
 				// Read the custom header to determine preview type
@@ -78,20 +77,16 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 				const previewType = response.headers.get('X-Preview-Type');
 				
                 if (previewType === 'sandbox-error') {
-                    console.log('Preview not ready (sandbox error)');
                     return null;
                 } else if (previewType === 'sandbox' || previewType === 'dispatcher') {
-					console.log('Preview available, type:', previewType);
 					return previewType;
 				}
 				
 				// Fallback: If no header present (shouldn't happen with valid origin)
 				// but the response is OK, assume sandbox for backward compatibility
-				console.log('Preview available (type unknown, assuming sandbox)');
-				return 'sandbox';
+					return 'sandbox';
 			} catch (error) {
-				console.log('Preview not available yet:', error);
-				return null;
+					return null;
 			}
 		}, []);
 
@@ -105,12 +100,10 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 			}
 
 			if (hasRequestedRedeployRef.current) {
-				console.log('Redeploy already requested, skipping duplicate request');
-				return;
+					return;
 			}
 
-			console.log('Requesting automatic preview redeployment');
-			
+				
 			try {
 				webSocket.send(JSON.stringify({
 					type: 'preview',
@@ -130,8 +123,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 				return;
 			}
 
-			console.log('Requesting screenshot capture');
-			
+				
 			try {
 				webSocket.send(JSON.stringify({
 					type: 'capture_screenshot',
@@ -184,8 +176,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 
 			if (previewType) {
 				// Success: put component into postload state, keep loading UI visible
-				console.log(`Preview available (${previewType}) at attempt ${attempt + 1}`);
-				setLoadState({
+					setLoadState({
 					status: 'postload',
 					attempt: attempt + 1,
 					loadedSrc: url,
@@ -195,8 +186,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 
 				// Wait for page to render before revealing iframe and capturing screenshot
 				const waitTime = previewType === 'dispatcher' ? POST_LOAD_WAIT_DISPATCHER : POST_LOAD_WAIT_SANDBOX;
-				console.log(`Waiting ${waitTime}ms before showing preview and capturing screenshot (${previewType} app)`);
-				postLoadTimeoutRef.current = setTimeout(() => {
+					postLoadTimeoutRef.current = setTimeout(() => {
 					setLoadState(prev => ({
 						...prev,
 						status: 'loaded',
@@ -208,8 +198,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 				const delay = getRetryDelay(attempt);
 				const nextAttempt = attempt + 1;
 				
-				console.log(`Preview not ready. Retrying in ${Math.ceil(delay / 1000)}s (attempt ${nextAttempt}/${MAX_RETRIES})`);
-
+	
 				// Auto-redeploy after 3 failed attempts
 				if (nextAttempt === REDEPLOY_AFTER_ATTEMPT) {
 					requestRedeploy();
@@ -226,8 +215,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		 * Force a fresh reload from scratch
 		 */
 		const forceReload = useCallback(() => {
-			console.log('Force reloading preview');
-			hasRequestedRedeployRef.current = false;
+				hasRequestedRedeployRef.current = false;
 			
 			if (retryTimeoutRef.current) {
 				clearTimeout(retryTimeoutRef.current);
@@ -260,8 +248,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		useEffect(() => {
 			if (!src) return;
 
-			console.log('Preview src changed, starting load:', src);
-			hasRequestedRedeployRef.current = false;
+				hasRequestedRedeployRef.current = false;
 			
 			if (retryTimeoutRef.current) {
 				clearTimeout(retryTimeoutRef.current);
@@ -299,8 +286,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		 */
 		useEffect(() => {
 			if (shouldRefreshPreview && loadState.status === 'loaded' && loadState.loadedSrc) {
-				console.log('Auto-refreshing preview after deployment');
-				forceReload();
+					forceReload();
 			}
 		}, [shouldRefreshPreview, loadState.status, loadState.loadedSrc, forceReload]);
 
@@ -309,8 +295,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		 */
 		useEffect(() => {
 			if (manualRefreshTrigger && manualRefreshTrigger > 0) {
-				console.log('Manual refresh triggered');
-				forceReload();
+					forceReload();
 			}
 		}, [manualRefreshTrigger, forceReload]);
 
@@ -335,20 +320,22 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		// Successfully loaded - show iframe
 		if (loadState.status === 'loaded' && loadState.loadedSrc) {
 			return (
-				<iframe
-					ref={ref}
-					src={loadState.loadedSrc}
-					className={className}
-					title={title}
-					onError={() => {
-						console.error('Iframe failed to load');
-						setLoadState(prev => ({
-							...prev,
-							status: 'error',
-							errorMessage: 'Preview failed to render',
-						}));
-					}}
-				/>
+				<div className={`${className} relative rounded-xl overflow-hidden border-2 border-cosmic-blue/30 shadow-[0_0_30px_rgba(100,181,246,0.15),inset_0_0_20px_rgba(168,85,247,0.05)] bg-gradient-to-br from-cosmic-blue/5 to-cosmic-purple/5 backdrop-blur-sm`}>
+					<iframe
+						ref={ref}
+						src={loadState.loadedSrc}
+						className="w-full h-full rounded-xl"
+						title={title}
+						onError={() => {
+							console.error('Iframe failed to load');
+							setLoadState(prev => ({
+								...prev,
+								status: 'error',
+								errorMessage: 'Preview failed to render',
+							}));
+						}}
+					/>
+				</div>
 			);
 		}
 
@@ -358,7 +345,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 			const delaySeconds = Math.ceil(delay / 1000);
 
 			return (
-				<div className={`${className} relative flex flex-col items-center justify-center bg-bg-3 border border-text/10 rounded-lg`}>
+				<div className={`${className} relative flex flex-col items-center justify-center bg-bg-3/95 backdrop-blur-md border-2 border-cosmic-blue/20 rounded-xl shadow-[0_0_20px_rgba(100,181,246,0.1),inset_0_0_30px_rgba(168,85,247,0.03)]`}>
                     {loadState.status === 'postload' && loadState.loadedSrc && (
                         <iframe
                             ref={ref}
@@ -376,9 +363,14 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
                             }}
                         />
                     )}
-					<div className="text-center p-8 max-w-md">
-						<RefreshCw className="size-8 text-accent animate-spin mx-auto mb-4" />
-						<h3 className="text-lg font-medium text-text-primary mb-2">
+					<div className="text-center p-8 max-w-md relative z-10">
+						<div className="relative mb-4">
+							<div className="absolute inset-0 blur-xl opacity-30">
+								<RefreshCw className="size-8 text-cosmic-blue animate-spin mx-auto" />
+							</div>
+							<RefreshCw className="size-8 text-cosmic-blue animate-spin mx-auto relative" />
+						</div>
+						<h3 className="text-lg font-semibold bg-gradient-to-r from-cosmic-blue to-cosmic-purple bg-clip-text text-transparent mb-2">
 							Loading Preview
 						</h3>
 						<p className="text-text-primary/70 text-sm mb-4">
@@ -388,11 +380,11 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 							}
 						</p>
 						{loadState.attempt >= REDEPLOY_AFTER_ATTEMPT && (
-							<p className="text-xs text-accent/70">
+							<p className="text-xs text-cosmic-purple/80 bg-cosmic-purple/10 px-3 py-2 rounded-lg border border-cosmic-purple/20">
 								Auto-redeployment triggered to refresh the preview
 							</p>
 						)}
-						<div className="text-xs text-text-primary/50 mt-2">
+						<div className="text-xs text-text-primary/50 mt-4 border-t border-cosmic-blue/10 pt-4">
 							Preview URLs may take a moment to become available after deployment
 						</div>
 					</div>
@@ -402,10 +394,15 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 
 		// Error state - after max retries
 		return (
-			<div className={`${className} flex flex-col items-center justify-center bg-bg-3 border border-text/10 rounded-lg`}>
+			<div className={`${className} flex flex-col items-center justify-center bg-bg-3/95 backdrop-blur-md border-2 border-cosmic-orange/30 rounded-xl shadow-[0_0_20px_rgba(255,87,34,0.1),inset_0_0_30px_rgba(236,72,153,0.03)]`}>
 				<div className="text-center p-8 max-w-md">
-					<AlertCircle className="size-8 text-orange-500 mx-auto mb-4" />
-					<h3 className="text-lg font-medium text-text-primary mb-2">
+					<div className="relative mb-4">
+						<div className="absolute inset-0 blur-xl opacity-30">
+							<AlertCircle className="size-8 text-cosmic-orange mx-auto" />
+						</div>
+						<AlertCircle className="size-8 text-cosmic-orange mx-auto relative" />
+					</div>
+					<h3 className="text-lg font-semibold bg-gradient-to-r from-cosmic-orange to-cosmic-pink bg-clip-text text-transparent mb-2">
 						Preview Not Available
 					</h3>
 					<p className="text-text-primary/70 text-sm mb-6">
@@ -414,12 +411,12 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 					<div className="space-y-3">
 						<button
 							onClick={forceReload}
-							className="flex items-center justify-center gap-2 px-6 py-3 bg-accent hover:bg-accent/90 text-white rounded-lg transition-colors text-sm mx-auto font-medium w-full"
+							className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-cosmic-blue to-cosmic-purple hover:from-cosmic-blue/90 hover:to-cosmic-purple/90 text-white rounded-lg transition-all duration-200 text-sm mx-auto font-medium w-full shadow-[0_0_20px_rgba(100,181,246,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.4)]"
 						>
 							<RefreshCw className="size-4" />
 							Try Again
 						</button>
-						<p className="text-xs text-text-primary/60">
+						<p className="text-xs text-text-primary/60 border-t border-cosmic-orange/10 pt-3">
 							If the issue persists, please describe the problem in chat so I can help diagnose and fix it.
 						</p>
 					</div>

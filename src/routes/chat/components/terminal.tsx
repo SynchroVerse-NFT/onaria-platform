@@ -96,16 +96,16 @@ export function Terminal({
 	const getLogTypeColor = (type: TerminalLog['type']) => {
 		switch (type) {
 			case 'command':
-				return 'text-[#f6821f] dark:text-[#f6821f]'; // Cloudflare orange
+				return 'text-[#64b5f6] dark:text-[#64b5f6]'; // Cosmic blue for commands
 			case 'stdout':
-				return 'text-green-600 dark:text-green-400';
+				return 'text-green-600 dark:text-emerald-400';
 			case 'stderr':
 			case 'error':
 				return 'text-red-600 dark:text-red-400';
 			case 'warn':
-				return 'text-amber-600 dark:text-yellow-400';
+				return 'text-amber-600 dark:text-amber-400';
 			case 'info':
-				return 'text-blue-600 dark:text-blue-400';
+				return 'text-blue-600 dark:text-purple-300';
 			case 'debug':
 				return 'text-gray-500 dark:text-gray-400';
 			default:
@@ -116,12 +116,12 @@ export function Terminal({
 	return (
 		<div className={clsx(
 			'flex flex-col h-full font-mono text-sm',
-			'bg-white dark:bg-[#1d1e1e]',
+			'bg-white dark:bg-gradient-to-br dark:from-[#0a0b1a] dark:via-[#0d0e1f] dark:to-[#0a0b1a]',
 			className
 		)}>
 
 			{/* Terminal Output */}
-			<div className="flex-1 min-h-0 overflow-hidden bg-gray-25 dark:bg-[#1d1e1e]">
+			<div className="flex-1 min-h-0 overflow-hidden bg-gray-25 dark:bg-[#0a0b1a]/50">
 				<ScrollArea 
 					ref={scrollAreaRef}
 					className="h-full terminal-scroll"
@@ -132,7 +132,7 @@ export function Terminal({
 								"flex flex-col items-center justify-center py-12 text-center",
 								"text-gray-500 dark:text-gray-400"
 							)}>
-								<Zap className="size-8 mb-3 text-gray-300 dark:text-gray-600" />
+								<Zap className="size-8 mb-3 text-gray-300 dark:text-[#64b5f6]/40" />
 								<p className="text-sm font-medium mb-1">
 									Terminal Ready
 								</p>
@@ -146,7 +146,7 @@ export function Terminal({
 									key={log.id}
 									className={clsx(
 										'group flex items-start gap-3 py-1.5 px-2 -mx-2 rounded-md',
-										'hover:bg-gray-50 dark:hover:bg-[#292929]/50',
+										'hover:bg-gray-50 dark:hover:bg-[#1a1b2e]/80',
 										'transition-colors duration-150'
 									)}
 								>
@@ -166,7 +166,7 @@ export function Terminal({
 											getLogTypeColor(log.type)
 										)}>
 											{log.type === 'command' && (
-												<span className="text-[#f6821f] font-semibold mr-1">$</span>
+												<span className="text-[#64b5f6] dark:text-[#64b5f6] font-semibold mr-1">$</span>
 											)}
 											{log.type === 'stderr' && (
 												<span className="text-red-500 dark:text-red-400 mr-1">❌</span>
@@ -197,15 +197,15 @@ export function Terminal({
 			{/* Command Input */}
 			<div className={clsx(
 				'flex-shrink-0 px-4 py-3',
-				'bg-gray-50 dark:bg-[#1f2020]',
-				'border-t border-gray-200 dark:border-gray-700'
+				'bg-gray-50 dark:bg-gradient-to-r dark:from-[#0d0e1f]/80 dark:via-[#1a1b2e]/60 dark:to-[#0d0e1f]/80',
+				'border-t border-gray-200 dark:border-[#64b5f6]/20'
 			)}>
 				<div className="flex items-center gap-3">
 					<div className="flex items-center gap-2">
 						<span className={clsx(
 							"text-lg font-bold select-none",
-							isConnected 
-								? "text-[#f6821f]" 
+							isConnected
+								? "text-[#64b5f6] dark:text-[#64b5f6]"
 								: "text-gray-400 dark:text-gray-600"
 						)}>
 							$

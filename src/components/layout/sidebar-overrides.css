@@ -89,3 +89,42 @@
   opacity: 1 !important;
 }
 
+/* Cosmic theme enhancements */
+
+/* Subtle glow animation for interactive elements */
+@keyframes cosmic-glow {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(246, 130, 31, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 8px rgba(246, 130, 31, 0.2);
+  }
+}
+
+/* Enhanced hover states with cosmic glow */
+[data-sidebar="menu-button"]:hover {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Cosmic border for active/focused states */
+[data-sidebar="menu-button"]:focus-visible {
+  outline: 1px solid rgba(246, 130, 31, 0.3);
+  outline-offset: 2px;
+}
+
+/* Subtle cosmic pulse for active navigation items */
+[data-sidebar="menu-button"][data-active="true"] {
+  background: linear-gradient(135deg, rgba(246, 130, 31, 0.08) 0%, rgba(246, 130, 31, 0.04) 100%);
+  border-color: rgba(246, 130, 31, 0.15);
+}
+
+/* Enhance scrollbar for cosmic theme */
+[data-sidebar="content"]::-webkit-scrollbar-thumb {
+  background: rgba(246, 130, 31, 0.1);
+  border-radius: 4px;
+}
+
+[data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(246, 130, 31, 0.2);
+}
+

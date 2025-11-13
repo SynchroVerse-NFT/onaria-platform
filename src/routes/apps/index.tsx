@@ -6,11 +6,15 @@ import { AppListContainer } from '@/components/shared/AppListContainer';
 import { AppFiltersForm } from '@/components/shared/AppFiltersForm';
 import { AppSortTabs } from '@/components/shared/AppSortTabs';
 import { VisibilityFilter } from '@/components/shared/VisibilityFilter';
+import { useTheme } from '@/contexts/theme-context';
+import AnimatedBackground from '@/components/animations/AnimatedBackground';
 import type { AppSortOption } from '@/api-types';
 
 export default function AppsPage() {
 	const navigate = useNavigate();
 	const [searchParams, setSearchParams] = useSearchParams();
+	const { theme } = useTheme();
+	const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
 	// Derive initial sort from URL or localStorage, fallback to 'recent'
 	const allowedSorts: AppSortOption[] = ['recent', 'popular', 'trending', 'starred'];
@@ -64,33 +68,56 @@ export default function AppsPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-bg-3">
-			<div className="container mx-auto px-4 py-8">
-				<motion.div
-					initial={{ opacity: 0, y: -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5 }}
-				>
-					{/* Header */}
-					<div className="mb-8">
-						<h1 className="text-6xl font-bold mb-3 font-[departureMono] text-accent">
-							MY APPS
-						</h1>
-						<p className="text-text-tertiary text-lg">
-							{loading
-								? 'Loading...'
-								: `${totalCount} app${totalCount !== 1 ? 's' : ''} in your workspace`}
-						</p>
-					</div>
+		<div className="relative min-h-screen overflow-hidden transition-colors duration-500" style={{
+			backgroundColor: isDark ? '#0a0a0f' : '#f0f4ff'
+		}}>
+			{/* Cosmic Background */}
+			<AnimatedBackground isDark={isDark} />
 
-					<div className="flex flex-col gap-4">
+			{/* Content Layer */}
+			<div className="relative z-10">
+				<div className="container mx-auto px-4 py-8">
+					<motion.div
+						initial={{ opacity: 0, y: -20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+					>
+						{/* Header with Cosmic Styling */}
+						<div className="mb-10">
+							<motion.h1
+								className="text-6xl font-bold mb-4 font-[DepartureMono] bg-gradient-to-r from-cosmic-blue via-cosmic-purple to-cosmic-pink bg-clip-text text-transparent"
+								initial={{ opacity: 0, y: -30 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+							>
+								MY APPS
+							</motion.h1>
+							<motion.p
+								className="text-text-secondary text-lg"
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								transition={{ duration: 0.6, delay: 0.2 }}
+							>
+								{loading
+									? 'Loading...'
+									: `${totalCount} app${totalCount !== 1 ? 's' : ''} in your workspace`}
+							</motion.p>
+						</div>
+
+					{/* Filters and Controls with Cosmic Styling */}
+					<motion.div
+						className="flex flex-col gap-4 mb-8"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+					>
 						<div className="flex items-center gap-4">
 							<VisibilityFilter
 								value={filterVisibility}
 								onChange={handleVisibilityChange}
 							/>
 						</div>
-						
+
 						<div className="flex items-start gap-4 justify-between">
 							{/* Search and Filters */}
 							<AppFiltersForm
@@ -121,41 +148,48 @@ export default function AppsPage() {
 								availableSorts={['recent', 'popular', 'trending', 'starred']}
 							/>
 						</div>
-					</div>
+					</motion.div>
 
 					{/* Unified App List */}
-					<AppListContainer
-						apps={apps}
-						loading={loading}
-						loadingMore={loadingMore}
-						error={error}
-						hasMore={hasMore}
-						totalCount={totalCount}
-						sortBy={sortBy}
-						onAppClick={(appId) => navigate(`/app/${appId}`)}
-						onToggleFavorite={handleToggleFavorite}
-						onLoadMore={loadMore}
-						onRetry={refetch}
-						showUser={false}
-						showStats={true}
-						showActions={true}
-						infiniteScroll={true}
-						emptyState={
-							!searchQuery &&
-							filterFramework === 'all' &&
-							filterVisibility === 'all' &&
-							sortBy === 'recent' &&
-							totalCount === 0
-								? {
-										title: 'No apps yet',
-										description:
-											'Start building your first app with AI assistance.',
-										action: <div></div>,
-									}
-								: undefined
-						}
-					/>
-				</motion.div>
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ duration: 0.6, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+					>
+						<AppListContainer
+							apps={apps}
+							loading={loading}
+							loadingMore={loadingMore}
+							error={error}
+							hasMore={hasMore}
+							totalCount={totalCount}
+							sortBy={sortBy}
+							onAppClick={(appId) => navigate(`/app/${appId}`)}
+							onToggleFavorite={handleToggleFavorite}
+							onLoadMore={loadMore}
+							onRetry={refetch}
+							showUser={false}
+							showStats={true}
+							showActions={true}
+							infiniteScroll={true}
+							emptyState={
+								!searchQuery &&
+								filterFramework === 'all' &&
+								filterVisibility === 'all' &&
+								sortBy === 'recent' &&
+								totalCount === 0
+									? {
+											title: 'No apps yet',
+											description:
+												'Start building your first app with AI assistance.',
+											action: <div></div>,
+										}
+									: undefined
+							}
+						/>
+					</motion.div>
+					</motion.div>
+				</div>
 			</div>
 		</div>
 	);

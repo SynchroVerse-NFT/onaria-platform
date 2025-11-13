@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 const THINKING_PHRASES = [
   'Thinking',
@@ -31,6 +32,7 @@ interface ThinkingIndicatorProps {
 
 export function ThinkingIndicator({ visible }: ThinkingIndicatorProps) {
   const [phraseIndex, setPhraseIndex] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (!visible) {
@@ -51,43 +53,43 @@ export function ThinkingIndicator({ visible }: ThinkingIndicatorProps) {
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-          transition={{ 
-            duration: 0.4,
+          exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10, scale: 0.95 }}
+          transition={{
+            duration: prefersReducedMotion ? 0.1 : 0.4,
             ease: [0.23, 1, 0.32, 1]
           }}
           className="flex items-center gap-2 mt-3"
         >
           <motion.div
-            animate={{ 
+            animate={prefersReducedMotion ? {} : {
               rotate: [0, 360],
               scale: [1, 1.1, 1]
             }}
-            transition={{ 
-              rotate: { duration: 3, repeat: Infinity, ease: "linear" },
-              scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+            transition={{
+              rotate: { duration: 3, repeat: prefersReducedMotion ? 0 : Infinity, ease: "linear" },
+              scale: { duration: 2, repeat: prefersReducedMotion ? 0 : Infinity, ease: "easeInOut" }
             }}
           >
-            <Sparkles className="size-3 text-orange-400" />
+            <Sparkles className="size-3 text-cosmic-purple" />
           </motion.div>
           <AnimatePresence mode="wait">
             <motion.span
               key={phraseIndex}
-              initial={{ opacity: 0, x: -10 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ 
-                duration: 0.3,
+              exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: 10 }}
+              transition={{
+                duration: prefersReducedMotion ? 0.1 : 0.3,
                 ease: [0.23, 1, 0.32, 1]
               }}
               className="text-sm text-text-50/60 font-medium flex items-center gap-1"
             >
               {THINKING_PHRASES[phraseIndex]}...
               <motion.span
-                animate={{ opacity: [1, 0.3, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
+                animate={prefersReducedMotion ? {} : { opacity: [1, 0.3, 1] }}
+                transition={{ duration: 1.5, repeat: prefersReducedMotion ? 0 : Infinity }}
                 className="inline-block"
               >
                 ...

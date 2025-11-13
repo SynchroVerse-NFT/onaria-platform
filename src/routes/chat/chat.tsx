@@ -158,9 +158,6 @@ export default function Chat() {
 		'editor',
 	);
 
-	// Terminal state
-	// const [terminalLogs, setTerminalLogs] = useState<TerminalLog[]>([]);
-
 	// Debug panel state
 	const [debugMessages, setDebugMessages] = useState<DebugMessage[]>([]);
 	const deploymentControlsRef = useRef<HTMLDivElement>(null);
@@ -211,8 +208,6 @@ export default function Chat() {
 
 	const hasSeenPreview = useRef(false);
 	const hasSwitchedFile = useRef(false);
-	// const wasChatDisabled = useRef(true);
-	// const hasShownWelcome = useRef(false);
 
 	const editorRef = useRef<HTMLDivElement>(null);
 	const previewRef = useRef<HTMLIFrameElement>(null);
@@ -261,27 +256,6 @@ export default function Chat() {
 		sendWebSocketMessage(websocket, 'clear_conversation');
 		setIsResetDialogOpen(false);
 	}, [websocket]);
-
-	// // Terminal functions
-	// const handleTerminalCommand = useCallback((command: string) => {
-	// 	if (websocket && websocket.readyState === WebSocket.OPEN) {
-	// 		// Add command to terminal logs
-	// 		const commandLog: TerminalLog = {
-	// 			id: `cmd-${Date.now()}`,
-	// 			content: command,
-	// 			type: 'command',
-	// 			timestamp: Date.now()
-	// 		};
-	// 		setTerminalLogs(prev => [...prev, commandLog]);
-
-	// 		// Send command via WebSocket
-	// 		websocket.send(JSON.stringify({
-	// 			type: 'terminal_command',
-	// 			command,
-	// 			timestamp: Date.now()
-	// 		}));
-	// 	}
-	// }, [websocket, setTerminalLogs]);
 
 	const generatingCount = useMemo(
 		() =>
@@ -525,17 +499,21 @@ export default function Chat() {
 	}
 
 	return (
-		<div className="size-full flex flex-col min-h-0 text-text-primary">
-			<div className="flex-1 flex min-h-0 overflow-hidden justify-center">
+		<div className="size-full flex flex-col min-h-0 text-text-primary relative overflow-hidden">
+			{/* Subtle cosmic background - lighter than homepage */}
+			<div className="absolute inset-0 bg-gradient-to-br from-cosmic-blue/[0.02] via-transparent to-cosmic-purple/[0.02] pointer-events-none" />
+			<div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cosmic-blue/[0.03] via-transparent to-transparent pointer-events-none" />
+
+			<div className="flex-1 flex min-h-0 overflow-hidden justify-center relative z-10">
 				<motion.div
 					layout="position"
 					className="flex-1 shrink-0 flex flex-col basis-0 max-w-lg relative z-10 h-full min-h-0"
 				>
-					<div 
+					<div
 					className={clsx(
 						'flex-1 overflow-y-auto min-h-0 chat-messages-scroll',
 						isDebugging && 'animate-debug-pulse'
-					)} 
+					)}
 					ref={messagesContainerRef}
 				>
 						<div className="pt-5 px-4 pb-4 text-sm flex flex-col gap-5">
@@ -718,7 +696,7 @@ export default function Chat() {
 					<form
                         ref={chatFormRef}
                         onSubmit={onNewMessage}
-                        className="shrink-0 p-4 pb-5 bg-transparent"
+                        className="shrink-0 p-4 pb-5 bg-transparent relative z-10"
                         {...chatDragHandlers}
                     >
 					<input
@@ -738,8 +716,8 @@ export default function Chat() {
 					/>
 					<div className="relative">
 						{isChatDragging && (
-							<div className="absolute inset-0 flex items-center justify-center bg-accent/10 backdrop-blur-sm rounded-xl z-50 pointer-events-none">
-								<p className="text-accent font-medium">Drop images here</p>
+							<div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-cosmic-blue/20 to-cosmic-purple/20 backdrop-blur-sm rounded-xl z-50 pointer-events-none border-2 border-cosmic-blue/40 border-dashed">
+								<p className="bg-gradient-to-r from-cosmic-blue to-cosmic-purple bg-clip-text text-transparent font-medium">Drop images here</p>
 							</div>
 						)}
 						{images.length > 0 && (
@@ -751,20 +729,24 @@ export default function Chat() {
 								/>
 							</div>
 						)}
-						<textarea
-							value={newMessage}
-							onChange={(e) => {
-								const newValue = e.target.value;
-								const newWordCount = countWords(newValue);
-								
-								// Only update if within word limit
-								if (newWordCount <= MAX_WORDS) {
-									setNewMessage(newValue);
-									const ta = e.currentTarget;
-									ta.style.height = 'auto';
-									ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
-								}
-							}}
+						<div className="relative group">
+							{/* Cosmic glow effect on focus */}
+							<div className="absolute inset-0 bg-gradient-to-r from-cosmic-blue/20 via-cosmic-purple/20 to-cosmic-pink/20 rounded-xl opacity-0 group-focus-within:opacity-100 blur-md transition-opacity duration-300 -z-10" />
+
+							<textarea
+								value={newMessage}
+								onChange={(e) => {
+									const newValue = e.target.value;
+									const newWordCount = countWords(newValue);
+
+									// Only update if within word limit
+									if (newWordCount <= MAX_WORDS) {
+										setNewMessage(newValue);
+										const ta = e.currentTarget;
+										ta.style.height = 'auto';
+										ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+									}
+								}}
 								onKeyDown={(e) => {
 									if (e.key === 'Enter') {
 										if (!e.shiftKey) {
@@ -786,7 +768,7 @@ export default function Chat() {
 												: 'Chat with AI...'
 								}
 								rows={1}
-								className="w-full bg-bg-2 border border-text-primary/10 rounded-xl px-3 pr-20 py-2 text-sm outline-none focus:border-white/20 drop-shadow-2xl text-text-primary placeholder:!text-text-primary/50 disabled:opacity-50 disabled:cursor-not-allowed resize-none overflow-y-auto no-scrollbar min-h-[36px] max-h-[120px]"
+								className="w-full bg-bg-2/90 backdrop-blur-sm border rounded-xl px-3 pr-20 py-2 text-sm outline-none drop-shadow-2xl text-text-primary placeholder:!text-text-primary/50 disabled:opacity-50 disabled:cursor-not-allowed resize-none overflow-y-auto no-scrollbar min-h-[36px] max-h-[120px] transition-all duration-300 border-cosmic-blue/10 focus:border-cosmic-purple/30 focus:shadow-lg focus:shadow-cosmic-purple/5"
 								style={{
 									// Auto-resize based on content
 									height: 'auto',
@@ -800,6 +782,7 @@ export default function Chat() {
 									}
 								}}
 							/>
+						</div>
 							<div className="absolute right-1.5 bottom-2.5 flex items-center gap-1">
 								{(isGenerating || isGeneratingBlueprint || isDebugging) && (
 									<button
@@ -809,12 +792,13 @@ export default function Chat() {
 												sendWebSocketMessage(websocket, 'stop_generation');
 											}
 										}}
-										className="p-1.5 rounded-md hover:bg-red-500/10 text-text-tertiary hover:text-red-500 transition-all duration-200 group relative"
+										className="relative p-1.5 rounded-md hover:bg-red-500/10 text-text-tertiary hover:text-red-500 transition-all duration-200 group border border-transparent hover:border-red-500/20"
 										aria-label="Stop generation"
 										title="Stop generation"
 									>
-										<X className="size-4" strokeWidth={2} />
-										<span className="absolute -top-8 right-0 px-2 py-1 bg-bg-1 border border-border-primary rounded text-xs text-text-secondary whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+										<div className="absolute inset-0 bg-red-500/10 rounded-md opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300 -z-10" />
+										<X className="size-4 relative z-10" strokeWidth={2} />
+										<span className="absolute -top-8 right-0 px-2 py-1 bg-bg-1/90 backdrop-blur-sm border border-red-500/20 rounded text-xs text-text-secondary whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm">
 											Stop
 										</span>
 									</button>
@@ -823,18 +807,20 @@ export default function Chat() {
 									type="button"
 									onClick={() => imageInputRef.current?.click()}
 									disabled={isChatDisabled || isProcessing}
-									className="p-1.5 rounded-md hover:bg-bg-3 text-text-secondary hover:text-text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+									className="relative p-1.5 rounded-md hover:bg-cosmic-blue/10 text-text-secondary hover:text-cosmic-blue transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group border border-transparent hover:border-cosmic-blue/20"
 									aria-label="Upload image"
 									title="Upload image"
 								>
-									<ImageIcon className="size-4" strokeWidth={1.5} />
+									<div className="absolute inset-0 bg-cosmic-blue/5 rounded-md opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300 -z-10" />
+									<ImageIcon className="size-4 relative z-10" strokeWidth={1.5} />
 								</button>
 								<button
 									type="submit"
 									disabled={!newMessage.trim() || isChatDisabled}
-									className="p-1.5 rounded-md bg-accent/90 hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-transparent text-white disabled:text-text-primary transition-colors"
+									className="relative p-1.5 rounded-md bg-gradient-to-r from-cosmic-blue to-cosmic-purple hover:from-cosmic-purple hover:to-cosmic-pink disabled:opacity-50 disabled:cursor-not-allowed disabled:from-transparent disabled:to-transparent text-white disabled:text-text-primary transition-all duration-300 shadow-sm hover:shadow-md hover:shadow-cosmic-purple/20 disabled:shadow-none group"
 								>
-									<ArrowRight className="size-4" />
+									<div className="absolute inset-0 bg-gradient-to-r from-cosmic-purple to-cosmic-pink rounded-md opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300 -z-10" />
+									<ArrowRight className="size-4 relative z-10" />
 								</button>
 							</div>
 						</div>
@@ -884,19 +870,6 @@ export default function Chat() {
 										</div>
 
 										<div className="flex items-center justify-end gap-1.5">
-											{/* <button
-												className="flex items-center gap-1.5 px-2 py-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-md transition-all duration-200 text-xs font-medium shadow-sm"
-												onClick={() => handleDeployToCloudflare(chatId!)}
-												disabled={isDeploying}
-												title="Save & Deploy"
-											>
-												{isDeploying ? (
-													<LoaderCircle className="size-3 animate-spin" />
-												) : (
-													<Save className="size-3" />
-												)}
-												{isDeploying ? 'Deploying...' : 'Save'}
-											</button> */}
 											<ModelConfigInfo
 												configs={modelConfigs}
 												onRequestConfigs={handleRequestConfigs}
@@ -1007,77 +980,6 @@ export default function Chat() {
 								</div>
 							)}
 
-
-                            {/* Disabled terminal for now */}
-							{/* {view === 'terminal' && (
-								<div className="flex-1 flex flex-col bg-bg-3 rounded-xl shadow-md shadow-bg-2 overflow-hidden border border-border-primary">
-									<div className="grid grid-cols-3 px-2 h-10 bg-bg-2 border-b">
-										<div className="flex items-center">
-											<ViewModeSwitch
-												view={view}
-												onChange={handleViewModeChange}
-												previewAvailable={!!previewUrl}
-												showTooltip={showTooltip}
-												terminalAvailable={true}
-											/>
-										</div>
-
-										<div className="flex items-center justify-center">
-											<div className="flex items-center gap-3">
-												<span className="text-sm font-mono text-text-50/70">
-													Terminal
-												</span>
-												<div className={clsx(
-													'flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium',
-													websocket && websocket.readyState === WebSocket.OPEN
-														? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-														: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-												)}>
-													<div className={clsx(
-														'size-1.5 rounded-full',
-														websocket && websocket.readyState === WebSocket.OPEN ? 'bg-green-500' : 'bg-red-500'
-													)} />
-													{websocket && websocket.readyState === WebSocket.OPEN ? 'Connected' : 'Disconnected'}
-												</div>
-											</div>
-										</div>
-
-										<div className="flex items-center justify-end gap-1.5">
-											<button
-												onClick={() => {
-													const logText = terminalLogs
-														.map(log => `[${new Date(log.timestamp).toLocaleTimeString()}] ${log.content}`)
-														.join('\n');
-													navigator.clipboard.writeText(logText);
-												}}
-												className={clsx(
-													"h-7 w-7 p-0 rounded-md transition-all duration-200",
-													"text-gray-500 hover:text-gray-700",
-													"dark:text-gray-400 dark:hover:text-gray-200",
-													"hover:bg-gray-100 dark:hover:bg-gray-700"
-												)}
-												title="Copy all logs"
-											>
-												<Copy text="" />
-											</button>
-											<ModelConfigInfo
-												configs={modelConfigs}
-												onRequestConfigs={handleRequestConfigs}
-												loading={loadingConfigs}
-											/>
-										</div>
-									</div>
-									<div className="flex-1">
-										<Terminal
-											logs={terminalLogs}
-											onCommand={handleTerminalCommand}
-											isConnected={!!websocket && websocket.readyState === WebSocket.OPEN}
-											className="h-full"
-										/>
-									</div>
-								</div>
-							)} */}
-
 							{view === 'editor' && (
 								<div className="flex-1 flex flex-col bg-bg-3 rounded-xl shadow-md shadow-bg-2 overflow-hidden border border-border-primary">
 									{activeFile && (
@@ -1109,33 +1011,6 @@ export default function Chat() {
 											</div>
 
 											<div className="flex items-center justify-end gap-1.5">
-												{/* <button
-													className="flex items-center gap-1.5 px-2 py-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-md transition-all duration-200 text-xs font-medium shadow-sm"
-													onClick={() => handleDeployToCloudflare(chatId!)}
-													disabled={isDeploying}
-													title="Save & Deploy"
-												>
-													{isDeploying ? (
-														<LoaderCircle className="size-3 animate-spin" />
-													) : (
-														<Save className="size-3" />
-													)}
-													{isDeploying ? 'Deploying...' : 'Save'}
-												</button>
-												<button
-													className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all duration-200 text-xs font-medium shadow-sm ${
-														isPhase1Complete
-															? 'bg-gray-800 hover:bg-gray-900 text-white'
-															: 'bg-gray-600 text-gray-400 cursor-not-allowed'
-													}`}
-													onClick={isPhase1Complete ? githubExport.openModal : undefined}
-													disabled={!isPhase1Complete}
-													title={isPhase1Complete ? "Export to GitHub" : "Complete Phase 1 to enable GitHub export"}
-													aria-label={isPhase1Complete ? "Export to GitHub" : "GitHub export disabled - complete Phase 1 first"}
-												>
-													<Github className="size-3.5" />
-													GitHub
-												</button> */}
 												<ModelConfigInfo
 													configs={modelConfigs}
 													onRequestConfigs={handleRequestConfigs}

@@ -5,6 +5,7 @@ import type { RefObject } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { PhaseTimelineItem, FileType } from '../hooks/use-chat';
 import { ThinkingIndicator } from './thinking-indicator';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 import type { ProjectStage } from '../utils/project-stage-helpers';
 
@@ -45,7 +46,7 @@ interface StatusLoaderProps {
 const StatusLoader = ({ size = 'md', color = 'accent' }: StatusLoaderProps) => {
 	const sizeClass = size === 'sm' ? 'size-3' : 'w-4 h-4';
 	const colorMap = {
-		accent: 'text-accent',
+		accent: 'text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500',
 		blue: 'text-blue-400',
 		orange: 'text-orange-400',
 		tertiary: 'text-text-tertiary',
@@ -83,17 +84,17 @@ function StatusIcon({ status, size = 'md', className }: StatusIconProps) {
 
 	switch (status) {
 		case 'generating':
-			return <Loader className={clsx(iconClasses, 'animate-spin text-accent', className)} />;
+			return <Loader className={clsx(iconClasses, 'animate-spin text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500', className)} />;
 		case 'validating':
 			return <Loader className={clsx(iconClasses, 'animate-spin text-blue-400', className)} />;
 		case 'completed':
-			return <Check className={clsx(iconClasses, 'text-green-500', className)} />;
+			return <Check className={clsx(iconClasses, 'text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500', className)} />;
 		case 'cancelled':
 			return <XCircle className={clsx(iconClasses, 'text-orange-400', className)} />;
 		case 'error':
 			return <AlertCircle className={clsx(iconClasses, 'text-red-500', className)} />;
 		case 'active':
-			return <Loader className={clsx(iconClasses, 'animate-spin text-accent', className)} />;
+			return <Loader className={clsx(iconClasses, 'animate-spin text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500', className)} />;
 		case 'pending':
 		default:
 			return <div className={clsx(iconClasses, 'bg-bg-3-foreground/40 dark:bg-bg-3-foreground/30 rounded-full', className)} />;
@@ -133,9 +134,10 @@ function AnimatedStatusIndicator({ status, size = 5 }: AnimatedStatusIndicatorPr
 						animate="animate"
 						exit="exit"
 						transition={commonTransitions.smoothInOut}
-						className={clsx(sizeClass, 'bg-bg-4 dark:bg-bg-2 flex items-center justify-center')}
+						className={clsx(sizeClass, 'bg-bg-4 dark:bg-bg-2 flex items-center justify-center relative')}
 					>
-						<Loader className="size-3 text-accent animate-spin" />
+						<div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-full blur animate-pulse" />
+						<Loader className="size-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-spin relative z-10" />
 					</motion.div>
 				)}
 				{status === 'completed' && (
@@ -146,9 +148,10 @@ function AnimatedStatusIndicator({ status, size = 5 }: AnimatedStatusIndicatorPr
 						animate="animate"
 						exit="exit"
 						transition={commonTransitions.smoothInOut}
-						className={clsx(sizeClass, 'flex items-center justify-center')}
+						className={clsx(sizeClass, 'flex items-center justify-center relative')}
 					>
-						<div className="size-2 rounded-full bg-accent" />
+						<div className="absolute inset-0 bg-gradient-to-r from-emerald-500/30 via-green-500/30 to-teal-500/30 rounded-full blur" />
+						<div className="size-2 rounded-full bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 relative z-10" />
 					</motion.div>
 				)}
 				{status === 'error' && (
@@ -281,6 +284,8 @@ export function PhaseTimeline({
 	isGenerating = false,
 	isThinking = false
 }: PhaseTimelineProps) {
+	// Check if user prefers reduced motion for accessibility
+	useReducedMotion();
 	const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
 	const [showCollapsedBar, setShowCollapsedBar] = useState(false);
 	const [isCollapsedBarExpanded, setIsCollapsedBarExpanded] = useState(false);
@@ -500,6 +505,8 @@ export function PhaseTimeline({
 							whileHover={{ scale: 1.02 }}
 							whileTap={{ scale: 0.98 }}
 						>
+							{/* Cosmic glow on hover */}
+							<div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-blue-500/10 group-hover:via-purple-500/10 group-hover:to-pink-500/10 transition-all duration-300 pointer-events-none" />
 							{/* Collapsed Header */}
                             <motion.div
                                 className="px-4 py-3 flex items-center gap-3"
@@ -523,7 +530,7 @@ export function PhaseTimeline({
                                 </div>
                                 {collapsedBarInfo.badge && (
                                     <div className="flex-shrink-0">
-                                        <span className="text-xs font-medium px-2 py-0.5 bg-accent/10 text-accent rounded-full">
+                                        <span className="text-xs font-medium px-2 py-0.5 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full border border-purple-500/20">
                                             {collapsedBarInfo.badge}
                                         </span>
                                     </div>
@@ -535,16 +542,19 @@ export function PhaseTimeline({
                                             handleDeployToCloudflare(chatId);
                                         }}
                                         disabled={!!isDeploying}
-                                        className="ml-2 flex items-center gap-1.5 px-2.5 py-1 bg-accent hover:bg-accent/90 disabled:bg-accent/50 text-white rounded-full text-xs font-medium transition-colors disabled:cursor-not-allowed"
+                                        className="ml-2 flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:shadow-lg hover:shadow-purple-500/50 disabled:opacity-50 text-white rounded-full text-xs font-medium transition-all disabled:cursor-not-allowed relative overflow-hidden group"
                                         title={isDeploying ? 'Deploying...' : 'Deploy to Cloudflare'}
                                         aria-label={isDeploying ? 'Deploying' : 'Deploy to Cloudflare'}
                                     >
-                                        {isDeploying ? (
-                                            <StatusLoader size="sm" color="accent" />
-                                        ) : (
-                                            <Zap className="w-3 h-3" />
-                                        )}
-                                        <span className="hidden sm:inline">{isDeploying ? 'Deploying...' : 'Deploy'}</span>
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <span className="relative z-10">
+                                            {isDeploying ? (
+                                                <StatusLoader size="sm" color="accent" />
+                                            ) : (
+                                                <Zap className="w-3 h-3" />
+                                            )}
+                                        </span>
+                                        <span className="hidden sm:inline relative z-10">{isDeploying ? 'Deploying...' : 'Deploy'}</span>
                                     </button>
                                 )}
                             </motion.div>
@@ -754,9 +764,9 @@ export function PhaseTimeline({
 											className="space-y-1 relative"
 											ref={phaseIndex === phaseTimeline.length - 1 ? lastPhaseRef : undefined}
 										>
-											{/* Subtle vertical line connecting phases */}
+											{/* Subtle vertical line connecting phases with cosmic gradient */}
 											{phaseIndex < phaseTimeline.length - 1 && (
-												<div className="absolute left-[5px] w-[0.5px] h-full top-3 bg-border-primary/40" />
+												<div className="absolute left-[5px] w-[0.5px] h-full top-3 bg-gradient-to-b from-blue-500/40 via-purple-500/40 to-pink-500/40" />
 											)}
 											{/* Phase Implementation Header */}
 											<button
@@ -928,7 +938,7 @@ export function PhaseTimeline({
 							<div className={clsx(
 								'absolute left-[9.25px] w-px h-full top-2.5 z-10',
 								stage.status === 'completed'
-									? 'bg-accent'
+									? 'bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500'
 									: 'bg-text/5'
 							)} />
 						)}
@@ -953,7 +963,7 @@ export function PhaseTimeline({
 									className="flex relative w-full gap-2 pb-2.5"
 								>
 									{/* Connecting line from previous stage */}
-									<div className="absolute left-[9.25px] w-px h-[0.875rem] -top-[0.875rem] bg-accent" />
+									<div className="absolute left-[9.25px] w-px h-[0.875rem] -top-[0.875rem] bg-gradient-to-b from-purple-500 via-green-500 to-emerald-500" />
 									
 									<AnimatedStatusIndicator status="completed" />
 									
@@ -976,7 +986,7 @@ export function PhaseTimeline({
 									className="flex relative w-full gap-2 pb-2.5"
 								>
 									{/* Connecting line from previous stage */}
-									<div className="absolute left-[9.25px] w-px h-[0.875rem] -top-[0.875rem] bg-accent" />
+									<div className="absolute left-[9.25px] w-px h-[0.875rem] -top-[0.875rem] bg-gradient-to-b from-purple-500 via-blue-500 to-blue-400" />
 									
 									<AnimatedStatusIndicator status="active" />
 									

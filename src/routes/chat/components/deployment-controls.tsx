@@ -162,8 +162,8 @@ export function DeploymentControls({
 			
 			case DeploymentState.READY_TO_DEPLOY:
 				return {
-					panelClass: "bg-accent/5 dark:bg-accent/10 border-accent/20 dark:border-accent/20",
-					iconClass: "bg-accent border-accent",
+					panelClass: "bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-pink-500/10 border-purple-500/20 dark:border-purple-500/30 relative overflow-hidden",
+					iconClass: "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 border-purple-500",
 					icon: <Zap className="w-2.5 h-2.5 text-white" />,
 					titleColor: "text-text-primary dark:text-text-primary",
 					subtitleColor: "text-text-tertiary dark:text-text-tertiary",
@@ -171,35 +171,35 @@ export function DeploymentControls({
 					subtitle: "It's Free! Deploys to Cloudflare Workers for Platform",
 					buttonDisabled: false,
 					buttonVariant: "primary" as const,
-					buttonClass: "bg-accent text-white border-orange-500 dark:border-orange-600 hover:scale-105"
+					buttonClass: "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:shadow-lg hover:shadow-purple-500/50 text-white border-purple-500 dark:border-purple-600 hover:scale-105 relative overflow-hidden group"
 				};
 			
 			case DeploymentState.DEPLOYING:
 				return {
-					panelClass: "bg-blue-50/40 dark:bg-blue-950/20 border-blue-200/60 dark:border-blue-800/30 shadow-sm dark:shadow-blue-900/20",
-					iconClass: "bg-blue-500 dark:bg-blue-600 border-blue-500 dark:border-blue-600 animate-pulse",
+					panelClass: "bg-gradient-to-r from-blue-50/40 via-purple-50/40 to-pink-50/40 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border-purple-200/60 dark:border-purple-800/30 shadow-sm dark:shadow-purple-900/20 relative overflow-hidden",
+					iconClass: "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 dark:from-blue-600 dark:via-purple-600 dark:to-pink-600 border-purple-500 dark:border-purple-600 animate-pulse",
 					icon: <Loader className="w-2.5 h-2.5 text-white animate-spin" />,
-					titleColor: "text-blue-900 dark:text-blue-100",
-					subtitleColor: "text-blue-600 dark:text-blue-300",
+					titleColor: "text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-200 dark:via-purple-200 dark:to-pink-200",
+					subtitleColor: "text-purple-600 dark:text-purple-300",
 					title: "Deploying to Cloudflare",
 					subtitle: "Please wait while your application is being deployed...",
 					buttonDisabled: true,
 					buttonVariant: "primary" as const,
-					buttonClass: "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white border-blue-500 dark:border-blue-600 scale-105 shadow-lg dark:shadow-blue-900/50"
+					buttonClass: "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 dark:from-blue-600 dark:via-purple-600 dark:to-pink-600 dark:hover:from-blue-700 dark:hover:via-purple-700 dark:to-pink-700 text-white border-purple-500 dark:border-purple-600 scale-105 shadow-lg dark:shadow-purple-900/50"
 				};
 			
 			case DeploymentState.REDEPLOYING:
 				return {
-					panelClass: "bg-blue-50/40 dark:bg-blue-950/20 border-blue-200/60 dark:border-blue-800/30 shadow-sm dark:shadow-blue-900/20",
-					iconClass: "bg-blue-500 dark:bg-blue-600 border-blue-500 dark:border-blue-600 animate-pulse",
+					panelClass: "bg-gradient-to-r from-blue-50/40 via-purple-50/40 to-pink-50/40 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border-purple-200/60 dark:border-purple-800/30 shadow-sm dark:shadow-purple-900/20 relative overflow-hidden",
+					iconClass: "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 dark:from-blue-600 dark:via-purple-600 dark:to-pink-600 border-purple-500 dark:border-purple-600 animate-pulse",
 					icon: <Loader className="w-2.5 h-2.5 text-white animate-spin" />,
-					titleColor: "text-blue-900 dark:text-blue-100",
-					subtitleColor: "text-blue-600 dark:text-blue-300",
+					titleColor: "text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-200 dark:via-purple-200 dark:to-pink-200",
+					subtitleColor: "text-purple-600 dark:text-purple-300",
 					title: "Redeploying to Cloudflare",
 					subtitle: "Please wait while your application is being redeployed...",
 					buttonDisabled: true,
 					buttonVariant: "primary" as const,
-					buttonClass: "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white border-blue-500 dark:border-blue-600 scale-105 shadow-lg dark:shadow-blue-900/50"
+					buttonClass: "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 dark:from-blue-600 dark:via-purple-600 dark:to-pink-600 dark:hover:from-blue-700 dark:hover:via-purple-700 dark:to-pink-700 text-white border-purple-500 dark:border-purple-600 scale-105 shadow-lg dark:shadow-purple-900/50"
 				};
 			
 			case DeploymentState.ERROR:
@@ -267,21 +267,26 @@ export function DeploymentControls({
 							onClick={handleDeploy}
 							disabled={stateConfig.buttonDisabled || isCurrentlyDeploying || isDeployButtonClicked}
 							className={clsx(
-								"h-8 px-4 text-sm font-medium transition-all duration-300 transform",
+								"h-8 px-4 text-sm font-medium transition-all duration-300 transform relative overflow-hidden",
 								stateConfig.buttonClass
 							)}
 						>
-							{isCurrentlyDeploying ? (
-								<>
-									<Loader className="w-4 h-4 mr-2 animate-spin" />
-									{currentState === DeploymentState.REDEPLOYING ? 'Redeploying...' : 'Deploying...'}
-								</>
-							) : (
-								<>
-									<Zap className="w-4 h-4 mr-2" />
-									Deploy to Cloudflare
-								</>
+							{!stateConfig.buttonDisabled && !isCurrentlyDeploying && (
+								<div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
 							)}
+							<span className="relative z-10 flex items-center">
+								{isCurrentlyDeploying ? (
+									<>
+										<Loader className="w-4 h-4 mr-2 animate-spin" />
+										{currentState === DeploymentState.REDEPLOYING ? 'Redeploying...' : 'Deploying...'}
+									</>
+								) : (
+									<>
+										<Zap className="w-4 h-4 mr-2" />
+										Deploy to Cloudflare
+									</>
+								)}
+							</span>
 						</Button>
 					</div>
 				</div>
@@ -289,20 +294,23 @@ export function DeploymentControls({
 
 			{/* Deployed Success State - Enhanced with Visibility Toggle */}
 			{currentState === DeploymentState.DEPLOYED && (
-				<div 
+				<div
 					ref={deploymentRef}
-					className="border rounded-lg p-4 bg-gradient-to-r from-green-50/40 to-emerald-50/40 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200/60 dark:border-green-800/30 transition-all duration-700 mt-2 animate-in slide-in-from-top-2 shadow-sm dark:shadow-green-900/20"
+					className="border rounded-lg p-4 bg-gradient-to-r from-emerald-50/40 via-green-50/40 to-teal-50/40 dark:from-emerald-950/20 dark:via-green-950/20 dark:to-teal-950/20 border-emerald-200/60 dark:border-emerald-800/30 transition-all duration-700 mt-2 animate-in slide-in-from-top-2 shadow-sm dark:shadow-emerald-900/20 relative overflow-hidden"
 				>
-					<div className="flex items-center gap-3 mb-3">
-						{/* Success Icon with animation */}
-						<div className="flex-shrink-0 w-5 h-5 bg-green-500 border-2 border-green-500 rounded-full flex items-center justify-center animate-in zoom-in-50 duration-500">
-							<Check className="w-3 h-3 text-white" />
+					{/* Cosmic glow background */}
+					<div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-green-500/5 to-teal-500/5 dark:from-emerald-500/10 dark:via-green-500/10 dark:to-teal-500/10 pointer-events-none" />
+					<div className="flex items-center gap-3 mb-3 relative z-10">
+						{/* Success Icon with animation and cosmic glow */}
+						<div className="flex-shrink-0 w-5 h-5 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 border-2 border-emerald-500 rounded-full flex items-center justify-center animate-in zoom-in-50 duration-500 relative">
+							<div className="absolute inset-0 bg-gradient-to-r from-emerald-500/30 via-green-500/30 to-teal-500/30 rounded-full blur animate-pulse" />
+							<Check className="w-3 h-3 text-white relative z-10" />
 						</div>
-						
+
 						{/* Success Header */}
 						<div className="flex-1">
-							<div className="text-sm font-semibold text-green-900 dark:text-green-100">
-								🎉 Successfully Deployed!
+							<div className="text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 dark:from-emerald-200 dark:via-green-200 dark:to-teal-200">
+								Successfully Deployed!
 							</div>
 							<div className="text-xs text-green-700 dark:text-green-300 mt-0.5">
 								Your application is now live on Cloudflare Workers
@@ -311,8 +319,8 @@ export function DeploymentControls({
 					</div>
 					
 					{/* Elegant URL Display */}
-					<div className="bg-bg-3/60 dark:bg-bg-4/60 border border-green-200/40 dark:border-green-800/20 rounded-md p-3 mb-3">
-						<div className="text-xs text-green-600 dark:text-green-400 font-medium mb-1">Live URL:</div>
+					<div className="bg-bg-3/60 dark:bg-bg-4/60 border border-emerald-200/40 dark:border-emerald-800/20 rounded-md p-3 mb-3 relative z-10">
+						<div className="text-xs text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 dark:from-emerald-400 dark:via-green-400 dark:to-teal-400 font-medium mb-1">Live URL:</div>
 						<div className="flex items-center gap-2">
 							<code className="flex-1 text-sm font-mono text-green-800 dark:text-green-200 bg-green-50/50 dark:bg-green-950/30 px-2 py-1 rounded text-ellipsis overflow-hidden">
 								{deploymentUrl}
@@ -369,10 +377,11 @@ export function DeploymentControls({
 						<Button
 							onClick={() => deploymentUrl && window.open(deploymentUrl, '_blank')}
 							variant="primary"
-							className="h-10 text-sm bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white border-green-600 dark:border-green-700 font-medium shadow-sm hover:shadow-md dark:hover:shadow-green-900/50 transition-all duration-200 hover:scale-[1.02]"
+							className="h-10 text-sm bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 hover:from-emerald-700 hover:via-green-700 hover:to-teal-700 dark:from-emerald-700 dark:via-green-700 dark:to-teal-700 dark:hover:from-emerald-800 dark:hover:via-green-800 dark:to-teal-800 text-white border-emerald-600 dark:border-emerald-700 font-medium shadow-sm hover:shadow-lg hover:shadow-emerald-500/50 dark:hover:shadow-emerald-900/50 transition-all duration-200 hover:scale-[1.02] relative overflow-hidden group"
 						>
-							<ExternalLink className="w-4 h-4 mr-2" />
-							View Live
+							<div className="absolute inset-0 bg-gradient-to-r from-emerald-700 via-green-700 to-teal-700 opacity-0 group-hover:opacity-100 transition-opacity" />
+							<ExternalLink className="w-4 h-4 mr-2 relative z-10" />
+							<span className="relative z-10">View Live</span>
 						</Button>
 						
 						{/* Make Public/Private Button - Always visible after deployment */}
@@ -382,28 +391,33 @@ export function DeploymentControls({
 								disabled={isUpdatingVisibility}
 								variant="secondary"
 								className={clsx(
-									"h-10 text-sm font-medium transition-all duration-200 shadow-sm",
+									"h-10 text-sm font-medium transition-all duration-200 shadow-sm relative overflow-hidden group",
 									localVisibility === 'private'
-										? "bg-accent hover:bg-accent/90 text-white border-accent hover:shadow-md hover:scale-[1.02]"
+										? "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:shadow-lg hover:shadow-purple-500/50 text-white border-purple-500 hover:scale-[1.02]"
 										: "bg-bg-3 hover:bg-bg-4 text-text-primary border-border-primary hover:shadow-sm hover:scale-[1.02]"
 								)}
 							>
-								{isUpdatingVisibility ? (
-									<>
-										<Loader className="w-4 h-4 mr-2 animate-spin" />
-										Updating...
-									</>
-								) : localVisibility === 'private' ? (
-									<>
-										<Globe className="w-4 h-4 mr-2" />
-										Make Public
-									</>
-								) : (
-									<>
-										<Lock className="w-4 h-4 mr-2" />
-										Make Private
-									</>
+								{localVisibility === 'private' && (
+									<div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
 								)}
+								<span className="relative z-10 flex items-center">
+									{isUpdatingVisibility ? (
+										<>
+											<Loader className="w-4 h-4 mr-2 animate-spin" />
+											Updating...
+										</>
+									) : localVisibility === 'private' ? (
+										<>
+											<Globe className="w-4 h-4 mr-2" />
+											Make Public
+										</>
+									) : (
+										<>
+											<Lock className="w-4 h-4 mr-2" />
+											Make Private
+										</>
+									)}
+								</span>
 							</Button>
 						)}
 						
@@ -414,23 +428,28 @@ export function DeploymentControls({
 								disabled={isDeploying || isDeployButtonClicked}
 								variant="secondary"
 								className={clsx(
-									"h-10 text-sm font-medium transition-all duration-200 shadow-sm",
+									"h-10 text-sm font-medium transition-all duration-200 shadow-sm relative overflow-hidden group",
 									!isDeploying
-										? "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white border-blue-500 dark:border-blue-600 hover:shadow-md dark:hover:shadow-blue-900/50 hover:scale-[1.02]" 
+										? "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:shadow-lg hover:shadow-purple-500/50 dark:from-blue-600 dark:via-purple-600 dark:to-pink-600 text-white border-purple-500 dark:border-purple-600 hover:scale-[1.02]"
 										: "bg-bg-3 dark:bg-bg-3 text-text-tertiary dark:text-text-tertiary border-muted dark:border-muted cursor-not-allowed"
 								)}
 							>
-								{isDeploying ? (
-									<>
-										<Loader className="w-4 h-4 mr-2 animate-spin" />
-										Redeploying...
-									</>
-								) : (
-									<>
-										<Zap className="w-4 h-4 mr-2" />
-										Redeploy
-									</>
+								{!isDeploying && (
+									<div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
 								)}
+								<span className="relative z-10 flex items-center">
+									{isDeploying ? (
+										<>
+											<Loader className="w-4 h-4 mr-2 animate-spin" />
+											Redeploying...
+										</>
+									) : (
+										<>
+											<Zap className="w-4 h-4 mr-2" />
+											Redeploy
+										</>
+									)}
+								</span>
 							</Button>
 						)}
 					</div>

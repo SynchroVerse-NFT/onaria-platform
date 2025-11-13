@@ -1,4 +1,4 @@
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -14,23 +14,27 @@ export function ThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-text-primary">
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-text-primary hover:bg-accent/10 hover:text-accent transition-all duration-200 border border-transparent hover:border-accent/20"
+        >
+          <Sparkles className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme('light')}>
-          <Sun className="mr-2 h-4 w-4" />
+      <DropdownMenuContent align="end" className="border-accent/20">
+        <DropdownMenuItem onClick={() => setTheme('light')} className="hover:bg-accent/10 cursor-pointer">
+          <Sparkles className="mr-2 h-4 w-4 text-accent/70" />
           <span>Light</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>
-          <Moon className="mr-2 h-4 w-4" />
+        <DropdownMenuItem onClick={() => setTheme('dark')} className="hover:bg-accent/10 cursor-pointer">
+          <Moon className="mr-2 h-4 w-4 text-accent/70" />
           <span>Dark</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>
-          <span className="mr-2 h-4 w-4">💻</span>
+        <DropdownMenuItem onClick={() => setTheme('system')} className="hover:bg-accent/10 cursor-pointer">
+          <Sparkles className="mr-2 h-4 w-4 text-accent/70" />
           <span>System</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

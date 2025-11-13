@@ -70,27 +70,27 @@ const DEPLOYMENT_STATUS_CONFIG: Record<DeploymentStatus, DeploymentStatusInfo> =
 	{
 		deployed: {
 			icon: Cloud,
-			color: 'text-green-500',
-			bgColor: 'bg-green-50 dark:bg-green-950',
+			color: 'text-emerald-400',
+			bgColor: 'bg-gradient-to-r from-emerald-500/20 to-green-500/20',
 			text: 'Deployed',
 		},
 		deploying: {
 			icon: Loader2,
-			color: 'text-green-400',
-			bgColor: 'bg-green-50 dark:bg-green-950',
+			color: 'text-blue-400',
+			bgColor: 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20',
 			text: 'Deploying',
 			animate: true,
 		},
 		failed: {
 			icon: CloudOff,
-			color: 'text-gray-500',
-			bgColor: 'bg-gray-50 dark:bg-gray-950',
+			color: 'text-red-400',
+			bgColor: 'bg-gradient-to-r from-red-500/20 to-orange-500/20',
 			text: 'Deploy Failed',
 		},
 		none: {
 			icon: CloudOff,
-			color: 'text-gray-500',
-			bgColor: 'bg-gray-50 dark:bg-gray-950',
+			color: 'text-gray-400',
+			bgColor: 'bg-gradient-to-r from-gray-500/20 to-slate-500/20',
 			text: 'Not Deployed',
 		},
 	};
@@ -311,32 +311,32 @@ const AppMetadata = ({
 									className={cn(
 										'w-2 h-2 rounded-full transition-all duration-200',
 										deploymentStatus.color ===
-											'text-green-500' &&
-											'bg-green-500 shadow-sm shadow-green-500/20',
+											'text-emerald-400' &&
+											'bg-emerald-400 shadow-sm shadow-emerald-400/40',
 										deploymentStatus.color ===
-											'text-green-400' &&
-											'bg-green-400 animate-pulse shadow-sm shadow-green-400/20',
+											'text-blue-400' &&
+											'bg-blue-400 animate-pulse shadow-sm shadow-blue-400/40',
 										deploymentStatus.color ===
-											'text-gray-500' &&
-											'bg-gray-400 shadow-sm shadow-gray-400/20',
+											'text-red-400' &&
+											'bg-red-400 shadow-sm shadow-red-400/40',
 										deploymentStatus.color ===
-											'text-gray-500 ' && 'bg-gray-400',
+											'text-gray-400' && 'bg-gray-400 shadow-sm shadow-gray-400/20',
 									)}
 								/>
 								<span
 									className={cn(
 										'text-xs font-medium transition-colors',
 										deploymentStatus.color ===
-											'text-green-500' &&
-											'text-green-600',
+											'text-emerald-400' &&
+											'text-emerald-500 dark:text-emerald-400',
 										deploymentStatus.color ===
-											'text-green-400' &&
-											'text-green-600',
+											'text-blue-400' &&
+											'text-blue-500 dark:text-blue-400',
 										deploymentStatus.color ===
-											'text-gray-500' && 'text-gray-600 group-hover:text-bg-2',
+											'text-red-400' && 'text-red-500 dark:text-red-400',
 										deploymentStatus.color ===
-											'text-gray-500' &&
-											'text-text-tertiary',
+											'text-gray-400' &&
+											'text-gray-500 dark:text-gray-400 group-hover:text-bg-2',
 									)}
 								>
 									{deploymentStatus.text}
@@ -424,8 +424,14 @@ export const AppCard = React.memo<AppCardProps>(
 				>
 					<Card
 						className={cn(
-							'h-full transition-all duration-300 ease-out cursor-pointer group relative overflow-hidden rounded-md p-2 bg-bg-1 hover:!bg-text hover:dark:!bg-text-primary',
-							'border border-border-primary hover:border-border-primary/60',
+							'h-full transition-all duration-300 ease-out cursor-pointer group relative overflow-hidden rounded-xl p-2',
+							'bg-gradient-to-br from-bg-1/80 via-bg-1/60 to-bg-1/80 backdrop-blur-xl',
+							'border border-purple-500/20 hover:border-purple-400/40',
+							'hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]',
+							'hover:scale-[1.02] hover:-translate-y-1',
+							'before:absolute before:inset-0 before:rounded-xl before:p-[1px]',
+							'before:bg-gradient-to-br before:from-purple-500/30 before:via-blue-500/20 before:to-pink-500/30',
+							'before:-z-10 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300',
 						)}
 					>
 					{/* Enhanced Preview Section with High-Quality Rendering */}
@@ -524,26 +530,28 @@ export const AppCard = React.memo<AppCardProps>(
 						</div>
 
 						{/* Deploying status indicator - only show when actually deploying */}
-						{deploymentStatus?.color === 'text-green-400' &&
+						{deploymentStatus?.color === 'text-blue-400' &&
 							getAppDeploymentStatus(app) === 'deploying' && (
 								<div
-									className="absolute top-2 left-2 h-4 w-4 rounded-full bg-green-300/70 backdrop-blur-sm flex items-center justify-center shadow-sm border border-green-200/20"
+									className="absolute top-2 left-2 px-2 py-1 rounded-full bg-blue-500/20 backdrop-blur-md flex items-center gap-1.5 shadow-lg border border-blue-400/30"
 									title="App is deploying"
 									aria-label="App deployment in progress"
 								>
-									<Loader2 className="w-2 h-2 text-white/90 animate-spin" />
+									<Loader2 className="w-3 h-3 text-blue-300 animate-spin" />
+									<span className="text-[10px] font-medium text-blue-200">Deploying</span>
 								</div>
 							)}
 
 						{/* Failed deployment status indicator - only show when deployment actually failed */}
-						{deploymentStatus?.color === 'text-gray-500' &&
+						{deploymentStatus?.color === 'text-red-400' &&
 							getAppDeploymentStatus(app) === 'failed' && (
 								<div
-									className="absolute top-2 left-2 h-4 w-4 rounded-full bg-gray-400/70 backdrop-blur-sm flex items-center justify-center shadow-sm border border-gray-300/20"
+									className="absolute top-2 left-2 px-2 py-1 rounded-full bg-red-500/20 backdrop-blur-md flex items-center gap-1.5 shadow-lg border border-red-400/30"
 									title="Deployment failed"
 									aria-label="App deployment failed"
 								>
-									<CloudOff className="w-2 h-2 text-white/90" />
+									<CloudOff className="w-3 h-3 text-red-300" />
+									<span className="text-[10px] font-medium text-red-200">Failed</span>
 								</div>
 							)}
 
@@ -565,7 +573,7 @@ export const AppCard = React.memo<AppCardProps>(
 						{/* Visibility Badge for user apps (when not showing status overlays) */}
 						{(isUserApp(app) || isEnhancedApp(app)) &&
 							!deploymentStatus && (
-								<div className="absolute bottom-2 left-2 bg-bg-3/90 dark:bg-bg-4/90 backdrop-blur-sm rounded-md p-1">
+								<div className="absolute bottom-2 left-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-md border border-purple-400/30 rounded-lg p-1.5 shadow-lg">
 									{getVisibilityIcon(app.visibility)}
 								</div>
 							)}
@@ -573,7 +581,7 @@ export const AppCard = React.memo<AppCardProps>(
 						{/* Visibility Badge positioned differently when status overlay exists */}
 						{(isUserApp(app) || isEnhancedApp(app)) &&
 							deploymentStatus && (
-								<div className="absolute bottom-2 left-2 bg-bg-3/90 dark:bg-bg-4/90 backdrop-blur-sm rounded-md p-1">
+								<div className="absolute bottom-2 left-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-md border border-purple-400/30 rounded-lg p-1.5 shadow-lg">
 									{getVisibilityIcon(app.visibility)}
 								</div>
 							)}
@@ -600,7 +608,7 @@ export const AppCard = React.memo<AppCardProps>(
 										app.githubRepositoryVisibility !==
 											'private' && (
 											<button
-												className="group/github flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200"
+												className="group/github flex items-center gap-1.5 px-2 py-1 rounded-full bg-gradient-to-r from-gray-500/10 to-slate-500/10 hover:from-gray-500/20 hover:to-slate-500/20 backdrop-blur-sm border border-gray-500/20 hover:border-gray-400/40 hover:shadow-[0_0_15px_rgba(100,116,139,0.2)] transition-all duration-200"
 												onClick={(e) => {
 													e.stopPropagation();
 													if (
@@ -616,7 +624,7 @@ export const AppCard = React.memo<AppCardProps>(
 												title={`View on GitHub (${app.githubRepositoryVisibility || 'public'})`}
 												aria-label="View repository on GitHub"
 											>
-												<Github className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover/github:text-gray-800 dark:group-hover/github:text-gray-200 transition-colors" />
+												<Github className="w-4 h-4 text-gray-400 group-hover/github:text-gray-300 transition-colors" />
 											</button>
 										)}
 								</div>

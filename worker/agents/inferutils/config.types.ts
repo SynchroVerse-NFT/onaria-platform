@@ -51,6 +51,7 @@ export interface ModelConfig {
     max_tokens?: number;
     temperature?: number;
     fallbackModel?: AIModels | string;
+    providerOverride?: ProviderOverrideType;
 }
 
 export interface AgentConfig {
