@@ -33,6 +33,7 @@ declare namespace Cloudflare {
 		CLOUDFLARE_ACCOUNT_ID: string;
 		CLOUDFLARE_AI_GATEWAY_URL: string;
 		CLOUDFLARE_AI_GATEWAY_TOKEN: string;
+	AI_GATEWAY_AUTH_TOKEN: string;
 		SERPAPI_KEY: string;
 		GOOGLE_CLIENT_SECRET: string;
 		GOOGLE_CLIENT_ID: string;

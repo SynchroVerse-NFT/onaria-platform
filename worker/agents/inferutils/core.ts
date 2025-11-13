@@ -187,11 +187,13 @@ function optimizeTextContent(content: string): string {
 }
 
 export async function buildGatewayUrl(env: Env, providerOverride?: AIGatewayProviders): Promise<string> {
+    console.log(`[DEBUG] buildGatewayUrl called with providerOverride: "${providerOverride}", type: ${typeof providerOverride}`);
+
     // If CLOUDFLARE_AI_GATEWAY_URL is set and is a valid URL, use it directly
-    if (env.CLOUDFLARE_AI_GATEWAY_URL && 
-        env.CLOUDFLARE_AI_GATEWAY_URL !== 'none' && 
+    if (env.CLOUDFLARE_AI_GATEWAY_URL &&
+        env.CLOUDFLARE_AI_GATEWAY_URL !== 'none' &&
         env.CLOUDFLARE_AI_GATEWAY_URL.trim() !== '') {
-        
+
         try {
             const url = new URL(env.CLOUDFLARE_AI_GATEWAY_URL);
             // Validate it's actually an HTTP/HTTPS URL
@@ -199,6 +201,7 @@ export async function buildGatewayUrl(env: Env, providerOverride?: AIGatewayProv
                 // Add 'providerOverride' as a segment to the URL
                 const cleanPathname = url.pathname.replace(/\/$/, ''); // Remove trailing slash
                 url.pathname = providerOverride ? `${cleanPathname}/${providerOverride}` : `${cleanPathname}/compat`;
+                console.log(`[DEBUG] Using CLOUDFLARE_AI_GATEWAY_URL path, returning: ${url.toString()}`);
                 return url.toString();
             }
         } catch (error) {
@@ -206,10 +209,11 @@ export async function buildGatewayUrl(env: Env, providerOverride?: AIGatewayProv
             console.warn(`Invalid CLOUDFLARE_AI_GATEWAY_URL provided: ${env.CLOUDFLARE_AI_GATEWAY_URL}. Falling back to AI bindings.`);
         }
     }
-    
+
     // Build the url via bindings
     const gateway = env.AI.gateway(env.CLOUDFLARE_AI_GATEWAY);
     const baseUrl = providerOverride ? await gateway.getUrl(providerOverride) : `${await gateway.getUrl()}compat`;
+    console.log(`[DEBUG] Using AI bindings path, providerOverride=${providerOverride}, returning: ${baseUrl}`);
     return baseUrl;
 }
 
@@ -244,9 +248,12 @@ async function getApiKey(provider: string, env: Env, _userId: string): Promise<s
     const providerKeyString = provider.toUpperCase().replaceAll('-', '_');
     const envKey = `${providerKeyString}_API_KEY` as keyof Env;
     let apiKey: string = env[envKey] as string;
-    
+
+    console.log(`[DEBUG] getApiKey: provider=${provider}, envKey=${envKey}, hasKey=${!!apiKey}, keyValid=${isValidApiKey(apiKey)}, keyLength=${apiKey?.length || 0}, keyPrefix=${apiKey?.substring(0, 10) || 'none'}`);
+
     // Check if apiKey is empty or undefined and is valid
     if (!isValidApiKey(apiKey)) {
+        console.log(`[DEBUG] getApiKey: Invalid or missing API key for ${provider}, falling back to CLOUDFLARE_AI_GATEWAY_TOKEN`);
         apiKey = env.CLOUDFLARE_AI_GATEWAY_TOKEN;
     }
     return apiKey;
@@ -285,16 +292,41 @@ export async function getConfigurationForModel(
         providerForcedOverride = provider as AIGatewayProviders;
     }
 
-    const baseURL = await buildGatewayUrl(env, providerForcedOverride);
-
     // Extract the provider name from model name. Model name is of type `provider/model_name`
     const provider = providerForcedOverride || model.split('/')[0];
-    // Try to find API key of type <PROVIDER>_API_KEY else default to CLOUDFLARE_AI_GATEWAY_TOKEN
-    // `env` is an interface of type `Env`
+
+    // Check for Gateway token - try new name first, then legacy name
+    const gatewayToken = env.AI_GATEWAY_AUTH_TOKEN || env.CLOUDFLARE_AI_GATEWAY_TOKEN || "";
+
+    // Fallback: If Gateway token doesn't exist, use direct provider URLs
+    if (!gatewayToken) {
+        console.warn(`[Gateway] No authentication token found, using direct provider URL for: ${provider}`);
+        if (provider === 'google-ai-studio') {
+            return {
+                baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+                apiKey: env.GOOGLE_AI_STUDIO_API_KEY,
+            };
+        } else if (provider === 'anthropic') {
+            return {
+                baseURL: 'https://api.anthropic.com/v1/',
+                apiKey: env.ANTHROPIC_API_KEY,
+            };
+        } else if (provider === 'openai') {
+            return {
+                baseURL: 'https://api.openai.com/v1',
+                apiKey: env.OPENAI_API_KEY,
+            };
+        }
+    }
+
+    const baseURL = await buildGatewayUrl(env, providerForcedOverride);
+
+    // Try to find API key of type <PROVIDER>_API_KEY else default to Gateway token
     const apiKey = await getApiKey(provider, env, userId);
-    // AI Gateway Wholesaling checks
-    const defaultHeaders = env.CLOUDFLARE_AI_GATEWAY_TOKEN && apiKey !== env.CLOUDFLARE_AI_GATEWAY_TOKEN ? {
-        'cf-aig-authorization': `Bearer ${env.CLOUDFLARE_AI_GATEWAY_TOKEN}`,
+
+    // AI Gateway Authenticated requests - set cf-aig-authorization header if token exists
+    const defaultHeaders = gatewayToken ? {
+        'cf-aig-authorization': `Bearer ${gatewayToken}`,
     } : undefined;
     return {
         baseURL,
