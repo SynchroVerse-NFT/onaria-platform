@@ -12,12 +12,19 @@ This file provides guidance to Claude Code when working with code in this reposi
 vibesdk is an AI-powered full-stack application generation platform built on Cloudflare infrastructure.
 
 **Tech Stack:**
-- Frontend: React 19, TypeScript, Vite, TailwindCSS, React Router v7
+- Frontend: React 19, TypeScript, Vite, TailwindCSS v4, React Router v7
 - Backend: Cloudflare Workers, Durable Objects, D1 (SQLite)
 - AI/LLM: OpenAI, Anthropic, Google AI Studio (Gemini)
 - WebSocket: PartySocket for real-time communication
 - Sandbox: Custom container service with CLI tools
 - Git: isomorphic-git with SQLite filesystem
+- Animations: Framer Motion for cosmic effects and transitions
+
+**Design System:**
+- Cosmic theme with blue/purple/pink gradients
+- Glassmorphism UI patterns with backdrop blur
+- Space-inspired animations (nebula, stars, parallax)
+- Responsive dark/light mode support
 
 **Project Structure**
 
@@ -38,6 +45,14 @@ vibesdk is an AI-powered full-stack application generation platform built on Clo
 - Database: `worker/database/` (Drizzle ORM, D1)
 - Services: `worker/services/` (sandbox, code-fixer, oauth, rate-limit)
 - API: `worker/api/` (routes, controllers, handlers)
+
+**Animations (`/src/components/animations`):**
+- AnimatedBackground - Cosmic nebula gradients with parallax
+- CursorAurora - Mouse-following aurora effect
+- FloatingParticles - Space particles system
+- InterstellarRings - Animated ring effects
+- WormholeEffect - Loading and transition effects
+- AnimationWrapper - Performance context for animations
 
 **Other:**
 - `/shared` - Shared types between frontend/backend (not worker specific types that are also imported in frontend)
@@ -81,6 +96,39 @@ IDLE → PHASE_GENERATING → PHASE_IMPLEMENTING → REVIEWING → IDLE
 - Git clone protocol support (rebase on template)
 - FileManager auto-syncs from git via callbacks
 
+## Cosmic Design System
+
+**Color Palette:**
+- Cosmic Blue: `#64b5f6` - Primary brand color
+- Cosmic Purple: `#a855f7` - Secondary brand color
+- Cosmic Pink: `#ec4899` - Accent color
+- Cosmic Orange: `#ff5722` - Highlight color
+
+**Gradients:**
+- `bg-cosmic-gradient` - Subtle blue to purple (135deg)
+- `bg-cosmic-gradient-full` - Full spectrum (blue → purple → orange)
+- `bg-cosmic-gradient-subtle` - Semi-transparent multi-color
+- `bg-cosmic-light` - Light mode background gradient
+
+**Glassmorphism Pattern:**
+```tsx
+className="backdrop-blur-xl bg-white/10 dark:bg-black/20 border border-white/20"
+```
+Use `backdrop-blur-xl` (24px) or `backdrop-blur-2xl` (40px) with semi-transparent backgrounds.
+
+**Animation Guidelines:**
+- All animations respect user preferences via AnimationWrapper context
+- Three intensity levels: low, medium, high
+- Automatic reduction for `prefers-reduced-motion`
+- Use lazy loading for heavy animation components
+- CSS animations for simple effects, Framer Motion for complex interactions
+
+**Custom Animations (CSS):**
+- `chat-edge-throb` - Pulsing cosmic blue/purple border
+- `cosmic-message-glow` - Subtle glow effect for messages
+- `cosmic-thinking-pulse` - Thinking indicator animation
+- `debug-pulse` - Red pulse for debug mode
+
 ## Common Development Tasks
 
 **Change LLM Model for Operation:**
@@ -107,6 +155,15 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 4. Create controller in `worker/api/controllers/`
 5. Add route in `worker/api/routes/`
 6. Register in `worker/api/routes/index.ts`
+
+**Troubleshoot AI Gateway Issues:**
+1. Check Gateway exists: `curl https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_name}/models`
+2. Verify secrets: `wrangler secret list` (should show `AI_GATEWAY_AUTH_TOKEN`)
+3. Test secret binding: Add temporary plaintext var, check if accessible at runtime
+4. Check logs: `wrangler tail --format=pretty` and look for Gateway-related errors
+5. Verify authentication header: Look for `cf-aig-authorization: Bearer {token}` in requests
+6. Rotate DOs if needed: Deploy after fixing secrets to clear cached code
+7. Fallback verification: If Gateway fails, check if direct provider URLs work
 
 ## Important Context
 
@@ -135,6 +192,18 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 - Backend skips redundant LLM calls (empty tool results)
 - Frontend utilities deduplicate live and restored messages
 - System prompt teaches LLM not to repeat
+
+**AI Gateway & Infrastructure:**
+- Location: `/worker/agents/inferutils/core.ts` (getConfigurationForModel)
+- Gateway URL: `https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_name}/compat`
+- Authentication: `cf-aig-authorization: Bearer {token}` header
+- Secrets: `AI_GATEWAY_AUTH_TOKEN` (primary) or `CLOUDFLARE_AI_GATEWAY_TOKEN` (legacy)
+- Fallback: Direct provider URLs if Gateway token unavailable
+- Secret binding: Must be bound to exact Worker script name (`onaria-platform`)
+- Check binding: `wrangler secret list` to verify secrets exist
+- Verify at runtime: Secrets accessible via `env.SECRET_NAME` (not `process.env`)
+- Container secrets: Must forward explicitly via `envVars` parameter
+- DO code caching: Deploy new version to rotate stale Durable Object code
 
 ## Core Rules (Non-Negotiable)
 
@@ -182,3 +251,5 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 - Keep comments concise and purposeful
 - Write production-ready code
 - Test thoroughly before submitting
+- update the version before every deployment
+- verify live page at onaria.xyz after deployments
