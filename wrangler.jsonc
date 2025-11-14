@@ -121,6 +121,10 @@
                 "DORateLimitStore"
             ],
             "tag": "v2"
+        },
+        {
+            "new_sqlite_classes": [],
+            "tag": "v3"
         }
 	],
 	"routes": [
