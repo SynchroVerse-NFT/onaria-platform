@@ -20,6 +20,8 @@ import { UserConversationProcessor, RenderToolCall } from '../operations/UserCon
 import { FileManager } from '../services/implementations/FileManager';
 import { StateManager } from '../services/implementations/StateManager';
 import { DeploymentManager } from '../services/implementations/DeploymentManager';
+import { AutoFixService } from '../services/implementations/AutoFixService';
+import { ErrorMonitor } from '../services/implementations/ErrorMonitor';
 // import { WebSocketBroadcaster } from '../services/implementations/WebSocketBroadcaster';
 import { GenerationContext } from '../domain/values/GenerationContext';
 import { IssueReport } from '../domain/values/IssueReport';
@@ -81,8 +83,10 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
     protected stateManager!: StateManager;
     protected fileManager!: FileManager;
     protected codingAgent: CodingAgentInterface = new CodingAgentInterface(this);
-    
+
     protected deploymentManager!: DeploymentManager;
+    protected autoFixService: AutoFixService;
+    protected errorMonitor: ErrorMonitor;
     protected git: GitVersionControl;
 
     private previewUrlCache: string = '';
@@ -192,6 +196,100 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             },
             SimpleCodeGeneratorAgent.MAX_COMMANDS_HISTORY
         );
+
+        // Initialize AutoFixService with WebSocket broadcasting
+        this.autoFixService = new AutoFixService({
+            enableRealtimeCodeFixer: true,
+            enableDeepDebugger: true,
+            maxRetries: 3,
+            maxConcurrentFixes: 2,
+        });
+
+        // Wire up auto-fix progress callbacks to WebSocket
+        this.autoFixService.onProgress((progress) => {
+            this.broadcast('autofix_progress', {
+                message: progress.message,
+                status: progress.status,
+                queueSize: progress.queueSize,
+                activeFixesCount: progress.activeFixesCount,
+                currentError: progress.currentError ? {
+                    type: progress.currentError.type,
+                    severity: progress.currentError.severity,
+                    message: progress.currentError.originalError,
+                    file: progress.currentError.file,
+                    line: progress.currentError.line,
+                } : undefined,
+                progress: progress.progress,
+            });
+        });
+
+        this.autoFixService.onErrorFixed((attempt) => {
+            this.broadcast('autofix_error_fixed', {
+                message: `Fixed ${attempt.error.type} error in ${attempt.fixDurationMs}ms`,
+                errorHash: attempt.errorHash,
+                errorType: attempt.error.type,
+                errorSeverity: attempt.error.severity,
+                fixStrategy: attempt.fixStrategy,
+                attempts: attempt.attempts,
+                fixDurationMs: attempt.fixDurationMs || 0,
+                file: attempt.error.file,
+                line: attempt.error.line,
+            });
+
+            // Trigger preview refresh after successful fix
+            this.broadcast('preview_force_refresh', {});
+        });
+
+        this.autoFixService.onErrorFailed((attempt) => {
+            this.broadcast('autofix_error_failed', {
+                message: `Failed to fix ${attempt.error.type} error after ${attempt.attempts} attempts`,
+                errorHash: attempt.errorHash,
+                errorType: attempt.error.type,
+                errorSeverity: attempt.error.severity,
+                fixStrategy: attempt.fixStrategy,
+                attempts: attempt.attempts,
+                reason: attempt.status,
+                file: attempt.error.file,
+                line: attempt.error.line,
+            });
+        });
+
+        // Initialize ErrorMonitor
+        this.errorMonitor = new ErrorMonitor({
+            pollInterval: 5000,
+            enableRuntimeErrorMonitoring: true,
+            enableStaticAnalysisMonitoring: false,
+            autoTriggerFix: true,
+        });
+
+        // Wire up error monitor callbacks
+        this.errorMonitor.setCallbacks({
+            onErrorDetected: (errors, source) => {
+                this.logger().info(`ErrorMonitor detected ${errors.length} errors from ${source}`);
+                this.broadcast('autofix_started', {
+                    message: `Detected ${errors.length} new errors`,
+                    errorCount: errors.length,
+                    source,
+                });
+            },
+            onMonitoringStarted: () => {
+                this.logger().info('ErrorMonitor started');
+            },
+            onMonitoringStopped: () => {
+                this.logger().info('ErrorMonitor stopped');
+            },
+            onMonitoringError: (error) => {
+                this.logger().error('ErrorMonitor error:', error);
+            },
+        });
+
+        // Link error monitor to auto-fix service
+        this.errorMonitor.setAutoFixService(this.autoFixService);
+
+        // Register agent fix callback for actual deepDebugger/codeFixer invocation
+        this.autoFixService.onAgentFix(async (error, strategy) => {
+            return await this.executeAgentFix(error, strategy);
+        });
     }
 
     /**
@@ -1820,6 +1918,10 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                 onAfterSetupCommands: async () => {
                     // Sync package.json after setup commands (includes dependency installs)
                     await this.syncPackageJsonFromSandbox();
+                },
+                onAfterDeployment: async (deploymentResult) => {
+                    // Trigger auto-fix after successful deployment
+                    await this.triggerAutoFixAfterDeployment(deploymentResult.sandboxInstanceId);
                 }
             }
         );
@@ -1887,6 +1989,116 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             });
             return null;
         }
+    }
+
+    /**
+     * Trigger auto-fix after successful deployment
+     * Fetches errors from sandbox and processes them
+     */
+    private async triggerAutoFixAfterDeployment(sandboxInstanceId: string): Promise<void> {
+        try {
+            this.logger().info('Triggering auto-fix after deployment', { sandboxInstanceId });
+
+            // Set up error monitor with sandbox client
+            const sandboxClient = this.deploymentManager.getClient();
+            this.errorMonitor.setSandboxClient(sandboxClient, sandboxInstanceId);
+
+            // Fetch initial runtime errors
+            const runtimeErrors = await this.deploymentManager.fetchRuntimeErrors(false);
+
+            if (runtimeErrors.length > 0) {
+                this.logger().info(`Found ${runtimeErrors.length} runtime errors, processing with auto-fix`);
+
+                // Convert runtime errors to string format
+                const errorMessages = runtimeErrors.map(error => {
+                    let msg = `[Runtime Error] ${error.message}`;
+                    if (error.stack) msg += `\n${error.stack}`;
+                    if (error.filename) {
+                        msg += `\n  at ${error.filename}`;
+                        if (error.lineno) {
+                            msg += `:${error.lineno}`;
+                            if (error.colno) {
+                                msg += `:${error.colno}`;
+                            }
+                        }
+                    }
+                    return msg;
+                });
+
+                // Process errors with auto-fix
+                await this.autoFixService.processErrors(errorMessages, 'post_deployment', {
+                    priority: true,
+                });
+            }
+
+            // Start continuous monitoring
+            if (!this.errorMonitor.isActive()) {
+                this.errorMonitor.start();
+                this.logger().info('Started continuous error monitoring');
+            }
+        } catch (error) {
+            this.logger().error('Error during auto-fix trigger:', error);
+        }
+    }
+
+    /**
+     * Execute agent-based fix (called by AutoFixService)
+     * @param error Classified error to fix
+     * @param strategy Which agent to use (deepDebugger or realtimeCodeFixer)
+     * @returns true if fix succeeded, false otherwise
+     */
+    private async executeAgentFix(
+        error: { type: string; severity: string; originalError: string; file?: string; line?: number },
+        strategy: 'deepDebugger' | 'realtimeCodeFixer'
+    ): Promise<boolean> {
+        try {
+            this.logger().info(`Executing ${strategy} for ${error.type} error`, {
+                file: error.file,
+                line: error.line,
+            });
+
+            if (strategy === 'deepDebugger') {
+                // Invoke deep debugger
+                const result = await this.runDeepDebug(error.originalError);
+                return result.success;
+            } else {
+                // Invoke realtime code fixer (fast fixer)
+                // For now, use deepDebugger as fallback since realtimeCodeFixer isn't exposed
+                const result = await this.runDeepDebug(error.originalError);
+                return result.success;
+            }
+        } catch (err) {
+            this.logger().error(`Agent fix failed for ${strategy}:`, err);
+            return false;
+        }
+    }
+
+    /**
+     * Start error monitoring
+     */
+    startErrorMonitoring(): void {
+        if (!this.state.sandboxInstanceId) {
+            this.logger().warn('Cannot start error monitoring without sandbox instance');
+            return;
+        }
+
+        const sandboxClient = this.deploymentManager.getClient();
+        this.errorMonitor.setSandboxClient(sandboxClient, this.state.sandboxInstanceId);
+        this.errorMonitor.start();
+    }
+
+    /**
+     * Stop error monitoring
+     */
+    stopErrorMonitoring(): void {
+        this.errorMonitor.stop();
+    }
+
+    /**
+     * Get auto-fix stats
+     */
+    getAutoFixStats() {
+        return this.autoFixService.getStats();
     }
 
     async waitForGeneration(): Promise<void> {

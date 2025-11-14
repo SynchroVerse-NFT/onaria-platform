@@ -744,9 +744,77 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                     </div>
                   </div>
                   
+                  {/* Auto-Fix Metrics */}
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-500/10 dark:to-emerald-500/10 border border-green-200 dark:border-green-400/30 rounded-xl p-6 backdrop-blur-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                      <h5 className="font-bold text-green-900 dark:text-green-300 text-lg">Auto-Fix System</h5>
+                    </div>
+
+                    {(() => {
+                      const autoFixMessages = messages.filter(m => m.messageType?.startsWith('autofix_'));
+                      const fixedMessages = messages.filter(m => m.messageType === 'autofix_error_fixed');
+                      const failedMessages = messages.filter(m => m.messageType === 'autofix_error_failed');
+                      const progressMessages = messages.filter(m => m.messageType === 'autofix_progress');
+                      const latestProgress = progressMessages[progressMessages.length - 1];
+
+                      return (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="bg-white/70 dark:bg-bg-4/50 rounded-lg p-4 text-center">
+                            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                              {fixedMessages.length}
+                            </div>
+                            <div className="text-sm text-green-800 dark:text-green-300">Errors Fixed</div>
+                          </div>
+                          <div className="bg-white/70 dark:bg-bg-4/50 rounded-lg p-4 text-center">
+                            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                              {failedMessages.length}
+                            </div>
+                            <div className="text-sm text-red-800 dark:text-red-300">Errors Failed</div>
+                          </div>
+                          <div className="bg-white/70 dark:bg-bg-4/50 rounded-lg p-4 text-center">
+                            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                              {latestProgress?.message?.match(/(\d+)\s+queued/)?.[1] || '0'}
+                            </div>
+                            <div className="text-sm text-blue-800 dark:text-blue-300">Queue Size</div>
+                          </div>
+                          <div className="bg-white/70 dark:bg-bg-4/50 rounded-lg p-4 text-center">
+                            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                              {latestProgress?.message?.match(/(\d+)\s+active/)?.[1] || '0'}
+                            </div>
+                            <div className="text-sm text-purple-800 dark:text-purple-300">Active Fixes</div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-400/20">
+                      <div className="text-sm text-green-800 dark:text-green-300">
+                        {(() => {
+                          const latestStatus = messages.filter(m => m.messageType === 'autofix_progress').slice(-1)[0];
+                          if (!latestStatus) return 'Auto-fix system ready';
+
+                          const statusMatch = latestStatus.message.match(/status:\s*(\w+)/i);
+                          const status = statusMatch?.[1] || 'idle';
+
+                          const statusEmoji = {
+                            processing: '⚙️',
+                            fixing: '🔧',
+                            verifying: '✓',
+                            completed: '✓',
+                            failed: '✗',
+                            idle: '💤'
+                          }[status] || '•';
+
+                          return `${statusEmoji} Status: ${status}`;
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Enhanced Operation-Specific Metrics */}
                   <div className="space-y-6">
-                    <h4 className="font-medium text-text-primary text-lg">🚀 Operation Performance Metrics</h4>
+                    <h4 className="font-medium text-text-primary text-lg">Operation Performance Metrics</h4>
                     
                     {/* File Generation - Special Enhanced Display */}
                     {analyticsData.operations.fileGeneration.duration.count > 0 && (

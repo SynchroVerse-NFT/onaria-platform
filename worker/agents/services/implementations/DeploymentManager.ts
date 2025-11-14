@@ -408,6 +408,12 @@ export class DeploymentManager extends BaseAgentService implements IDeploymentMa
                     tunnelURL: preview.tunnelURL ?? ''
                 });
 
+                // Trigger after-deployment callback (e.g., for auto-fix)
+                if (callbacks?.onAfterDeployment) {
+                    logger.info('Invoking after-deployment callback (auto-fix trigger)');
+                    await callbacks.onAfterDeployment(result);
+                }
+
                 logger.info('Deployment succeeded', { attempt, sessionId: this.getSessionId() });
                 return preview;
                 

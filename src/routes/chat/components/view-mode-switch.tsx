@@ -13,9 +13,10 @@ export function ViewModeSwitch({
 	previewAvailable: boolean;
 	showTooltip: boolean;
 }) {
-	if (!previewAvailable) {
-		return null;
-	}
+	// Always show the view mode switch - preview will show deployment status
+	// if (!previewAvailable) {
+	// 	return null;
+	// }
 
 	return (
 		<div className="flex items-center gap-1 bg-bg-1/95 backdrop-blur-sm rounded-lg p-0.5 relative border border-cosmic-blue/10">

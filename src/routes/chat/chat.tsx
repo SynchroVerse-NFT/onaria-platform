@@ -10,7 +10,7 @@ import { ArrowRight, Image as ImageIcon } from 'react-feather';
 import { useParams, useSearchParams, useNavigate } from 'react-router';
 import { MonacoEditor } from '../../components/monaco-editor/monaco-editor';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Expand, Github, GitBranch, LoaderCircle, RefreshCw, MoreHorizontal, RotateCcw, X } from 'lucide-react';
+import { Expand, Github, GitBranch, LoaderCircle, RefreshCw, MoreHorizontal, RotateCcw, X, Loader2, AlertCircle, Rocket, Code } from 'lucide-react';
 import clsx from 'clsx';
 import { Blueprint } from './components/blueprint';
 import { FileExplorer } from './components/file-explorer';
@@ -836,7 +836,7 @@ export default function Chat() {
 						animate={{ opacity: 1, scale: 1 }}
 						transition={{ duration: 0.3, ease: 'easeInOut' }}
 					>
-							{view === 'preview' && previewUrl && (
+							{view === 'preview' && (
 								<div className="flex-1 flex flex-col bg-bg-3 rounded-xl shadow-md shadow-bg-2 overflow-hidden border border-border-primary">
 									<div className="grid grid-cols-3 px-2 h-10 border-b bg-bg-2">
 										<div className="flex items-center">
@@ -854,18 +854,20 @@ export default function Chat() {
 													{blueprint?.title ??
 														'Preview'}
 												</span>
-												<Copy text={previewUrl} />
-												<button
-													className="p-1 hover:bg-bg-2 rounded transition-colors"
-													onClick={() => {
-														setManualRefreshTrigger(
-															Date.now(),
-														);
-													}}
-													title="Refresh preview"
-												>
-													<RefreshCw className="size-4 text-text-primary/50" />
-												</button>
+												{previewUrl && <Copy text={previewUrl} />}
+												{previewUrl && (
+													<button
+														className="p-1 hover:bg-bg-2 rounded transition-colors"
+														onClick={() => {
+															setManualRefreshTrigger(
+																Date.now(),
+															);
+														}}
+														title="Refresh preview"
+													>
+														<RefreshCw className="size-4 text-text-primary/50" />
+													</button>
+												)}
 											</div>
 										</div>
 
@@ -911,30 +913,100 @@ export default function Chat() {
 												<Github className="size-3.5" />
 												GitHub
 											</button>
-											<button
-												className="p-1.5 rounded-full transition-all duration-300 ease-in-out hover:bg-bg-4 border border-transparent hover:border-border-primary hover:shadow-sm"
-												onClick={() => {
-													previewRef.current?.requestFullscreen();
-												}}
-												title="Fullscreen"
-											>
-												<Expand className="size-3.5 text-text-primary/60 hover:text-brand-primary transition-colors duration-300" />
-											</button>
+											{previewUrl && (
+												<button
+													className="p-1.5 rounded-full transition-all duration-300 ease-in-out hover:bg-bg-4 border border-transparent hover:border-border-primary hover:shadow-sm"
+													onClick={() => {
+														previewRef.current?.requestFullscreen();
+													}}
+													title="Fullscreen"
+												>
+													<Expand className="size-3.5 text-text-primary/60 hover:text-brand-primary transition-colors duration-300" />
+												</button>
+											)}
 										</div>
 									</div>
-									<PreviewIframe
-										src={previewUrl}
-										ref={previewRef}
-										className="flex-1 w-full h-full border-0"
-										title="Preview"
-										shouldRefreshPreview={
-											shouldRefreshPreview
-										}
-										manualRefreshTrigger={
-											manualRefreshTrigger
-										}
-										webSocket={websocket}
-									/>
+									{/* Prioritize showing helpful states over PreviewIframe retry logic */}
+									{!isPhase1Complete ? (
+										<div className="flex-1 flex items-center justify-center p-8">
+											<div className="max-w-md text-center space-y-4">
+												<Code className="w-12 h-12 mx-auto text-cosmic-blue" />
+												<h3 className="text-lg font-semibold text-text-primary">
+													Generating Code...
+												</h3>
+												<p className="text-sm text-text-50">
+													Preview will be available once code generation is complete.
+												</p>
+											</div>
+										</div>
+									) : (isPreviewDeploying || isDeploying) ? (
+										<div className="flex-1 flex items-center justify-center p-8">
+											<div className="max-w-md text-center space-y-4">
+												<Loader2 className="w-12 h-12 mx-auto animate-spin text-cosmic-blue" />
+												<h3 className="text-lg font-semibold text-text-primary">
+													Deploying Preview...
+												</h3>
+												<p className="text-sm text-text-50">
+													Setting up your application preview. This may take a moment.
+												</p>
+											</div>
+										</div>
+									) : deploymentError ? (
+										<div className="flex-1 flex items-center justify-center p-8">
+											<div className="max-w-md text-center space-y-4">
+												<AlertCircle className="w-12 h-12 mx-auto text-red-500" />
+												<h3 className="text-lg font-semibold text-text-primary">
+													Deployment Failed
+												</h3>
+												<p className="text-sm text-text-50">
+													{deploymentError}
+												</p>
+												{isRedeployReady && (
+													<Button
+														onClick={handleDeployToCloudflare}
+														className="mt-4"
+													>
+														<RefreshCw className="w-4 h-4 mr-2" />
+														Retry Deployment
+													</Button>
+												)}
+											</div>
+										</div>
+									) : cloudflareDeploymentUrl ? (
+										<PreviewIframe
+											src={cloudflareDeploymentUrl}
+											ref={previewRef}
+											className="flex-1 w-full h-full border-0"
+											title="Preview"
+											shouldRefreshPreview={
+												shouldRefreshPreview
+											}
+											manualRefreshTrigger={
+												manualRefreshTrigger
+											}
+											webSocket={websocket}
+										/>
+									) : (
+										<div className="flex-1 flex items-center justify-center p-8">
+											<div className="max-w-md text-center space-y-4">
+												<Rocket className="w-12 h-12 mx-auto text-cosmic-purple" />
+												<h3 className="text-lg font-semibold text-text-primary">
+													Ready to Deploy
+												</h3>
+												<p className="text-sm text-text-50">
+													Your code is ready! Deploy to see a live preview of your application.
+												</p>
+												<Button
+													onClick={handleDeployToCloudflare}
+													disabled={!isRedeployReady}
+													className="mt-4"
+												>
+													<Rocket className="w-4 h-4 mr-2" />
+													Deploy to Preview
+												</Button>
+											</div>
+										</div>
+									)}
 								</div>
 							)}
 

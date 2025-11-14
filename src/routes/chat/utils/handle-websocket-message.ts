@@ -679,6 +679,71 @@ export function createWebSocketMessageHandler(deps: HandleMessageDeps) {
                 break;
             }
 
+            case 'autofix_started': {
+                const data = message as Extract<WebSocketMessage, { type: 'autofix_started' }>;
+                onDebugMessage?.('info',
+                    'Auto-Fix Started',
+                    `Detected ${data.errorCount} errors from ${data.source}`,
+                    'Auto-Fix System'
+                );
+                toast.info(`Auto-fixing ${data.errorCount} error${data.errorCount > 1 ? 's' : ''}...`);
+                break;
+            }
+
+            case 'autofix_progress': {
+                const data = message as Extract<WebSocketMessage, { type: 'autofix_progress' }>;
+                onDebugMessage?.('info',
+                    `Auto-Fix Progress: ${data.status}`,
+                    `${data.message} (Queue: ${data.queueSize}, Active: ${data.activeFixesCount})`,
+                    'Auto-Fix System'
+                );
+                break;
+            }
+
+            case 'autofix_error_fixed': {
+                const data = message as Extract<WebSocketMessage, { type: 'autofix_error_fixed' }>;
+                onDebugMessage?.('info',
+                    'Error Fixed',
+                    `Fixed ${data.errorType} error in ${data.fixDurationMs}ms using ${data.fixStrategy}${data.file ? ` (${data.file}:${data.line})` : ''}`,
+                    'Auto-Fix System'
+                );
+                toast.success(`Fixed ${data.errorType} error`, {
+                    description: `Using ${data.fixStrategy === 'deepDebugger' ? 'Deep Debugger' : 'Code Fixer'}`,
+                });
+                break;
+            }
+
+            case 'autofix_error_failed': {
+                const data = message as Extract<WebSocketMessage, { type: 'autofix_error_failed' }>;
+                onDebugMessage?.('warning',
+                    'Auto-Fix Failed',
+                    `Failed to fix ${data.errorType} error after ${data.attempts} attempts${data.file ? ` (${data.file}:${data.line})` : ''}`,
+                    'Auto-Fix System'
+                );
+                break;
+            }
+
+            case 'autofix_stats': {
+                const data = message as Extract<WebSocketMessage, { type: 'autofix_stats' }>;
+                onDebugMessage?.('info',
+                    'Auto-Fix Statistics',
+                    `Fixed: ${data.stats.totalErrorsFixed}, Failed: ${data.stats.totalErrorsFailed}, Skipped: ${data.stats.totalErrorsSkipped}`,
+                    'Auto-Fix System'
+                );
+                break;
+            }
+
+            case 'autofix_aborted': {
+                const data = message as Extract<WebSocketMessage, { type: 'autofix_aborted' }>;
+                onDebugMessage?.('info',
+                    'Auto-Fix Aborted',
+                    `Auto-fix stopped with ${data.queueSize} errors remaining`,
+                    'Auto-Fix System'
+                );
+                toast.info('Auto-fix stopped');
+                break;
+            }
+
             case 'generation_stopped': {
                 setIsGenerating(false);
                 setIsGenerationPaused(true);

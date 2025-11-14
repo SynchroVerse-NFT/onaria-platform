@@ -413,6 +413,76 @@ type ServerLogMessage = {
 	source?: string;
 };
 
+type AutoFixStartedMessage = {
+	type: 'autofix_started';
+	message: string;
+	errorCount: number;
+	source: string;
+};
+
+type AutoFixProgressMessage = {
+	type: 'autofix_progress';
+	message: string;
+	status: 'idle' | 'processing' | 'fixing' | 'verifying' | 'completed' | 'failed';
+	queueSize: number;
+	activeFixesCount: number;
+	currentError?: {
+		type: string;
+		severity: string;
+		message: string;
+		file?: string;
+		line?: number;
+	};
+	progress?: number;
+};
+
+type AutoFixErrorFixedMessage = {
+	type: 'autofix_error_fixed';
+	message: string;
+	errorHash: string;
+	errorType: string;
+	errorSeverity: string;
+	fixStrategy: 'deepDebugger' | 'realtimeCodeFixer';
+	attempts: number;
+	fixDurationMs: number;
+	file?: string;
+	line?: number;
+};
+
+type AutoFixErrorFailedMessage = {
+	type: 'autofix_error_failed';
+	message: string;
+	errorHash: string;
+	errorType: string;
+	errorSeverity: string;
+	fixStrategy: 'deepDebugger' | 'realtimeCodeFixer' | 'manual';
+	attempts: number;
+	reason: string;
+	file?: string;
+	line?: number;
+};
+
+type AutoFixStatsMessage = {
+	type: 'autofix_stats';
+	message: string;
+	stats: {
+		totalErrorsProcessed: number;
+		totalErrorsFixed: number;
+		totalErrorsFailed: number;
+		totalErrorsSkipped: number;
+		averageFixTimeMs: number;
+		errorsByType: Record<string, number>;
+		errorsBySeverity: Record<string, number>;
+		fixesByAgent: Record<string, number>;
+	};
+};
+
+type AutoFixAbortedMessage = {
+	type: 'autofix_aborted';
+	message: string;
+	queueSize: number;
+};
+
 export type WebSocketMessage =
 	| StateMessage
 	| AgentConnectedMessage
@@ -467,7 +537,13 @@ export type WebSocketMessage =
 	| ModelConfigsInfoMessage
 	| TerminalCommandMessage
 	| TerminalOutputMessage
-	| ServerLogMessage;
+	| ServerLogMessage
+	| AutoFixStartedMessage
+	| AutoFixProgressMessage
+	| AutoFixErrorFixedMessage
+	| AutoFixErrorFailedMessage
+	| AutoFixStatsMessage
+	| AutoFixAbortedMessage;
 
 // A type representing all possible message type strings (e.g., 'generation_started', 'file_generating', etc.)
 export type WebSocketMessageType = WebSocketMessage['type'];

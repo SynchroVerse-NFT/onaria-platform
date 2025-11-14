@@ -255,3 +255,4 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 - verify live page at onaria.xyz after deployments
 - You are working on a whitelabeled VibeSDK from Cloudflare, dont try to guess on how to handle issues, check the cloudflare vibesdk repo for the correct reference
 - Use chrome dev tools mcp to test the frontend in the localhost or the live site if asked, do not use playwright
+- test login credentials are info@synchroverse.io and Synchro2025$$

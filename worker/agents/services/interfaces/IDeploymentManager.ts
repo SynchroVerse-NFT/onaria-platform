@@ -11,6 +11,7 @@ export interface SandboxDeploymentCallbacks {
     onCompleted?: (data: Omit<DeploymentCompletedMessage, 'type'>) => void;
     onError?: (data: Omit<DeploymentFailedMessage, 'type'>) => void;
     onAfterSetupCommands?: () => Promise<void>; // Called after setup commands execute (e.g., for package.json sync)
+    onAfterDeployment?: (result: DeploymentResult) => Promise<void>; // Called after successful deployment (for auto-fix trigger)
 }
 
 /**
