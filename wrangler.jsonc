@@ -126,7 +126,13 @@
 	"routes": [
         {
             "pattern": "onaria.xyz/*",
-            "zone_id": "943917c8d4b68c6776cdd27b3cac2073"
+            "zone_id": "943917c8d4b68c6776cdd27b3cac2073",
+            "custom_domain": true
+        },
+        {
+            "pattern": "*.onaria.xyz/*",
+            "zone_id": "943917c8d4b68c6776cdd27b3cac2073",
+            "custom_domain": false
         }
     ],
 	"vars": {
