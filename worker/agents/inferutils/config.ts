@@ -69,10 +69,10 @@ OR
 
 export const AGENT_CONFIG: AgentConfig = {
     templateSelection: {
-        name: AIModels.GEMINI_2_5_FLASH_LITE,
+        name: AIModels.GEMINI_2_5_FLASH,
         providerOverride: 'direct',
         max_tokens: 2000,
-        fallbackModel: AIModels.GEMINI_2_5_FLASH,
+        fallbackModel: AIModels.GEMINI_2_0_FLASH,
         temperature: 0.6,
     },
     blueprint: {
@@ -83,11 +83,11 @@ export const AGENT_CONFIG: AgentConfig = {
         temperature: 0.7,
     },
     projectSetup: {
-        name: AIModels.GEMINI_2_5_PRO,
+        name: AIModels.GEMINI_2_5_FLASH,
         reasoning_effort: 'low',
         max_tokens: 10000,
         temperature: 0.2,
-        fallbackModel: AIModels.GEMINI_2_5_PRO,
+        fallbackModel: AIModels.GEMINI_2_0_FLASH,
     },
     phaseGeneration: {
         name: AIModels.GEMINI_2_5_PRO,
@@ -101,14 +101,14 @@ export const AGENT_CONFIG: AgentConfig = {
         reasoning_effort: 'low',
         max_tokens: 64000,
         temperature: 0.2,
-        fallbackModel: AIModels.GEMINI_2_5_PRO,
+        fallbackModel: AIModels.GEMINI_2_5_FLASH,
     },
     phaseImplementation: {
         name: AIModels.GEMINI_2_5_PRO,
         reasoning_effort: 'low',
         max_tokens: 64000,
         temperature: 0.2,
-        fallbackModel: AIModels.GEMINI_2_5_PRO,
+        fallbackModel: AIModels.GEMINI_2_5_FLASH,
     },
     realtimeCodeFixer: {
         name: AIModels.DISABLED,
@@ -123,14 +123,14 @@ export const AGENT_CONFIG: AgentConfig = {
         reasoning_effort: undefined,
         max_tokens: 64000,
         temperature: 0.0,
-        fallbackModel: AIModels.GEMINI_2_5_PRO,
+        fallbackModel: AIModels.GEMINI_2_5_FLASH,
     },
     conversationalResponse: {
         name: AIModels.GEMINI_2_5_FLASH,
         reasoning_effort: 'low',
         max_tokens: 4000,
         temperature: 0,
-        fallbackModel: AIModels.GEMINI_2_5_PRO,
+        fallbackModel: AIModels.GEMINI_2_0_FLASH,
     },
     deepDebugger: {
         name: AIModels.GEMINI_2_5_PRO,

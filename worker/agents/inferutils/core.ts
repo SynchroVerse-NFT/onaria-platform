@@ -538,6 +538,12 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
         // Remove [*.] from model name
         modelName = modelName.replace(/\[.*?\]/, '');
 
+        // Strip provider prefix (e.g., "google-ai-studio/gemini-2.5-flash" -> "gemini-2.5-flash")
+        const modelParts = modelName.split('/');
+        if (modelParts.length > 1) {
+            modelName = modelParts.slice(1).join('/');
+        }
+
         const client = new OpenAI({ apiKey, baseURL: baseURL, defaultHeaders });
         const schemaObj =
             schema && schemaName && !format
