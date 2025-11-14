@@ -260,9 +260,10 @@ async function getApiKey(provider: string, env: Env, _userId: string): Promise<s
 }
 
 export async function getConfigurationForModel(
-    model: AIModels | string, 
-    env: Env, 
+    model: AIModels | string,
+    env: Env,
     userId: string,
+    configProviderOverride?: 'cloudflare' | 'direct',
 ): Promise<{
     baseURL: string,
     apiKey: string,
@@ -297,6 +298,32 @@ export async function getConfigurationForModel(
 
     // Check for Gateway token - try new name first, then legacy name
     const gatewayToken = env.AI_GATEWAY_AUTH_TOKEN || env.CLOUDFLARE_AI_GATEWAY_TOKEN || "";
+
+    // If providerOverride is 'direct', bypass AI Gateway and use direct provider URLs
+    if (configProviderOverride === 'direct') {
+        console.log(`[Gateway] Provider override set to 'direct', using direct provider URL for: ${provider}`);
+        if (provider === 'google-ai-studio') {
+            return {
+                baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+                apiKey: env.GOOGLE_AI_STUDIO_API_KEY,
+            };
+        } else if (provider === 'anthropic') {
+            return {
+                baseURL: 'https://api.anthropic.com/v1/',
+                apiKey: env.ANTHROPIC_API_KEY,
+            };
+        } else if (provider === 'openai') {
+            return {
+                baseURL: 'https://api.openai.com/v1',
+                apiKey: env.OPENAI_API_KEY,
+            };
+        } else if (provider === 'cerebras') {
+            return {
+                baseURL: 'https://api.cerebras.ai/v1',
+                apiKey: env.CEREBRAS_API_KEY,
+            };
+        }
+    }
 
     // Fallback: If Gateway token doesn't exist, use direct provider URLs
     if (!gatewayToken) {
@@ -503,6 +530,7 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
     reasoning_effort,
     temperature,
     abortSignal,
+    providerOverride,
 }: InferArgsBase & {
     schema?: OutputSchema;
     schemaName?: string;
@@ -532,7 +560,7 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
         // Maybe in the future can expand using config object for other stuff like global model configs?
         await RateLimitService.enforceLLMCallsRateLimit(env, userConfig.security.rateLimit, metadata.userId, modelName)
 
-        const { apiKey, baseURL, defaultHeaders } = await getConfigurationForModel(modelName, env, metadata.userId);
+        const { apiKey, baseURL, defaultHeaders } = await getConfigurationForModel(modelName, env, metadata.userId, providerOverride);
         console.log(`baseUrl: ${baseURL}, modelName: ${modelName}`);
 
         // Remove [*.] from model name

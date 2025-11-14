@@ -69,10 +69,10 @@ OR
 
 export const AGENT_CONFIG: AgentConfig = {
     templateSelection: {
-        name: AIModels.OPENAI_O4_MINI,
+        name: AIModels.GEMINI_2_5_FLASH,
         providerOverride: 'direct',
         max_tokens: 2000,
-        fallbackModel: AIModels.GEMINI_2_5_FLASH,
+        fallbackModel: AIModels.GEMINI_2_0_FLASH,
         temperature: 0.6,
     },
     blueprint: {
