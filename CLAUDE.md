@@ -262,3 +262,5 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 - Your ultimate goal is to simulate a non proficient users flow through our platform, analyze every step make sure the code generation is properly wonking, the previews are user friendly for non tech users and the deployments are successful. The visual journey should be geared for non-tech users. DO not stop fixing until this goal is acheived.
 - Do not keep asking if you should proceed or what steps to take, you know best. Proceed until your ultimate goal is completed
 - After every deployment to Cloudflare, you need to make a github commit with the same version number so we can always keep track of the changes
+- Do not stop debugging until all issues and bugs are resolved
+- Keep working until the ultimate goal is acheived. Work autonomously without asking which method to implement or which process to continue with, continue working until every issue is solved, implemeted, tested and validated in the frontend. Never wait for builds or compiles with just background processes, set a sleep timer for yourself in the foreground so you can be immediately notified of when to continue.

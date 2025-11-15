@@ -502,9 +502,10 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         }
 
         // Send agent_connected message immediately with current state
+        // Only include template details if they're already cached to avoid race condition
         sendToConnection(connection, 'agent_connected', {
             state: this.state,
-            templateDetails: this.state.templateName ? this.getTemplateDetails() : undefined
+            templateDetails: this.state.templateName && this.templateDetailsCache ? this.templateDetailsCache : undefined
         });
     }
 

@@ -1,0 +1,329 @@
+
+ ⛅️ wrangler 4.45.0 (update available 4.47.0)
+─────────────────────────────────────────────
+Using redirected Wrangler configuration.
+ - Configuration being used: "dist\onaria_platform\wrangler.json"
+ - Original user's configuration: "wrangler.jsonc"
+ - Deploy configuration file: ".wrangler\deploy\config.json"
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProcessing dist\onaria_platform\wrangler.json configuration:[0m
+
+    - "unsafe" fields are experimental and may change or break at any time.
+
+
+Attaching additional modules:
+┌─────────────────────────────────────┬──────┬────────────┐
+│ Name                                │ Type │ Size       │
+├─────────────────────────────────────┼──────┼────────────┤
+│ assets/dist-DxiF1NeX.js             │ esm  │ 171.40 KiB │
+├─────────────────────────────────────┼──────┼────────────┤
+│ assets/mimetext.node.es-B0NLtAjK.js │ esm  │ 220.10 KiB │
+├─────────────────────────────────────┼──────┼────────────┤
+│ assets/stream-DTVSPfVM.js           │ esm  │ 104.27 KiB │
+├─────────────────────────────────────┼──────┼────────────┤
+│ assets/utils-DHKSaTNJ.js            │ esm  │ 2.42 KiB   │
+├─────────────────────────────────────┼──────┼────────────┤
+│ Total (4 modules)                   │      │ 498.19 KiB │
+└─────────────────────────────────────┴──────┴────────────┘
+🌀 Building list of assets...
+✨ Read 104 files from the assets directory C:\Users\synch\Documents\GitHub\onaria-platform\dist\client
+🌀 Starting asset upload...
+🌀 Found 24 new or modified static assets to upload. Proceeding with upload...
++ /assets/AnimatedBackground-Co2-MO2s.js
++ /assets/WormholeEffect-DuXwZHiT.js
++ /index.html
++ /assets/liquid-cFSm7mVf.js
++ /assets/mdx-CLFL-4Kv.js
++ /assets/handlebars-BnL8W7Z8.js
++ /assets/tsMode-B0Mt96cz.js
++ /assets/jsonMode-DKHWc2kF.js
++ /assets/typescript-BIFSZBtX.js
++ /assets/CursorAurora-LCa_fOz4.js
++ /assets/FloatingParticles-z67ktXIj.js
++ /assets/python-DV8of1nq.js
++ /assets/html-BAbc_FuQ.js
++ /assets/razor-MH5g65fy.js
++ /assets/cssMode-BcxGtedn.js
++ /assets/index-DyYjQP5a.css
++ /assets/InterstellarRings-Cn1gcN_O.js
++ /assets/javascript-CRYLwAxM.js
++ /assets/xml-BrWS-f5M.js
++ /assets/yaml-1pjmTqcx.js
++ /assets/typescript-DX2nNf8g.js
++ /assets/freemarker2-DdpkOFJC.js
++ /assets/htmlMode-CMwr0Id3.js
++ /assets/index-BN1yZ7cw.js
+Uploaded 8 of 24 assets
+Uploaded 16 of 24 assets
+Uploaded 24 of 24 assets
+✨ Success! Uploaded 24 files (79 already uploaded) (5.92 sec)
+
+Total Upload: 4694.14 KiB / gzip: 973.27 KiB
+Worker Startup Time: 70 ms
+Your Worker has access to the following bindings:
+Binding                                                                     Resource                     
+env.CodeGenObject (CodeGeneratorAgent)                                      Durable Object               
+env.Sandbox (UserAppSandboxService)                                         Durable Object               
+env.DORateLimitStore (DORateLimitStore)                                     Durable Object               
+env.VibecoderStore (4d1e03e5961e4658b2d4d08ec44d8439)                       KV Namespace                 
+env.DB (onaria_db)                                                          D1 Database                  
+env.TEMPLATES_BUCKET (onaria-apps)                                          R2 Bucket                    
+env.AI                                                                      AI                           
+env.ASSETS                                                                  Assets                       
+env.CF_VERSION_METADATA                                                     Worker Version Metadata      
+env.API_RATE_LIMITER (ratelimit)                                            Unsafe Metadata              
+env.AUTH_RATE_LIMITER (ratelimit)                                           Unsafe Metadata              
+env.TEMPLATES_REPOSITORY ("https://github.com/cloudflare/vibesdk...")       Environment Variable         
+env.ALLOWED_EMAIL ("info@synchroverse.io")                                  Environment Variable         
+env.DISPATCH_NAMESPACE ("")                                                 Environment Variable         
+env.ENABLE_READ_REPLICAS ("true")                                           Environment Variable         
+env.CLOUDFLARE_AI_GATEWAY ("vibesdk-gateway")                               Environment Variable         
+env.CUSTOM_DOMAIN ("onaria.xyz")                                            Environment Variable         
+env.MAX_SANDBOX_INSTANCES ("10")                                            Environment Variable         
+env.SANDBOX_INSTANCE_TYPE ("standard-3")                                    Environment Variable         
+env.USE_CLOUDFLARE_IMAGES ("true")                                          Environment Variable         
+env.GIT_AUTHOR_NAME ("Onaria Platform")                                     Environment Variable         
+env.GIT_AUTHOR_EMAIL ("noreply@onaria.xyz")                                 Environment Variable         
+
+Uploaded onaria-platform (20.03 sec)
+Building image onaria-platform-userappsandboxservice:6eaa8021
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.15kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/cloudflare/sandbox:0.4.14
+#2 DONE 0.6s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [ 1/12] FROM docker.io/cloudflare/sandbox:0.4.14@sha256:ee11df99a6749b6bc8eb99ab7668a07ce073e11d57eda431a335a91d299512e4
+#4 resolve docker.io/cloudflare/sandbox:0.4.14@sha256:ee11df99a6749b6bc8eb99ab7668a07ce073e11d57eda431a335a91d299512e4 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 490B done
+#5 DONE 0.0s
+
+#6 [ 7/12] RUN chmod +x /workspace/container/cli-tools.ts
+#6 CACHED
+
+#7 [ 5/12] WORKDIR /workspace/container
+#7 CACHED
+
+#8 [ 2/12] RUN apt-get update &&         apt-get install -y git ca-certificates curl procps net-tools &&         update-ca-certificates &&         case amd64 in             "amd64") ARCH="amd64" ;;             "arm64") ARCH="arm64" ;;             *) echo "Unsupported architecture: amd64"; exit 1 ;;         esac &&         curl -L -k --output cloudflared "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${ARCH}" &&         chmod +x cloudflared &&         mv cloudflared /usr/local/bin/ &&         rm -rf /var/lib/apt/lists/* &&         git config --global user.email "noreply@localhost" &&         git config --global user.name "AI Platform"
+#8 CACHED
+
+#9 [ 9/12] RUN bunx tsc --version
+#9 CACHED
+
+#10 [10/12] RUN ln -sf /workspace/container/cli-tools.ts /usr/local/bin/monitor-cli
+#10 CACHED
+
+#11 [ 8/12] RUN which bunx || ln -sf $(which bun) /usr/local/bin/bunx
+#11 CACHED
+
+#12 [ 4/12] COPY container/ /workspace/container/
+#12 CACHED
+
+#13 [ 3/12] RUN mkdir -p /workspace/container /workspace/data
+#13 CACHED
+
+#14 [ 6/12] RUN bun install && bun run build
+#14 CACHED
+
+#15 [11/12] RUN chmod 755 /workspace/data
+#15 CACHED
+
+#16 [12/12] WORKDIR /container-server
+#16 CACHED
+
+#17 exporting to image
+#17 exporting layers done
+#17 exporting manifest sha256:89373630138b572854cb2105f55ecf7c0ab24dba5a1128be9bd8ee830fe463f1 done
+#17 exporting config sha256:1836b7a2b59a53340ab34daaa3fd17ba3d6791d583347d62ef9d395be99af9e8 done
+#17 naming to docker.io/library/onaria-platform-userappsandboxservice:6eaa8021 done
+#17 unpacking to docker.io/library/onaria-platform-userappsandboxservice:6eaa8021 0.0s done
+#17 DONE 0.1s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/qaigl9bmd43rnds253lq5rmt6
+Login Succeeded
+no such manifest: registry.cloudflare.com/b8f6f3323cd90ef8795b8164cf633c14/onaria-platform-userappsandboxservice@sha256:89373630138b572854cb2105f55ecf7c0ab24dba5a1128be9bd8ee830fe463f1
+Image does not exist remotely, pushing: registry.cloudflare.com/b8f6f3323cd90ef8795b8164cf633c14/onaria-platform-userappsandboxservice:6eaa8021
+The push refers to repository [registry.cloudflare.com/b8f6f3323cd90ef8795b8164cf633c14/onaria-platform-userappsandboxservice]
+1aec0f9a763a: Waiting
+6b076fa1f79d: Waiting
+3c2a6b1f74cb: Waiting
+b0a2691bf28f: Waiting
+809025abf54d: Waiting
+b369be142963: Waiting
+33aade0439c1: Waiting
+a8ba64c6bb25: Waiting
+655981d6e9a8: Waiting
+aba4a0d9dd51: Waiting
+c70eea56286c: Waiting
+4f4fb700ef54: Waiting
+0e7717c2ca45: Waiting
+9a1ce882e921: Waiting
+33d07a002d13: Waiting
+c32ebb79b9d9: Waiting
+e23b3df41ffe: Waiting
+895cc55ef4bf: Waiting
+c85bf32d2c2c: Waiting
+70c3ef94ba02: Waiting
+d48fbfcbd677: Waiting
+04062f3a7eeb: Waiting
+8f4d48d70b68: Waiting
+20051678a934: Waiting
+5d18c8a80d45: Waiting
+0c8fbf396e4c: Waiting
+af6eca94c810: Waiting
+e58ce5ae42d3: Waiting
+c85bf32d2c2c: Waiting
+70c3ef94ba02: Waiting
+d48fbfcbd677: Waiting
+04062f3a7eeb: Waiting
+8f4d48d70b68: Waiting
+20051678a934: Waiting
+5d18c8a80d45: Waiting
+0c8fbf396e4c: Waiting
+af6eca94c810: Waiting
+e58ce5ae42d3: Waiting
+1aec0f9a763a: Waiting
+6b076fa1f79d: Waiting
+3c2a6b1f74cb: Waiting
+b0a2691bf28f: Waiting
+809025abf54d: Waiting
+b369be142963: Waiting
+33aade0439c1: Waiting
+a8ba64c6bb25: Waiting
+655981d6e9a8: Waiting
+aba4a0d9dd51: Waiting
+c70eea56286c: Waiting
+4f4fb700ef54: Waiting
+0e7717c2ca45: Waiting
+9a1ce882e921: Waiting
+33d07a002d13: Waiting
+c32ebb79b9d9: Waiting
+e23b3df41ffe: Waiting
+895cc55ef4bf: Waiting
+c32ebb79b9d9: Waiting
+e23b3df41ffe: Waiting
+895cc55ef4bf: Waiting
+c85bf32d2c2c: Waiting
+70c3ef94ba02: Waiting
+d48fbfcbd677: Waiting
+04062f3a7eeb: Waiting
+8f4d48d70b68: Waiting
+20051678a934: Waiting
+5d18c8a80d45: Waiting
+0c8fbf396e4c: Waiting
+af6eca94c810: Waiting
+e58ce5ae42d3: Waiting
+1aec0f9a763a: Waiting
+6b076fa1f79d: Waiting
+3c2a6b1f74cb: Waiting
+b0a2691bf28f: Waiting
+809025abf54d: Waiting
+b369be142963: Waiting
+33aade0439c1: Waiting
+a8ba64c6bb25: Waiting
+655981d6e9a8: Waiting
+aba4a0d9dd51: Waiting
+c70eea56286c: Waiting
+4f4fb700ef54: Waiting
+0e7717c2ca45: Waiting
+9a1ce882e921: Waiting
+33d07a002d13: Waiting
+809025abf54d: Waiting
+b369be142963: Waiting
+33aade0439c1: Waiting
+a8ba64c6bb25: Waiting
+655981d6e9a8: Waiting
+aba4a0d9dd51: Waiting
+c70eea56286c: Waiting
+4f4fb700ef54: Waiting
+0e7717c2ca45: Layer already exists
+9a1ce882e921: Layer already exists
+33d07a002d13: Waiting
+c32ebb79b9d9: Waiting
+e23b3df41ffe: Waiting
+895cc55ef4bf: Waiting
+c85bf32d2c2c: Waiting
+70c3ef94ba02: Waiting
+d48fbfcbd677: Waiting
+04062f3a7eeb: Waiting
+8f4d48d70b68: Waiting
+20051678a934: Waiting
+5d18c8a80d45: Waiting
+0c8fbf396e4c: Layer already exists
+af6eca94c810: Layer already exists
+e58ce5ae42d3: Layer already exists
+1aec0f9a763a: Waiting
+6b076fa1f79d: Layer already exists
+3c2a6b1f74cb: Waiting
+b0a2691bf28f: Waiting
+e23b3df41ffe: Waiting
+895cc55ef4bf: Waiting
+c85bf32d2c2c: Waiting
+70c3ef94ba02: Waiting
+d48fbfcbd677: Waiting
+04062f3a7eeb: Waiting
+8f4d48d70b68: Waiting
+20051678a934: Waiting
+5d18c8a80d45: Waiting
+1aec0f9a763a: Layer already exists
+3c2a6b1f74cb: Layer already exists
+b0a2691bf28f: Waiting
+809025abf54d: Waiting
+b369be142963: Layer already exists
+33aade0439c1: Layer already exists
+a8ba64c6bb25: Waiting
+655981d6e9a8: Waiting
+aba4a0d9dd51: Layer already exists
+c70eea56286c: Waiting
+4f4fb700ef54: Layer already exists
+33d07a002d13: Waiting
+c32ebb79b9d9: Layer already exists
+895cc55ef4bf: Layer already exists
+c85bf32d2c2c: Layer already exists
+70c3ef94ba02: Layer already exists
+d48fbfcbd677: Layer already exists
+04062f3a7eeb: Layer already exists
+8f4d48d70b68: Layer already exists
+20051678a934: Layer already exists
+5d18c8a80d45: Layer already exists
+b0a2691bf28f: Layer already exists
+809025abf54d: Layer already exists
+a8ba64c6bb25: Layer already exists
+655981d6e9a8: Layer already exists
+c70eea56286c: Layer already exists
+33d07a002d13: Layer already exists
+e23b3df41ffe: Layer already exists
+6eaa8021: digest: sha256:89373630138b572854cb2105f55ecf7c0ab24dba5a1128be9bd8ee830fe463f1 size: 6375
+╭ Deploy a container application deploy changes to your application
+│
+│ Container application changes
+│
+├ EDIT onaria-platform-userappsandboxservice
+│
+│           "command": [],
+│           "durable_object_offset_instances": 4,
+│           "entrypoint": [],
+│ -         "image": "registry.cloudflare.com/b8f6f3323cd90ef8795b8164cf633c14/onaria-platform-userappsandboxservice:288cad7b",
+│ +         "image": "registry.cloudflare.com/b8f6f3323cd90ef8795b8164cf633c14/onaria-platform-userappsandboxservice:6eaa8021",
+│           "instance_type": "standard-3",
+│           "network": {
+│             "assign_ipv4": "none",
+│
+│
+│  SUCCESS  Modified application onaria-platform-userappsandboxservice (Application ID: a03a079d-5395-4031-bd9f-0607de2d8a28)
+│
+╰ Applied changes 
+
+Deployed onaria-platform triggers (3.87 sec)
+  onaria.xyz/* (zone id: 943917c8d4b68c6776cdd27b3cac2073)
+  *.onaria.xyz/* (zone id: 943917c8d4b68c6776cdd27b3cac2073)
+Current Version ID: 6eaa8021-9897-474c-996b-605c7acf169e
