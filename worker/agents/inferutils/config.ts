@@ -77,6 +77,7 @@ export const AGENT_CONFIG: AgentConfig = {
     },
     blueprint: {
         name: AIModels.GEMINI_2_5_PRO,
+        providerOverride: 'direct',
         reasoning_effort: 'medium',
         max_tokens: 64000,
         fallbackModel: AIModels.GEMINI_2_5_FLASH,
@@ -84,6 +85,7 @@ export const AGENT_CONFIG: AgentConfig = {
     },
     projectSetup: {
         name: AIModels.GEMINI_2_5_FLASH,
+        providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 10000,
         temperature: 0.2,
@@ -91,6 +93,7 @@ export const AGENT_CONFIG: AgentConfig = {
     },
     phaseGeneration: {
         name: AIModels.GEMINI_2_5_PRO,
+        providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 32000,
         temperature: 0.2,
@@ -98,6 +101,7 @@ export const AGENT_CONFIG: AgentConfig = {
     },
     firstPhaseImplementation: {
         name: AIModels.GEMINI_2_5_PRO,
+        providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 64000,
         temperature: 0.2,
@@ -105,6 +109,7 @@ export const AGENT_CONFIG: AgentConfig = {
     },
     phaseImplementation: {
         name: AIModels.GEMINI_2_5_PRO,
+        providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 64000,
         temperature: 0.2,
@@ -127,6 +132,7 @@ export const AGENT_CONFIG: AgentConfig = {
     },
     conversationalResponse: {
         name: AIModels.GEMINI_2_5_FLASH,
+        providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 4000,
         temperature: 0,
@@ -134,6 +140,7 @@ export const AGENT_CONFIG: AgentConfig = {
     },
     deepDebugger: {
         name: AIModels.GEMINI_2_5_PRO,
+        providerOverride: 'direct',
         reasoning_effort: 'high',
         max_tokens: 8000,
         temperature: 0.5,
@@ -141,6 +148,7 @@ export const AGENT_CONFIG: AgentConfig = {
     },
     codeReview: {
         name: AIModels.GEMINI_2_5_PRO,
+        providerOverride: 'direct',
         reasoning_effort: 'medium',
         max_tokens: 32000,
         temperature: 0.1,
@@ -148,6 +156,7 @@ export const AGENT_CONFIG: AgentConfig = {
     },
     fileRegeneration: {
         name: AIModels.GEMINI_2_5_PRO,
+        providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 32000,
         temperature: 0,
@@ -156,6 +165,7 @@ export const AGENT_CONFIG: AgentConfig = {
     // Not used right now
     screenshotAnalysis: {
         name: AIModels.GEMINI_2_5_PRO,
+        providerOverride: 'direct',
         reasoning_effort: 'medium',
         max_tokens: 8000,
         temperature: 0.1,

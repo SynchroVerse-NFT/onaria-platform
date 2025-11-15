@@ -1,7 +1,7 @@
 {
 	"name": "onaria-platform",
 	"private": true,
-	"version": "2.1.7",
+	"version": "2.1.9",
 	"description": "AI-powered full-stack application generation platform with cosmic design system, built on Cloudflare infrastructure",
 	"type": "module",
 	"scripts": {

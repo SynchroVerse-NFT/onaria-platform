@@ -258,3 +258,4 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 - test login credentials are info@synchroverse.io and Synchro2025$$
 - after deploaying, set a timeout of 15 minutes and debug the live frontend with chrome dev tools mcp
 - Do not keep asking if you should fix error or just skip them, ALWAYS fix the errors.
+- Stop asking the user which method to take, fix it until the final goal is acheived

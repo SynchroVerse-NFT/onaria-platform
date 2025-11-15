@@ -662,26 +662,19 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
 
     private async saveToDatabase() {
         this.logger().info(`Blueprint generated successfully for agent ${this.getAgentId()}`);
-        // Save the app to database (authenticated users only)
+        // Update the app record with blueprint details
+        // (The app record was already created in the controller to allow WebSocket ownership check)
         const appService = new AppService(this.env);
-        await appService.createApp({
-            id: this.state.inferenceContext.agentId,
-            userId: this.state.inferenceContext.userId,
-            sessionToken: null,
+        await appService.updateApp(this.state.inferenceContext.agentId, {
             title: this.state.blueprint.title || this.state.query.substring(0, 100),
             description: this.state.blueprint.description || null,
-            originalPrompt: this.state.query,
-            finalPrompt: this.state.query,
             framework: this.state.blueprint.frameworks?.[0],
-            visibility: 'private',
-            status: 'generating',
-            createdAt: new Date(),
             updatedAt: new Date()
         });
-        this.logger().info(`App saved successfully to database for agent ${this.state.inferenceContext.agentId}`, { 
-            agentId: this.state.inferenceContext.agentId, 
+        this.logger().info(`App updated successfully in database for agent ${this.state.inferenceContext.agentId}`, {
+            agentId: this.state.inferenceContext.agentId,
             userId: this.state.inferenceContext.userId,
-            visibility: 'private'
+            title: this.state.blueprint.title
         });
         this.logger().info(`Agent initialized successfully for agent ${this.state.inferenceContext.agentId}`);
     }

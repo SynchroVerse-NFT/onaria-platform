@@ -6,7 +6,7 @@ import { getAgentStub, getTemplateForQuery } from '../../../agents';
 import { AgentConnectionData, AgentPreviewResponse, CodeGenArgs } from './types';
 import { ApiResponse, ControllerResponse } from '../types';
 import { RouteContext } from '../../types/route-context';
-import { ModelConfigService } from '../../../database';
+import { ModelConfigService, AppService } from '../../../database';
 import { ModelConfig } from '../../../agents/inferutils/config.types';
 import { RateLimitService } from '../../../services/rate-limit/rateLimits';
 import { validateWebSocketOrigin } from '../../../middleware/security/websocket';
@@ -113,6 +113,23 @@ export class CodingAgentController extends BaseController {
 
             const { templateDetails, selection } = await getTemplateForQuery(env, inferenceContext, query, body.images, this.logger);
 
+            // Create app record immediately to allow WebSocket ownership check to pass
+            // This record will be updated later by the agent's saveToDatabase() method
+            const appService = new AppService(env);
+            await appService.createApp({
+                id: agentId,
+                userId: user.id,
+                sessionToken: null,
+                title: query.substring(0, 100), // Temporary title, will be updated with blueprint title
+                description: null, // Will be updated from blueprint
+                originalPrompt: query,
+                finalPrompt: query,
+                framework: templateDetails.name, // Template name as framework for now
+                visibility: 'private',
+                status: 'generating',
+            });
+            this.logger.info(`Created app record for agent ${agentId}`);
+
             const websocketUrl = `${url.protocol === 'https:' ? 'wss:' : 'ws:'}//${url.host}/api/agent/${agentId}/ws`;
             const httpStatusUrl = `${url.origin}/api/agent/${agentId}`;
 
@@ -122,7 +139,7 @@ export class CodingAgentController extends BaseController {
                     return uploadImage(env, image, ImageType.UPLOADS);
                 }));
             }
-        
+
             writer.write({
                 message: 'Code generation started',
                 agentId: agentId,
