@@ -679,8 +679,8 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                     onClick={() => setWsFilter(key)}
                     className={`px-2 py-1 text-xs rounded transition-all ${
                       wsFilter === key
-                        ? 'bg-purple-600 text-white dark:bg-gradient-to-r dark:from-[#a855f7] dark:to-[#64b5f6] dark:shadow-[0_0_8px_rgba(168,85,247,0.4)]'
-                        : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 dark:bg-[#a855f7]/20 dark:text-purple-300 dark:hover:bg-[#a855f7]/30 dark:border-[#a855f7]/30'
+                        ? 'bg-bg-1 text-text-primary border-2 border-border-primary dark:border-[#64b5f6]/40 dark:bg-[#1a1b2e] font-medium'
+                        : 'bg-bg-3 text-text-secondary hover:text-text-primary hover:bg-bg-2 border border-border-primary dark:bg-[#0d0e1f]/50 dark:hover:bg-[#1a1b2e]/50 dark:border-[#64b5f6]/20'
                     }`}
                   >
                     {label} ({count})
