@@ -1015,7 +1015,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                                     {lane.label}
                                   </span>
                                   {event.messageType && (
-                                    <span className="px-2 py-1 text-xs bg-bg-3 text-text-tertiary rounded font-mono">
+                                    <span className="px-2 py-1 text-xs bg-bg-3 dark:bg-[#1a1b2e] text-text-primary dark:text-gray-200 rounded font-mono border border-border-primary dark:border-[#64b5f6]/20">
                                       {event.messageType}
                                     </span>
                                   )}
@@ -1125,7 +1125,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                           {isExpanded ? 'Hide details' : 'Show details'}
                         </button>
                         {isExpanded && (
-                          <pre className="mt-2 text-xs bg-bg-3 dark:bg-[#0a0b1a]/80 dark:border dark:border-[#64b5f6]/20 p-2 rounded overflow-x-auto text-text-tertiary whitespace-pre-wrap max-h-40">
+                          <pre className="mt-2 text-xs bg-bg-3 dark:bg-[#0a0b1a]/80 dark:border dark:border-[#64b5f6]/20 p-2 rounded overflow-x-auto text-text-primary dark:text-gray-200 whitespace-pre-wrap max-h-40">
                             {message.details}
                           </pre>
                         )}
