@@ -489,14 +489,19 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         }
     }
 
-    async onConnect(connection: Connection, ctx: ConnectionContext) {
+    onConnect(connection: Connection, ctx: ConnectionContext) {
         this.logger().info(`Agent connected for agent ${this.getAgentId()}`, { connection, ctx });
-        // Only load template details if we have a template name (old DOs might not have this)
+
+        // Load template details asynchronously in the background without blocking the connection
         if (this.state.templateName) {
-            await this.ensureTemplateDetails();
+            this.ensureTemplateDetails().catch((error) => {
+                this.logger().error('Failed to load template details on connect', { error });
+            });
         } else {
             this.logger().warn('No template name found in state - skipping template details load');
         }
+
+        // Send agent_connected message immediately with current state
         sendToConnection(connection, 'agent_connected', {
             state: this.state,
             templateDetails: this.state.templateName ? this.getTemplateDetails() : undefined
@@ -2010,15 +2015,9 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                 // Convert runtime errors to string format
                 const errorMessages = runtimeErrors.map(error => {
                     let msg = `[Runtime Error] ${error.message}`;
-                    if (error.stack) msg += `\n${error.stack}`;
-                    if (error.filename) {
-                        msg += `\n  at ${error.filename}`;
-                        if (error.lineno) {
-                            msg += `:${error.lineno}`;
-                            if (error.colno) {
-                                msg += `:${error.colno}`;
-                            }
-                        }
+                    // Include raw output for additional context
+                    if (error.rawOutput && error.rawOutput !== error.message) {
+                        msg += `\nRaw: ${error.rawOutput}`;
                     }
                     return msg;
                 });
@@ -2055,16 +2054,10 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                 line: error.line,
             });
 
-            if (strategy === 'deepDebugger') {
-                // Invoke deep debugger
-                const result = await this.runDeepDebug(error.originalError);
-                return result.success;
-            } else {
-                // Invoke realtime code fixer (fast fixer)
-                // For now, use deepDebugger as fallback since realtimeCodeFixer isn't exposed
-                const result = await this.runDeepDebug(error.originalError);
-                return result.success;
-            }
+            // Note: Agent-based fixing needs to be implemented
+            // For now, return false and let AutoFixService handle retries
+            this.logger().warn(`Agent fix not yet implemented for strategy: ${strategy}`);
+            return false;
         } catch (err) {
             this.logger().error(`Agent fix failed for ${strategy}:`, err);
             return false;

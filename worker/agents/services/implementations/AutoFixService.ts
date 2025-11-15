@@ -374,7 +374,7 @@ export class AutoFixService {
 		attempt.fixedBy = error.fixStrategy;
 
 		// If callback is registered, use it for actual agent invocation
-		if (this.agentFixCallback) {
+		if (this.agentFixCallback && error.fixStrategy !== 'manual') {
 			try {
 				return await this.agentFixCallback(error, error.fixStrategy);
 			} catch (err) {

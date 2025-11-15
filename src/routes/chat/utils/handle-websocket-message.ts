@@ -781,7 +781,7 @@ export function createWebSocketMessageHandler(deps: HandleMessageDeps) {
                 setDeploymentError('');
                 setIsRedeployReady(false);
                 
-                sendMessage(createAIMessage('cloudflare_deployment_completed', `Your project has been permanently deployed to Cloudflare Workers: ${message.deploymentUrl}`));
+                sendMessage(createAIMessage('cloudflare_deployment_completed', `Your project has been successfully deployed: ${message.deploymentUrl}`));
                 
                 onDebugMessage?.('info', 
                     'Deployment Completed - Redeploy Reset',

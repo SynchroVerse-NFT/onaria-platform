@@ -5,18 +5,13 @@ import { Eye, Code } from 'lucide-react';
 export function ViewModeSwitch({
 	view,
 	onChange,
-	previewAvailable = false,
 	showTooltip = false,
 }: {
 	view: 'preview' | 'editor' | 'blueprint'
 	onChange: (mode: 'preview' | 'editor' | 'blueprint') => void;
-	previewAvailable: boolean;
 	showTooltip: boolean;
 }) {
 	// Always show the view mode switch - preview will show deployment status
-	// if (!previewAvailable) {
-	// 	return null;
-	// }
 
 	return (
 		<div className="flex items-center gap-1 bg-bg-1/95 backdrop-blur-sm rounded-lg p-0.5 relative border border-cosmic-blue/10">

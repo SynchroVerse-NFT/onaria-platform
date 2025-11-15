@@ -3,7 +3,7 @@
  * Automatically triggers auto-fix when errors are detected
  */
 
-import { RuntimeError, StaticAnalysisResponse } from '../../../services/sandbox/sandboxTypes';
+import { RuntimeError } from '../../../services/sandbox/sandboxTypes';
 import { BaseSandboxService } from '../../../services/sandbox/BaseSandboxService';
 import { AutoFixService } from './AutoFixService';
 import { ErrorClassifier } from './ErrorClassifier';
@@ -265,18 +265,9 @@ export class ErrorMonitor {
 	private formatRuntimeError(error: RuntimeError): string {
 		let formatted = `[Runtime Error] ${error.message}`;
 
-		if (error.stack) {
-			formatted += `\n${error.stack}`;
-		}
-
-		if (error.filename) {
-			formatted += `\n  at ${error.filename}`;
-			if (error.lineno) {
-				formatted += `:${error.lineno}`;
-				if (error.colno) {
-					formatted += `:${error.colno}`;
-				}
-			}
+		// Include raw output for additional context
+		if (error.rawOutput && error.rawOutput !== error.message) {
+			formatted += `\nRaw: ${error.rawOutput}`;
 		}
 
 		return formatted;

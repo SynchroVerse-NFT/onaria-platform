@@ -752,7 +752,6 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                     </div>
 
                     {(() => {
-                      const autoFixMessages = messages.filter(m => m.messageType?.startsWith('autofix_'));
                       const fixedMessages = messages.filter(m => m.messageType === 'autofix_error_fixed');
                       const failedMessages = messages.filter(m => m.messageType === 'autofix_error_failed');
                       const progressMessages = messages.filter(m => m.messageType === 'autofix_progress');

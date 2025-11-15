@@ -130,7 +130,7 @@ export default function Chat() {
 		isGenerating,
 		handleStopGeneration,
 		handleResumeGeneration,
-		handleDeployToCloudflare,
+		handleDeploy,
 		// Preview refresh control
 		shouldRefreshPreview,
 		// Preview deployment state
@@ -623,7 +623,7 @@ export default function Chat() {
 								}}
 								chatId={chatId}
 								isDeploying={isDeploying}
-								handleDeployToCloudflare={handleDeployToCloudflare}
+								handleDeploy={handleDeploy}
 								runtimeErrorCount={runtimeErrorCount}
 								staticIssueCount={staticIssueCount}
 								isDebugging={isDebugging}
@@ -654,7 +654,7 @@ export default function Chat() {
 											isGeneratingBlueprint
 										}
 										isPaused={isGenerationPaused}
-										onDeploy={handleDeployToCloudflare}
+										onDeploy={handleDeploy}
 										onStopGeneration={handleStopGeneration}
 										onResumeGeneration={
 											handleResumeGeneration
@@ -843,7 +843,6 @@ export default function Chat() {
 											<ViewModeSwitch
 												view={view}
 												onChange={handleViewModeChange}
-												previewAvailable={!!previewUrl}
 												showTooltip={showTooltip}
 											/>
 										</div>
@@ -963,7 +962,7 @@ export default function Chat() {
 												</p>
 												{isRedeployReady && (
 													<Button
-														onClick={handleDeployToCloudflare}
+														onClick={() => handleDeploy(chatId || '')}
 														className="mt-4"
 													>
 														<RefreshCw className="w-4 h-4 mr-2" />
@@ -997,7 +996,7 @@ export default function Chat() {
 													Your code is ready! Deploy to see a live preview of your application.
 												</p>
 												<Button
-													onClick={handleDeployToCloudflare}
+													onClick={() => handleDeploy(chatId || '')}
 													disabled={!isRedeployReady}
 													className="mt-4"
 												>
@@ -1018,7 +1017,6 @@ export default function Chat() {
 											<ViewModeSwitch
 												view={view}
 												onChange={handleViewModeChange}
-												previewAvailable={!!previewUrl}
 												showTooltip={showTooltip}
 											/>
 										</div>
@@ -1061,9 +1059,6 @@ export default function Chat() {
 													view={view}
 													onChange={
 														handleViewModeChange
-													}
-													previewAvailable={
-														!!previewUrl
 													}
 													showTooltip={showTooltip}
 												/>

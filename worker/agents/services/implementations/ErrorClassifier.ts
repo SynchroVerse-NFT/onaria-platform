@@ -127,14 +127,12 @@ export class ErrorClassifier {
 	/**
 	 * Classify an error message
 	 */
-	static classify(errorMessage: string, source?: string): ClassifiedError {
+	static classify(errorMessage: string): ClassifiedError {
 		const type = this.detectErrorType(errorMessage);
 		const severity = this.detectSeverity(errorMessage);
 		const fileInfo = this.extractFileInfo(errorMessage);
 		const isAutoFixable = this.isFixable(type, severity);
-		const fixStrategy = this.determineFix
-
-Strategy(type, severity);
+		const fixStrategy = this.determineFixStrategy(type, severity);
 		const errorHash = this.hashError(errorMessage);
 		const stackTrace = this.extractStackTrace(errorMessage);
 
@@ -234,7 +232,7 @@ Strategy(type, severity);
 	/**
 	 * Determine which fixing strategy to use
 	 */
-	private static determineFixStrategy(
+	static determineFixStrategy(
 		type: ErrorType,
 		severity: ErrorSeverity
 	): 'deepDebugger' | 'realtimeCodeFixer' | 'manual' {

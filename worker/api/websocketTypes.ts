@@ -442,7 +442,7 @@ type AutoFixErrorFixedMessage = {
 	errorHash: string;
 	errorType: string;
 	errorSeverity: string;
-	fixStrategy: 'deepDebugger' | 'realtimeCodeFixer';
+	fixStrategy: 'deepDebugger' | 'realtimeCodeFixer' | 'manual';
 	attempts: number;
 	fixDurationMs: number;
 	file?: string;
