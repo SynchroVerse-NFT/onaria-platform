@@ -971,9 +971,9 @@ export default function Chat() {
 												)}
 											</div>
 										</div>
-									) : cloudflareDeploymentUrl ? (
+									) : previewUrl || cloudflareDeploymentUrl ? (
 										<PreviewIframe
-											src={cloudflareDeploymentUrl}
+											src={previewUrl || cloudflareDeploymentUrl}
 											ref={previewRef}
 											className="flex-1 w-full h-full border-0"
 											title="Preview"

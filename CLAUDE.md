@@ -264,3 +264,29 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 - After every deployment to Cloudflare, you need to make a github commit with the same version number so we can always keep track of the changes
 - Do not stop debugging until all issues and bugs are resolved
 - Keep working until the ultimate goal is acheived. Work autonomously without asking which method to implement or which process to continue with, continue working until every issue is solved, implemeted, tested and validated in the frontend. Never wait for builds or compiles with just background processes, set a sleep timer for yourself in the foreground so you can be immediately notified of when to continue.
+- After every deployment, update your claude.md file to make sure you have the latest context
+
+## Recent Deployments
+
+### v2.1.16 (2025-11-15)
+**Preview Auto-Display Fix**
+
+Issue: After code generation completed and sandbox deployed automatically, the preview panel was showing "Ready to Deploy" button instead of displaying the live sandbox preview.
+
+Root Cause: Frontend preview panel (`src/routes/chat/chat.tsx:974-976`) only checked for `cloudflareDeploymentUrl` (production deployment), completely ignoring `previewUrl` (sandbox preview).
+
+Fix Applied:
+- Modified preview panel conditional rendering to prioritize sandbox preview
+- Changed from `cloudflareDeploymentUrl ?` to `previewUrl || cloudflareDeploymentUrl ?`
+- Changed iframe src from `{cloudflareDeploymentUrl}` to `{previewUrl || cloudflareDeploymentUrl}`
+
+Technical Details:
+- Backend DOES deploy to sandbox automatically during phases (continuous deployment pattern) at `worker/agents/core/simpleGeneratorAgent.ts:1407`
+- Frontend DOES receive and store `previewUrl` correctly via `deployment_completed` WebSocket message at `src/routes/chat/utils/handle-websocket-message.ts:500`
+- Only missing piece was displaying the sandbox URL in the preview panel
+
+Deployment:
+- Version: d78433fd-e589-4c92-afd3-4655f54cb42a
+- Container: onaria-platform-userappsandboxservice:d78433fd
+- Routes: onaria.xyz/*, *.onaria.xyz/*
+- Deployed: 2025-11-15 (UTC)
