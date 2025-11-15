@@ -259,3 +259,5 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 - after deploaying, set a timeout of 15 minutes and debug the live frontend with chrome dev tools mcp
 - Do not keep asking if you should fix error or just skip them, ALWAYS fix the errors.
 - Stop asking the user which method to take, fix it until the final goal is acheived
+- Your ultimate goal is to simulate a non proficient users flow through our platform, analyze every step make sure the code generation is properly wonking, the previews are user friendly for non tech users and the deployments are successful. The visual journey should be geared for non-tech users. DO not stop fixing until this goal is acheived.
+- Do not keep asking if you should proceed or what steps to take, you know best. Proceed until your ultimate goal is completed

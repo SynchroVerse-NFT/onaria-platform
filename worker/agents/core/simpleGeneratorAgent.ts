@@ -491,11 +491,15 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
 
     async onConnect(connection: Connection, ctx: ConnectionContext) {
         this.logger().info(`Agent connected for agent ${this.getAgentId()}`, { connection, ctx });
-        // Ensure template details are loaded before sending to connection
-        await this.ensureTemplateDetails();
+        // Only load template details if we have a template name (old DOs might not have this)
+        if (this.state.templateName) {
+            await this.ensureTemplateDetails();
+        } else {
+            this.logger().warn('No template name found in state - skipping template details load');
+        }
         sendToConnection(connection, 'agent_connected', {
             state: this.state,
-            templateDetails: this.getTemplateDetails()
+            templateDetails: this.state.templateName ? this.getTemplateDetails() : undefined
         });
     }
 
