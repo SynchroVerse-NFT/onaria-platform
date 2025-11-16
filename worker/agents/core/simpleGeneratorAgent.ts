@@ -1926,6 +1926,20 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                 onAfterDeployment: async (deploymentResult) => {
                     // Trigger auto-fix after successful deployment
                     await this.triggerAutoFixAfterDeployment(deploymentResult.sandboxInstanceId);
+
+                    // Automatically capture screenshot of preview URL
+                    if (deploymentResult.previewURL) {
+                        this.logger().info('Automatically capturing screenshot after deployment', {
+                            previewURL: deploymentResult.previewURL,
+                            instanceId: deploymentResult.sandboxInstanceId
+                        });
+
+                        try {
+                            await this.captureScreenshot(deploymentResult.previewURL);
+                        } catch (error) {
+                            this.logger().warn('Failed to automatically capture screenshot', error);
+                        }
+                    }
                 }
             }
         );
