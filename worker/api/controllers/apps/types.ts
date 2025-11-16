@@ -66,3 +66,18 @@ export interface AppDeleteData {
     success: boolean;
     message: string;
 }
+
+/**
+ * Response data for bulk screenshot capture
+ */
+export interface BulkScreenshotCaptureData {
+    totalApps: number;
+    successCount: number;
+    failureCount: number;
+    results: Array<{
+        appId: string;
+        title: string;
+        success: boolean;
+        error?: string;
+    }>;
+}

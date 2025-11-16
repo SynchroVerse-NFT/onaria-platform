@@ -966,43 +966,43 @@ export class AppService extends BaseService {
         try {
             // First check if app exists and user owns it
             const ownershipResult = await this.checkAppOwnership(appId, userId);
-            
+
             if (!ownershipResult.exists) {
                 return { success: false, error: 'App not found' };
             }
-            
+
             if (!ownershipResult.isOwner) {
                 return { success: false, error: 'You can only delete your own apps' };
             }
 
             // Delete related records first (foreign key constraints)
             // This follows the cascade delete pattern for data integrity
-            
+
             // Delete favorites
             await this.database
                 .delete(schema.favorites)
                 .where(eq(schema.favorites.appId, appId));
-            
-            // Delete stars  
+
+            // Delete stars
             await this.database
                 .delete(schema.stars)
                 .where(eq(schema.stars.appId, appId));
-            
+
             // Delete app views
             await this.database
                 .delete(schema.appViews)
                 .where(eq(schema.appViews.appId, appId));
-            
+
             // Handle fork relationships properly
             // If this app is a parent, make forks independent (don't delete them!)
             await this.database
                 .update(schema.apps)
                 .set({ parentAppId: null })
                 .where(eq(schema.apps.parentAppId, appId));
-            
+
             // If this app is a fork, we don't need to do anything special
             // (the parent fork count will be handled by analytics recalculation)
-            
+
             // Finally delete the app itself
             const deleteResult = await this.database
                 .delete(schema.apps)
@@ -1020,6 +1020,38 @@ export class AppService extends BaseService {
         } catch (error) {
             this.logger?.error('Error deleting app:', error);
             return { success: false, error: 'An error occurred while deleting the app' };
+        }
+    }
+
+    /**
+     * Get apps that need screenshot capture
+     * Returns apps with deploymentId but no screenshotUrl
+     */
+    async getAppsNeedingScreenshots(limit?: number): Promise<Array<{ id: string; title: string; deploymentId: string }>> {
+        try {
+            const query = this.database
+                .select({
+                    id: schema.apps.id,
+                    title: schema.apps.title,
+                    deploymentId: schema.apps.deploymentId
+                })
+                .from(schema.apps)
+                .where(and(
+                    isNull(schema.apps.screenshotUrl),
+                    sql`${schema.apps.deploymentId} IS NOT NULL AND ${schema.apps.deploymentId} != ''`
+                ))
+                .orderBy(desc(schema.apps.createdAt));
+
+            const results = limit ? await query.limit(limit) : await query;
+
+            return results.map(app => ({
+                id: app.id,
+                title: app.title,
+                deploymentId: app.deploymentId!
+            }));
+        } catch (error) {
+            this.logger?.error('Error fetching apps needing screenshots:', error);
+            return [];
         }
     }
 }

@@ -4,16 +4,18 @@ import { formatRelativeTime } from '../../../utils/timeFormatter';
 import { BaseController } from '../baseController';
 import { ApiResponse, ControllerResponse } from '../types';
 import type { RouteContext } from '../../types/route-context';
-import { 
+import {
     AppsListData,
     PublicAppsData,
     SingleAppData,
     FavoriteToggleData,
     UpdateAppVisibilityData,
-    AppDeleteData
+    AppDeleteData,
+    BulkScreenshotCaptureData
 } from './types';
 // import { withCache } from '../../../services/cache/wrapper';
 import { createLogger } from '../../../logger';
+import { uploadImage, ImageType, type ImageAttachment } from '../../../utils/images';
 
 export class AppController extends BaseController {
     static logger = createLogger('AppController');
@@ -235,12 +237,12 @@ export class AppController extends BaseController {
             if (!appId) {
                 return AppController.createErrorResponse<AppDeleteData>('App ID is required', 400);
             }
-        
+
             const appService = new AppService(env);
             const result = await appService.deleteApp(appId, user.id);
 
             if (!result.success) {
-                const statusCode = result.error === 'App not found' ? 404 : 
+                const statusCode = result.error === 'App not found' ? 404 :
                                  result.error?.includes('only delete your own apps') ? 403 : 500;
                 return AppController.createErrorResponse<AppDeleteData>(result.error || 'Failed to delete app', statusCode);
             }
@@ -253,6 +255,110 @@ export class AppController extends BaseController {
         } catch (error) {
             this.logger.error('Error deleting app:', error);
             return AppController.createErrorResponse<AppDeleteData>('Failed to delete app', 500);
+        }
+    }
+
+    // Bulk screenshot capture for existing apps
+    static async bulkCaptureScreenshots(_request: Request, env: Env, _ctx: ExecutionContext, _context: RouteContext): Promise<ControllerResponse<ApiResponse<BulkScreenshotCaptureData>>> {
+        try {
+            this.logger.info('Starting bulk screenshot capture');
+
+            const appService = new AppService(env);
+            const appsNeedingScreenshots = await appService.getAppsNeedingScreenshots();
+
+            this.logger.info(`Found ${appsNeedingScreenshots.length} apps needing screenshots`);
+
+            const results: BulkScreenshotCaptureData['results'] = [];
+            let successCount = 0;
+            let failureCount = 0;
+
+            for (const app of appsNeedingScreenshots) {
+                try {
+                    const previewUrl = `https://${app.deploymentId}.${env.CUSTOM_DOMAIN}/`;
+                    this.logger.info(`Capturing screenshot for ${app.title} at ${previewUrl}`);
+
+                    const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/browser-rendering/snapshot`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            url: previewUrl,
+                            viewport: { width: 1280, height: 720 },
+                            gotoOptions: {
+                                waitUntil: 'networkidle0',
+                                timeout: 10000
+                            },
+                            screenshotOptions: {
+                                fullPage: false,
+                                type: 'png'
+                            }
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Browser Rendering API failed: ${response.status} - ${errorText}`);
+                    }
+
+                    const result = await response.json() as {
+                        success: boolean;
+                        result: {
+                            screenshot: string;
+                            content: string;
+                        };
+                    };
+
+                    if (!result.success || !result.result.screenshot) {
+                        throw new Error('No screenshot returned from Browser Rendering API');
+                    }
+
+                    const base64Screenshot = result.result.screenshot;
+                    const screenshot: ImageAttachment = {
+                        id: app.id,
+                        filename: 'screenshot.png',
+                        mimeType: 'image/png',
+                        base64Data: base64Screenshot
+                    };
+
+                    const uploadedImage = await uploadImage(env, screenshot, ImageType.SCREENSHOTS);
+                    await appService.updateAppScreenshot(app.id, uploadedImage.publicUrl);
+
+                    this.logger.info(`Successfully captured screenshot for ${app.title}`);
+                    results.push({
+                        appId: app.id,
+                        title: app.title,
+                        success: true
+                    });
+                    successCount++;
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                    this.logger.error(`Failed to capture screenshot for ${app.title}:`, errorMessage);
+                    results.push({
+                        appId: app.id,
+                        title: app.title,
+                        success: false,
+                        error: errorMessage
+                    });
+                    failureCount++;
+                }
+            }
+
+            const responseData: BulkScreenshotCaptureData = {
+                totalApps: appsNeedingScreenshots.length,
+                successCount,
+                failureCount,
+                results
+            };
+
+            this.logger.info(`Bulk screenshot capture complete: ${successCount} succeeded, ${failureCount} failed`);
+            return AppController.createSuccessResponse(responseData);
+        } catch (error) {
+            this.logger.error('Error in bulk screenshot capture:', error);
+            return AppController.createErrorResponse<BulkScreenshotCaptureData>('Failed to perform bulk screenshot capture', 500);
         }
     }
 }
