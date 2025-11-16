@@ -34,33 +34,42 @@ export function createApp(env: Env): Hono<AppEnv> {
     // CSRF protection using double-submit cookie pattern with proper GET handling
     app.use('*', async (c, next) => {
         const method = c.req.method.toUpperCase();
-        
+        const path = new URL(c.req.url).pathname;
+
         // Skip for WebSocket upgrades
         const upgradeHeader = c.req.header('upgrade');
         if (upgradeHeader?.toLowerCase() === 'websocket') {
             return next();
         }
-        
+
+        // Skip CSRF for specific endpoints that are used by scripts (no browser)
+        const csrfExemptPaths = [
+            '/api/apps/bulk-capture-screenshots'
+        ];
+        if (csrfExemptPaths.includes(path)) {
+            return next();
+        }
+
         try {
             // Handle GET requests - establish CSRF token if needed
             if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
                 await next();
-                
+
                 // Only set CSRF token for successful API responses
                 if (c.req.url.startsWith('/api/') && c.res.status < 400) {
                     await CsrfService.enforce(c.req.raw, c.res);
                 }
-                
+
                 return;
             }
-            
+
             // Validate CSRF token for state-changing requests
             await CsrfService.enforce(c.req.raw, undefined);
             await next();
         } catch (error) {
             if (error instanceof SecurityError && error.type === SecurityErrorType.CSRF_VIOLATION) {
-                return new Response(JSON.stringify({ 
-                    error: { 
+                return new Response(JSON.stringify({
+                    error: {
                         message: 'CSRF validation failed',
                         type: SecurityErrorType.CSRF_VIOLATION
                     }
