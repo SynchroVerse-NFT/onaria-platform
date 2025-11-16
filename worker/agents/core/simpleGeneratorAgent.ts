@@ -1007,6 +1007,15 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                 message: "Code generation and review process completed.",
                 instanceId: this.state.sandboxInstanceId,
             });
+
+            // Automatically deploy to Cloudflare Workers for non-tech users
+            // This ensures they get a permanent preview URL without manual intervention
+            try {
+                this.logger().info('Triggering automatic Cloudflare deployment after generation complete');
+                await this.deployToCloudflare();
+            } catch (deployError) {
+                this.logger().warn('Automatic Cloudflare deployment failed (non-critical):', deployError);
+            }
         }
     }
 
@@ -1997,6 +2006,20 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                     this.getAgentId(),
                     result.deploymentId
                 );
+
+                // Auto-capture screenshot after successful deployment
+                try {
+                    this.logger().info('Triggering automatic screenshot capture after deployment');
+                    const { AppController } = await import('../../api/controllers/apps/controller');
+                    await AppController.captureAppScreenshot(
+                        this.env,
+                        this.getAgentId(),
+                        result.deploymentId
+                    );
+                    this.logger().info('Screenshot capture completed');
+                } catch (screenshotError) {
+                    this.logger().warn('Screenshot capture failed (non-critical):', screenshotError);
+                }
             }
 
             return result.deploymentUrl ? { deploymentUrl: result.deploymentUrl } : null;

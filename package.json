@@ -1,7 +1,7 @@
 {
 	"name": "onaria-platform",
 	"private": true,
-	"version": "2.1.25",
+	"version": "2.1.27",
 	"description": "AI-powered full-stack application generation platform with cosmic design system, built on Cloudflare infrastructure",
 	"type": "module",
 	"scripts": {
@@ -38,7 +38,8 @@
 		"knip:fix": "knip --fix",
 		"knip:production": "knip --production",
 		"knip:dependencies": "knip --dependencies",
-		"knip:exports": "knip --exports"
+		"knip:exports": "knip --exports",
+		"capture-screenshots": "tsx scripts/capture-screenshots-simple.ts"
 	},
 	"dependencies": {
 		"@ashishkumar472/cf-git": "1.0.5",
