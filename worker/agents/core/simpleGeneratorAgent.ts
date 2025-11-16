@@ -918,7 +918,9 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         this.logger().info('Starting code generation', {
             totalFiles: this.getTotalFiles()
         });
-        await this.ensureTemplateDetails();
+        if (this.state.templateName) {
+            await this.ensureTemplateDetails();
+        }
 
         let currentDevState = CurrentDevState.PHASE_IMPLEMENTING;
         const generatedPhases = this.state.generatedPhases;
@@ -2647,7 +2649,9 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             });
 
             // Ensure template details are loaded before processing
-            await this.ensureTemplateDetails();
+            if (this.state.templateName) {
+                await this.ensureTemplateDetails();
+            }
 
             // Just fetch runtime errors
             const errors = await this.fetchRuntimeErrors(false);
@@ -2909,7 +2913,9 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             await this.gitInit();
             
             // Ensure template details are available
-            await this.ensureTemplateDetails();
+            if (this.state.templateName) {
+                await this.ensureTemplateDetails();
+            }
             
             return {
                 gitObjects,
