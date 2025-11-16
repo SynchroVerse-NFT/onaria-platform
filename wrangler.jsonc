@@ -145,6 +145,7 @@
         "ENABLE_READ_REPLICAS": "true",
         "CLOUDFLARE_AI_GATEWAY": "vibesdk-gateway",
         "CUSTOM_DOMAIN": "onaria.xyz",
+        "CLOUDFLARE_ACCOUNT_ID": "b8f6f3323cd90ef8795b8164cf633c14",
         "MAX_SANDBOX_INSTANCES": "10",
         "SANDBOX_INSTANCE_TYPE": "standard-3",
         "USE_CLOUDFLARE_IMAGES": "true",
