@@ -268,6 +268,45 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 
 ## Recent Deployments
 
+### v2.1.27 (2025-11-16)
+**Automatic Cloudflare Workers Deployment After Generation**
+
+Issue: Apps were completing code generation and deploying to sandbox successfully, but not getting permanent Cloudflare Workers deployments. This meant:
+- Apps had `screenshot_url` (from sandbox preview) but no `deployment_id`
+- App detail pages showed "Deploy for Preview" button instead of live preview
+- Non-tech users had to manually click deploy button for permanent preview URL
+
+Root Cause: Platform only deployed to sandbox automatically (`deployToSandbox()` called during phases), but never triggered Cloudflare Workers deployment (`deployToCloudflare()`) after generation completed.
+
+Fix Applied:
+- Added automatic `deployToCloudflare()` call in `generateAllFiles()` finally block
+- Triggers after `GENERATION_COMPLETE` WebSocket message is sent
+- Non-blocking execution with try-catch error handling
+- Ensures apps get both sandbox preview AND permanent deployment
+
+Technical Details:
+- Location: `worker/agents/core/simpleGeneratorAgent.ts:1011-1018`
+- Runs in finally block after generation completes and status is set to 'completed'
+- Deployment triggers screenshot capture automatically (v2.1.24 feature)
+- Apps now have:
+  - `previewUrl`: Temporary sandbox preview (expires after inactivity)
+  - `deployment_id`: Permanent Cloudflare Workers deployment ID
+  - `cloudflareUrl`: Permanent deployment URL (built from deployment_id)
+  - `screenshot_url`: Screenshot from deployment URL
+
+User Experience Improvement:
+- Non-tech users no longer need to manually deploy
+- Apps automatically get permanent preview URLs
+- App detail pages show live preview immediately after generation
+- Aligns with platform goal: "simulate a non proficient users flow"
+
+Deployment:
+- Version: fa33ac70-4398-4e7f-ba06-54d7b284cd3d
+- Container: onaria-platform-userappsandboxservice:fa33ac70
+- Routes: onaria.xyz/*, *.onaria.xyz/*
+- Deployed: 2025-11-16 21:56 UTC
+- GitHub commit: 02a7fe5
+
 ### v2.1.16 (2025-11-15)
 **Preview Auto-Display Fix**
 
