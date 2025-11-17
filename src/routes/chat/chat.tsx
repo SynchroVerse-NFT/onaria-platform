@@ -343,6 +343,28 @@ export default function Chat() {
 		}
 	}, [previewUrl, isPhase1Complete]);
 
+	// Auto-refresh preview on page load for existing completed apps
+	const hasAutoRefreshedRef = useRef(false);
+	useEffect(() => {
+		// Only auto-refresh once when loading an existing completed app
+		if (
+			!hasAutoRefreshedRef.current &&
+			urlChatId &&
+			urlChatId !== 'new' &&
+			app &&
+			app.status === 'completed' &&
+			previewUrl &&
+			!isGeneratingBlueprint &&
+			!isBootstrapping
+		) {
+			hasAutoRefreshedRef.current = true;
+			// Trigger preview refresh after a short delay to ensure WebSocket is connected
+			setTimeout(() => {
+				setManualRefreshTrigger(Date.now());
+			}, 1000);
+		}
+	}, [urlChatId, app, previewUrl, isGeneratingBlueprint, isBootstrapping]);
+
 	useEffect(() => {
 		if (chatId) {
 			navigate(`/chat/${chatId}`, {
