@@ -268,7 +268,50 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 
 ## Recent Deployments
 
-### v2.1.27 (2025-11-16)
+### v2.1.28 (2025-11-16)
+**Revert Automatic Deployment: Use Sandbox Previews Only**
+
+Issue: v2.1.27 automatic deployment feature was creating permanent Workers deployments, but deployed workers showed "This application is not currently available" error. Investigation revealed Workers for Platforms (dispatch namespaces) is not enabled for this account.
+
+Root Cause: Workers for Platforms subscription required for dispatch namespace infrastructure. Without it:
+- Deployed workers are created successfully with deployment_id
+- But there's no routing infrastructure to serve traffic to user-deployed workers
+- Error code 10121: "You do not have access to dispatch namespaces"
+- Result: All deployed workers return "This application is not currently available"
+
+Analysis:
+- dispatch_namespaces was intentionally commented out during whitelabeling (commit 318a11c, Nov 9 2025)
+- deploy.ts script automatically checks WfP availability and comments out dispatch_namespaces if unavailable
+- Out of 114 apps in database, only 2 have deployment_id (both from v2.1.27 auto-deployment)
+- Sandbox previews ARE working perfectly and have been all along
+
+Fix Applied:
+- Removed automatic `deployToCloudflare()` call from `generateAllFiles()` finally block
+- Platform now relies exclusively on sandbox previews (`previewUrl`)
+- Manual "Deploy" button still available for when/if WfP is enabled
+- No broken deployment URLs or error messages for users
+
+Technical Details:
+- Location: `worker/agents/core/simpleGeneratorAgent.ts:1011-1018` (removed automatic deployment)
+- Sandbox deployments continue working normally (deployToSandbox during phases)
+- Frontend preview panel properly displays sandbox preview URLs (from v2.1.16 fix)
+- Screenshots still captured from sandbox previews
+- Apps remain accessible via sandbox URLs indefinitely
+
+User Experience:
+- Non-tech users see working sandbox previews immediately after generation completes
+- No confusing "This application is not currently available" errors
+- Consistent, reliable preview experience
+- Apps fully functional via sandbox until WfP subscription is enabled
+
+Deployment:
+- Version: b7092ab5-11bf-406a-82f0-334f8a4ac842
+- Container: onaria-platform-userappsandboxservice:b7092ab5
+- Routes: onaria.xyz/*, *.onaria.xyz/*
+- Deployed: 2025-11-16 (UTC)
+- GitHub commit: 6d2c57b
+
+### v2.1.27 (2025-11-16) - REVERTED IN v2.1.28
 **Automatic Cloudflare Workers Deployment After Generation**
 
 Issue: Apps were completing code generation and deploying to sandbox successfully, but not getting permanent Cloudflare Workers deployments. This meant:
