@@ -6,6 +6,9 @@
 import { ImageAttachment, ProcessedImageAttachment, SupportedImageMimeType } from "worker/types/image-attachment";
 import { getProtocolForHost } from "./urls";
 
+// Re-export types for convenience
+export type { ImageAttachment, ProcessedImageAttachment, SupportedImageMimeType };
+
     
 export function base64ToUint8Array(base64: string): Uint8Array {
     const binary = atob(base64);

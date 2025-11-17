@@ -258,6 +258,75 @@ export class AppController extends BaseController {
         }
     }
 
+    /**
+     * Capture screenshot for a single app by deployment ID
+     * Helper method that can be called from deployment callbacks
+     */
+    static async captureAppScreenshot(env: Env, appId: string, deploymentId: string): Promise<{ success: boolean; error?: string }> {
+        try {
+            const previewUrl = `https://${deploymentId}.${env.CUSTOM_DOMAIN}/`;
+            this.logger.info(`Capturing screenshot for app ${appId} at ${previewUrl}`);
+
+            const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/browser-rendering/snapshot`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    url: previewUrl,
+                    viewport: { width: 1280, height: 720 },
+                    gotoOptions: {
+                        waitUntil: 'networkidle0',
+                        timeout: 10000
+                    },
+                    screenshotOptions: {
+                        fullPage: false,
+                        type: 'png'
+                    }
+                }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Browser Rendering API failed: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json() as {
+                success: boolean;
+                result: {
+                    screenshot: string;
+                    content: string;
+                };
+            };
+
+            if (!result.success || !result.result.screenshot) {
+                throw new Error('No screenshot returned from Browser Rendering API');
+            }
+
+            const base64Screenshot = result.result.screenshot;
+            const screenshot: ImageAttachment = {
+                id: appId,
+                filename: 'screenshot.png',
+                mimeType: 'image/png',
+                base64Data: base64Screenshot
+            };
+
+            const uploadedImage = await uploadImage(env, screenshot, ImageType.SCREENSHOTS);
+            const appService = new AppService(env);
+            await appService.updateAppScreenshot(appId, uploadedImage.publicUrl);
+
+            this.logger.info(`Successfully captured screenshot for app ${appId}`);
+            return { success: true };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.logger.error(`Failed to capture screenshot for app ${appId}:`, errorMessage);
+            return { success: false, error: errorMessage };
+        }
+    }
+
     // Bulk screenshot capture for existing apps
     static async bulkCaptureScreenshots(_request: Request, env: Env, _ctx: ExecutionContext, _context: RouteContext): Promise<ControllerResponse<ApiResponse<BulkScreenshotCaptureData>>> {
         try {

@@ -544,8 +544,8 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border-primary dark:border-[#64b5f6]/20 bg-gradient-to-r from-muted to-accent dark:from-[#0d0e1f]/90 dark:via-[#1a1b2e]/70 dark:to-[#0d0e1f]/90 backdrop-blur-sm">
           <div className="flex items-center gap-2">
-            <Bug className="w-5 h-5 text-text-primary" />
-            <h3 className="font-semibold text-text-primary">Debug Console</h3>
+            <Bug className="w-5 h-5 text-gray-900 dark:text-white" />
+            <h3 className="font-semibold text-gray-900 dark:text-white">Debug Console</h3>
             <span className="bg-blue-100 text-blue-700 dark:bg-[#64b5f6]/20 dark:text-[#64b5f6] text-xs px-2 py-1 rounded-full border border-transparent dark:border-[#64b5f6]/30">
               {filteredMessages.length}/{messages.length}
             </span>
@@ -569,8 +569,8 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                   onClick={() => setViewMode(key)}
                   className={`px-2 py-1 text-xs rounded transition-all flex items-center gap-1 ${
                     viewMode === key
-                      ? 'bg-bg-3 text-text-primary shadow-sm'
-                      : 'text-text-tertiary hover:text-text-primary'
+                      ? 'bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                   title={`${label} view`}
                 >
@@ -602,20 +602,20 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
             <div className="flex items-center gap-2 w-full sm:w-auto pt-2 sm:pt-0">
               <button
                 onClick={() => setIsMaximized(!isMaximized)}
-                className="text-text-tertiary hover:text-text-primary p-1 hover:bg-bg-3 rounded transition-colors"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-1 hover:bg-white/10 rounded transition-colors"
                 title={isMaximized ? 'Minimize panel' : 'Maximize panel'}
               >
                 {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
               </button>
               <button
                 onClick={onClear}
-                className="text-xs text-text-tertiary hover:text-text-primary px-2 py-1 hover:bg-bg-3 rounded transition-colors"
+                className="text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-2 py-1 hover:bg-white/10 rounded transition-colors"
               >
                 Clear
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-text-tertiary hover:text-text-primary p-1 hover:bg-bg-3 rounded transition-colors"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-1 hover:bg-white/10 rounded transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -631,7 +631,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
               placeholder="Search messages..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-3 py-1.5 text-sm bg-input border border-border-primary dark:border-[#64b5f6]/30 dark:bg-[#1a1b2e]/50 rounded focus:outline-none focus:ring-2 focus:ring-ring dark:focus:ring-[#64b5f6]/50 text-text-primary"
+              className="flex-1 px-3 py-1.5 text-sm bg-input border border-border-primary dark:border-[#64b5f6]/30 dark:bg-[#1a1b2e]/50 rounded focus:outline-none focus:ring-2 focus:ring-ring dark:focus:ring-[#64b5f6]/50 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
             />
           </div>
           <div className="flex gap-1 flex-wrap">
@@ -650,10 +650,10 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                     setWsFilter('all'); // Reset WebSocket filter when not filtering by WebSocket
                   }
                 }}
-                className={`px-3 py-1 text-xs rounded-full transition-all ${
+                className={`px-3 py-1 text-xs rounded-full transition-all font-medium ${
                   filter === key
                     ? 'bg-blue-500 text-white dark:bg-gradient-to-r dark:from-[#64b5f6] dark:to-[#a855f7] dark:shadow-[0_0_10px_rgba(100,181,246,0.4)]'
-                    : 'bg-bg-3 text-text-primary hover:bg-bg-3 dark:bg-[#1a1b2e]/50 dark:hover:bg-[#1a1b2e]/80 border border-border-primary dark:border-[#64b5f6]/20'
+                    : 'bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-[#1a1b2e]/50 dark:text-gray-200 dark:hover:bg-[#1a1b2e]/80 border border-gray-300 dark:border-[#64b5f6]/20'
                 }`}
               >
                 {label} ({count})
@@ -664,7 +664,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
           {/* WebSocket Category Filters - Show only when WebSocket filter is active */}
           {filter === 'websocket' && (
             <div className="mt-3 pt-3 border-t border-border-primary dark:border-[#64b5f6]/20">
-              <div className="text-xs text-text-tertiary mb-2 font-medium">WebSocket Message Types:</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">WebSocket Message Types:</div>
               <div className="flex gap-1 flex-wrap">
                 {[
                   { key: 'all' as const, label: 'All WS', count: messages.filter(m => m.type === 'websocket').length },
@@ -677,10 +677,10 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                   <button
                     key={key}
                     onClick={() => setWsFilter(key)}
-                    className={`px-2 py-1 text-xs rounded transition-all ${
+                    className={`px-2 py-1 text-xs rounded transition-all font-medium ${
                       wsFilter === key
-                        ? 'bg-bg-1 text-text-primary border-2 border-border-primary dark:border-[#64b5f6]/40 dark:bg-[#1a1b2e] font-medium'
-                        : 'bg-bg-3 text-text-secondary hover:text-text-primary hover:bg-bg-2 border border-border-primary dark:bg-[#0d0e1f]/50 dark:hover:bg-[#1a1b2e]/50 dark:border-[#64b5f6]/20'
+                        ? 'bg-white text-gray-900 border-2 border-gray-400 dark:border-[#64b5f6]/40 dark:bg-[#1a1b2e] dark:text-white'
+                        : 'bg-gray-200 text-gray-700 hover:text-gray-900 hover:bg-gray-300 border border-gray-300 dark:bg-[#0d0e1f]/50 dark:text-gray-300 dark:hover:bg-[#1a1b2e]/50 dark:hover:text-white dark:border-[#64b5f6]/20'
                     }`}
                   >
                     {label} ({count})
@@ -719,9 +719,9 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                   
                   {/* Statistical Analysis */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-bg-3/50 dark:bg-[#1a1b2e]/50 dark:border dark:border-[#64b5f6]/20 p-4 rounded-lg backdrop-blur-sm">
-                      <h4 className="font-medium text-text-primary mb-2">Response Time Statistics</h4>
-                      <div className="space-y-1 text-sm">
+                    <div className="bg-gray-100 dark:bg-[#1a1b2e]/50 dark:border dark:border-[#64b5f6]/20 p-4 rounded-lg backdrop-blur-sm">
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">Response Time Statistics</h4>
+                      <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                         <div>Average: <span className="font-mono">{analyticsData.intervals.avg}</span></div>
                         <div>Median: <span className="font-mono">{analyticsData.intervals.median}</span></div>
                         <div>P99: <span className="font-mono">{analyticsData.intervals.p99}</span></div>
@@ -813,63 +813,63 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
 
                   {/* Enhanced Operation-Specific Metrics */}
                   <div className="space-y-6">
-                    <h4 className="font-medium text-text-primary text-lg">Operation Performance Metrics</h4>
-                    
+                    <h4 className="font-medium text-gray-900 dark:text-white text-lg">Operation Performance Metrics</h4>
+
                     {/* File Generation - Special Enhanced Display */}
                     {analyticsData.operations.fileGeneration.duration.count > 0 && (
                       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-[#a855f7]/10 dark:to-[#64b5f6]/10 border border-purple-200 dark:border-[#a855f7]/30 rounded-xl p-6 backdrop-blur-sm">
                         <div className="flex items-center gap-3 mb-4">
                           <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                          <h5 className="font-bold text-purple-900 text-lg">📝 File Generation Performance</h5>
+                          <h5 className="font-bold text-purple-900 dark:text-purple-200 text-lg">📝 File Generation Performance</h5>
                         </div>
                         
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                          <div className="bg-bg-4/70 dark:bg-bg-4/50 rounded-lg p-4 text-center">
-                            <div className="text-2xl font-bold text-purple-600">
+                          <div className="bg-white/70 dark:bg-[#1a1b2e]/50 rounded-lg p-4 text-center">
+                            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                               {analyticsData.operations.fileGeneration.linesPerSecond.avg.toFixed(1)}
                             </div>
-                            <div className="text-sm text-purple-800">Lines/sec (avg)</div>
+                            <div className="text-sm text-purple-800 dark:text-purple-300">Lines/sec (avg)</div>
                           </div>
-                          <div className="bg-bg-4/70 dark:bg-bg-4/50 rounded-lg p-4 text-center">
-                            <div className="text-2xl font-bold text-indigo-600">
+                          <div className="bg-white/70 dark:bg-[#1a1b2e]/50 rounded-lg p-4 text-center">
+                            <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                               {(analyticsData.operations.fileGeneration.charsPerSecond.avg / 1000).toFixed(1)}k
                             </div>
-                            <div className="text-sm text-indigo-800">Chars/sec (avg)</div>
+                            <div className="text-sm text-indigo-800 dark:text-indigo-300">Chars/sec (avg)</div>
                           </div>
-                          <div className="bg-bg-4/70 dark:bg-bg-4/50 rounded-lg p-4 text-center">
-                            <div className="text-2xl font-bold text-blue-600">
+                          <div className="bg-white/70 dark:bg-[#1a1b2e]/50 rounded-lg p-4 text-center">
+                            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                               {analyticsData.operations.fileGeneration.totalLines.toLocaleString()}
                             </div>
-                            <div className="text-sm text-blue-800">Total Lines</div>
+                            <div className="text-sm text-blue-800 dark:text-blue-300">Total Lines</div>
                           </div>
-                          <div className="bg-bg-4/70 dark:bg-bg-4/50 rounded-lg p-4 text-center">
-                            <div className="text-2xl font-bold text-teal-600">
+                          <div className="bg-white/70 dark:bg-[#1a1b2e]/50 rounded-lg p-4 text-center">
+                            <div className="text-2xl font-bold text-teal-600 dark:text-teal-400">
                               {analyticsData.operations.fileGeneration.duration.count}
                             </div>
-                            <div className="text-sm text-teal-800">Files Generated</div>
+                            <div className="text-sm text-teal-800 dark:text-teal-300">Files Generated</div>
                           </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="bg-bg-4/70 dark:bg-bg-4/50 rounded-lg p-4">
-                            <h6 className="font-medium text-text-primary mb-2">⚡ Generation Speed</h6>
-                            <div className="space-y-1 text-sm">
+                          <div className="bg-white/70 dark:bg-[#1a1b2e]/50 rounded-lg p-4">
+                            <h6 className="font-medium text-gray-900 dark:text-white mb-2">⚡ Generation Speed</h6>
+                            <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                               <div>Avg: <span className="font-mono font-medium">{analyticsData.operations.fileGeneration.linesPerSecond.avg.toFixed(1)} lines/s</span></div>
                               <div>Median: <span className="font-mono font-medium">{analyticsData.operations.fileGeneration.linesPerSecond.median.toFixed(1)} lines/s</span></div>
                               <div>Peak (P99): <span className="font-mono font-medium">{analyticsData.operations.fileGeneration.linesPerSecond.p99.toFixed(1)} lines/s</span></div>
                             </div>
                           </div>
-                          <div className="bg-bg-4/70 dark:bg-bg-4/50 rounded-lg p-4">
-                            <h6 className="font-medium text-text-primary mb-2">⏱️ Duration Stats</h6>
-                            <div className="space-y-1 text-sm">
+                          <div className="bg-white/70 dark:bg-[#1a1b2e]/50 rounded-lg p-4">
+                            <h6 className="font-medium text-gray-900 dark:text-white mb-2">⏱️ Duration Stats</h6>
+                            <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                               <div>Avg: <span className="font-mono font-medium">{analyticsData.operations.fileGeneration.duration.avg > 1000 ? `${(analyticsData.operations.fileGeneration.duration.avg/1000).toFixed(1)}s` : `${analyticsData.operations.fileGeneration.duration.avg.toFixed(0)}ms`}</span></div>
                               <div>Median: <span className="font-mono font-medium">{analyticsData.operations.fileGeneration.duration.median > 1000 ? `${(analyticsData.operations.fileGeneration.duration.median/1000).toFixed(1)}s` : `${analyticsData.operations.fileGeneration.duration.median.toFixed(0)}ms`}</span></div>
                               <div>P99: <span className="font-mono font-medium">{analyticsData.operations.fileGeneration.duration.p99 > 1000 ? `${(analyticsData.operations.fileGeneration.duration.p99/1000).toFixed(1)}s` : `${analyticsData.operations.fileGeneration.duration.p99.toFixed(0)}ms`}</span></div>
                             </div>
                           </div>
-                          <div className="bg-bg-4/70 dark:bg-bg-4/50 rounded-lg p-4">
-                            <h6 className="font-medium text-text-primary mb-2">📊 Content Volume</h6>
-                            <div className="space-y-1 text-sm">
+                          <div className="bg-white/70 dark:bg-[#1a1b2e]/50 rounded-lg p-4">
+                            <h6 className="font-medium text-gray-900 dark:text-white mb-2">📊 Content Volume</h6>
+                            <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                               <div>Total Characters: <span className="font-mono font-medium">{analyticsData.operations.fileGeneration.totalChars.toLocaleString()}</span></div>
                               <div>Avg File Size: <span className="font-mono font-medium">{Math.round(analyticsData.operations.fileGeneration.totalChars / analyticsData.operations.fileGeneration.duration.count).toLocaleString()} chars</span></div>
                               <div>Avg Lines/File: <span className="font-mono font-medium">{Math.round(analyticsData.operations.fileGeneration.totalLines / analyticsData.operations.fileGeneration.duration.count)}</span></div>
@@ -929,7 +929,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                   </div>
                 </>
               ) : (
-                <div className="text-center py-12 text-text-tertiary">
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                   <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-30" />
                   <p className="text-sm">Analytics loading...</p>
                 </div>
@@ -962,13 +962,13 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                 <div className="space-y-6">
                   {/* Timeline Header */}
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-text-primary flex items-center gap-2">
+                    <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                       <Activity className="w-4 h-4" />
                       Message Timeline ({timelineData.events.length} events)
                     </h4>
-                    <div className="text-sm text-text-tertiary">
-                      Duration: {((timelineData.events[timelineData.events.length - 1]?.timestamp || 0) - (timelineData.events[0]?.timestamp || 0)) > 1000 ? 
-                        `${(((timelineData.events[timelineData.events.length - 1]?.timestamp || 0) - (timelineData.events[0]?.timestamp || 0)) / 1000).toFixed(1)}s` : 
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Duration: {((timelineData.events[timelineData.events.length - 1]?.timestamp || 0) - (timelineData.events[0]?.timestamp || 0)) > 1000 ?
+                        `${(((timelineData.events[timelineData.events.length - 1]?.timestamp || 0) - (timelineData.events[0]?.timestamp || 0)) / 1000).toFixed(1)}s` :
                         `${((timelineData.events[timelineData.events.length - 1]?.timestamp || 0) - (timelineData.events[0]?.timestamp || 0)).toFixed(0)}ms`}
                     </div>
                   </div>
@@ -1015,7 +1015,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                                     {lane.label}
                                   </span>
                                   {event.messageType && (
-                                    <span className="px-2 py-1 text-xs bg-bg-3 dark:bg-[#1a1b2e] text-text-primary dark:text-gray-200 rounded font-mono border border-border-primary dark:border-[#64b5f6]/20">
+                                    <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-[#1a1b2e] text-gray-900 dark:text-gray-200 rounded font-mono border border-gray-300 dark:border-[#64b5f6]/20">
                                       {event.messageType}
                                     </span>
                                   )}
@@ -1023,18 +1023,18 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                                     <Bookmark className="w-3 h-3 text-amber-500 fill-current" />
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2 text-xs text-text-tertiary">
+                                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                                   <span>+{relativeTime > 1000 ? `${(relativeTime/1000).toFixed(1)}s` : `${relativeTime.toFixed(0)}ms`}</span>
                                   <span>{new Date(event.timestamp).toLocaleTimeString()}</span>
                                 </div>
                               </div>
-                              
-                              <div className="mt-2 text-sm text-text-primary truncate" title={event.message}>
+
+                              <div className="mt-2 text-sm text-gray-900 dark:text-white truncate" title={event.message}>
                                 {event.message}
                               </div>
-                              
+
                               {event.duration > 0 && (
-                                <div className="mt-1 text-xs text-text-tertiary">
+                                <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
                                   Duration: {event.duration > 1000 ? `${(event.duration/1000).toFixed(1)}s` : `${event.duration.toFixed(0)}ms`}
                                 </div>
                               )}
@@ -1046,10 +1046,10 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-12 text-text-tertiary">
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                   <Activity className="w-12 h-12 mx-auto mb-4 opacity-30" />
                   <p className="text-sm">No timeline events to display</p>
-                  <p className="text-xs text-text-tertiary/70 mt-2">Messages will appear here as they are logged</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">Messages will appear here as they are logged</p>
                 </div>
               )}
             </div>
@@ -1057,7 +1057,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
             /* List View */
             <div className="p-4 space-y-3">
               {filteredMessages.length === 0 ? (
-                <div className="text-center py-12 text-text-tertiary">
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                   <Bug className="w-12 h-12 mx-auto mb-4 opacity-30" />
                   <p className="text-sm">No messages match your filters</p>
                 </div>
@@ -1086,7 +1086,7 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                       className={`absolute top-2 right-2 p-1 rounded transition-all ${
                         bookmarkedMessages.has(message.id)
                           ? 'text-amber-500 hover:text-amber-600'
-                          : 'text-text-tertiary hover:text-amber-500'
+                          : 'text-gray-500 dark:text-gray-300 hover:text-amber-500'
                       }`}
                       title={bookmarkedMessages.has(message.id) ? 'Remove bookmark' : 'Add bookmark'}
                     >
@@ -1098,21 +1098,21 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                     </button>
                     <div className="flex items-start justify-between gap-2 mb-2 pr-6">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm capitalize">
+                        <span className="font-medium text-sm capitalize text-gray-900 dark:text-white">
                           {message.type}
                         </span>
                         {message.messageType && (
-                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-mono dark:bg-[#a855f7]/20 dark:text-purple-300 dark:border dark:border-[#a855f7]/40">
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-mono dark:bg-[#a855f7]/30 dark:text-purple-200 dark:border dark:border-[#a855f7]/40">
                             {message.messageType}
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-text-tertiary">
+                      <span className="text-xs text-gray-600 dark:text-gray-300">
                         {new Date(message.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
 
-                    <div className="text-sm text-text-primary mb-2">
+                    <div className="text-sm text-gray-900 dark:text-white mb-2">
                       {message.message}
                     </div>
 
@@ -1120,12 +1120,12 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                       <div>
                         <button
                           onClick={() => toggleExpanded(message.id)}
-                          className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
                         >
                           {isExpanded ? 'Hide details' : 'Show details'}
                         </button>
                         {isExpanded && (
-                          <pre className="mt-2 text-xs bg-bg-3 dark:bg-[#0a0b1a]/80 dark:border dark:border-[#64b5f6]/20 p-2 rounded overflow-x-auto text-text-primary dark:text-gray-200 whitespace-pre-wrap max-h-40">
+                          <pre className="mt-2 text-xs bg-gray-100 dark:bg-[#0a0b1a]/80 dark:border dark:border-[#64b5f6]/20 p-2 rounded overflow-x-auto text-gray-900 dark:text-gray-100 whitespace-pre-wrap max-h-40">
                             {message.details}
                           </pre>
                         )}

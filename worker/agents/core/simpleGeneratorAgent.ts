@@ -1007,15 +1007,6 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                 message: "Code generation and review process completed.",
                 instanceId: this.state.sandboxInstanceId,
             });
-
-            // Automatically deploy to Cloudflare Workers for non-tech users
-            // This ensures they get a permanent preview URL without manual intervention
-            try {
-                this.logger().info('Triggering automatic Cloudflare deployment after generation complete');
-                await this.deployToCloudflare();
-            } catch (deployError) {
-                this.logger().warn('Automatic Cloudflare deployment failed (non-critical):', deployError);
-            }
         }
     }
 
