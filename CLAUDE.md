@@ -268,6 +268,184 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 
 ## Recent Deployments
 
+### v2.1.33 (2025-11-17)
+**Auto-Refresh Preview on App Detail Page**
+
+Issue: v2.1.32 auto-refresh feature only worked on chat page (`/chat/:id`) but not on app detail page (`/app/:id`). Users navigating to apps from "My Apps" page would not get automatic preview refresh.
+
+Root Cause:
+- Auto-refresh code was only implemented in `src/routes/chat/chat.tsx`
+- App detail page (`src/routes/app/index.tsx`) is a separate route/component
+- Users typically navigate to `/app/:id` when clicking apps from gallery
+- Need auto-refresh implementation in both routes
+
+Fix Applied:
+- Added auto-refresh logic to `src/routes/app/index.tsx`
+- Implementation differences from chat page:
+  - Uses `handlePreviewDeploy()` function directly
+  - Checks `!app.cloudflareUrl && !app.previewUrl` (both must be empty)
+  - Includes `!isDeploying && !loading` conditions
+- Both routes now support seamless auto-refresh
+
+Technical Details:
+- Location: `src/routes/app/index.tsx:102, 146-163`
+- Added `hasAutoRefreshedRef` useRef for tracking auto-refresh state
+- Auto-refresh useEffect checks: completed status, no existing URLs, not deploying/loading
+- Triggers `handlePreviewDeploy()` after 1-second delay
+- Once-per-load behavior via ref flag
+
+User Experience:
+- Auto-refresh works on both `/chat/:id` and `/app/:id` routes
+- Seamless preview experience regardless of navigation path
+- Users see "Connecting to agent..." and "Deploying..." automatically
+- Preview loads without manual button click
+- Meets user requirement: "automatically trigger everytime the user logs on"
+
+Testing:
+- Verified auto-refresh on `/app/:id` - preview loaded automatically
+- Verified auto-refresh on `/chat/:id` - still working correctly
+- Tested once-per-load behavior - navigated away and back, auto-refresh triggered again
+- All preview components rendering correctly
+- WebSocket events flowing properly (deployment_started, deployment_completed, screenshot_capture_success)
+
+Deployment:
+- Version: db43f26d-b07f-4abc-be35-5fa2e1b9ea84
+- Container: onaria-platform-userappsandboxservice:db43f26d
+- Routes: onaria.xyz/*, *.onaria.xyz/*
+- Deployed: 2025-11-17 UTC
+- GitHub commit: b129b96
+- Status: Tested and validated on live site
+
+### v2.1.32 (2025-11-17)
+**Fix Auto-Refresh: Remove previewUrl Requirement**
+
+Issue: v2.1.31 auto-refresh feature was not triggering. After navigating to an app, the preview panel still showed "Deploy for Preview" button instead of automatically refreshing.
+
+Root Cause:
+- Auto-refresh condition included `previewUrl &&` check (line 356)
+- API response showed `"previewUrl": ""` (empty string in database)
+- Preview URL only exists in Durable Object state and preview API endpoint
+- Database never persists the preview URL value
+- Condition `previewUrl &&` always evaluated to false (empty string is falsy)
+- Auto-refresh never triggered despite app being completed
+
+Fix Applied:
+- Removed `previewUrl &&` from auto-refresh condition in chat.tsx
+- Updated dependency array to remove `previewUrl`
+- Auto-refresh now triggers for any completed app on page load
+- The refresh mechanism itself fetches preview URL from agent when needed
+
+Technical Details:
+- Location: `src/routes/chat/chat.tsx:356`
+- Changed condition from checking app completion AND previewUrl existence
+- To checking only app completion, generating status, and bootstrapping status
+- Preview URL is fetched via `/api/apps/:appId/preview` during refresh process
+- Database state vs runtime state: previewUrl is transient, not persisted
+
+Code Change:
+```typescript
+// BEFORE (v2.1.31 - BROKEN):
+if (
+  !hasAutoRefreshedRef.current &&
+  urlChatId &&
+  urlChatId !== 'new' &&
+  app &&
+  app.status === 'completed' &&
+  previewUrl &&  // PROBLEM: Always empty/falsy
+  !isGeneratingBlueprint &&
+  !isBootstrapping
+)
+
+// AFTER (v2.1.32 - FIXED):
+if (
+  !hasAutoRefreshedRef.current &&
+  urlChatId &&
+  urlChatId !== 'new' &&
+  app &&
+  app.status === 'completed' &&
+  // Removed previewUrl check
+  !isGeneratingBlueprint &&
+  !isBootstrapping
+)
+```
+
+Deployment:
+- Version: cee4c06f-aa65-4a85-b46d-1a2ca108e04e
+- Container: onaria-platform-userappsandboxservice:cee4c06f
+- Routes: onaria.xyz/*, *.onaria.xyz/*
+- Deployed: 2025-11-17 UTC
+- GitHub commit: fd1a984
+- Status: Build successful, deployed to production
+
+### v2.1.31 (2025-11-17)
+**Automatic Preview Refresh on Page Load**
+
+Issue: Sandbox containers expire after inactivity. When users navigated away from an app and returned later, preview showed "Error proxying request to container: The container is not listening in the TCP address 10.0.0.1:8001". Users had to manually click "Refresh preview" button every time.
+
+User Requirement: "The refresh preview though, should automatically trigger everytime the user logs on" - User explicitly requested automatic preview refresh but NOT automatic Workers deployment (apps may be in bad state, user may not be ready to deploy).
+
+Root Cause:
+- Sandbox containers are temporary and expire after inactivity
+- No automatic preview refresh when loading completed apps
+- Manual refresh mechanism existed but wasn't triggered automatically
+- Poor UX for non-tech users who don't understand container lifecycle
+
+Fix Applied:
+- Added automatic preview refresh feature to chat page (`src/routes/chat/chat.tsx`)
+- Uses `hasAutoRefreshedRef` to track if auto-refresh has occurred (once per page load)
+- Triggers `setManualRefreshTrigger(Date.now())` after 1-second delay on component mount
+- Conditions: completed app, not a new chat, not generating blueprint, not bootstrapping
+- Once-per-load behavior prevents multiple refreshes during same session
+
+Technical Details:
+- Location: `src/routes/chat/chat.tsx:346-366`
+- Added `hasAutoRefreshedRef = useRef(false)` to track auto-refresh state
+- useEffect dependencies: `[urlChatId, app, previewUrl, isGeneratingBlueprint, isBootstrapping]`
+- 1-second setTimeout ensures WebSocket connection is established before refresh
+- Sets `hasAutoRefreshedRef.current = true` after triggering to prevent repeats
+- Uses existing manual refresh mechanism (`manualRefreshTrigger` state)
+
+Implementation:
+```typescript
+const hasAutoRefreshedRef = useRef(false);
+useEffect(() => {
+  if (
+    !hasAutoRefreshedRef.current &&
+    urlChatId &&
+    urlChatId !== 'new' &&
+    app &&
+    app.status === 'completed' &&
+    previewUrl &&  // NOTE: This check prevented v2.1.31 from working (fixed in v2.1.32)
+    !isGeneratingBlueprint &&
+    !isBootstrapping
+  ) {
+    hasAutoRefreshedRef.current = true;
+    setTimeout(() => {
+      setManualRefreshTrigger(Date.now());
+    }, 1000);
+  }
+}, [urlChatId, app, previewUrl, isGeneratingBlueprint, isBootstrapping]);
+```
+
+User Experience:
+- Users navigate to completed app and see preview auto-deploy automatically
+- No manual button click required
+- Seamless experience for non-tech users
+- Manual "Deploy" button still available for permanent Workers deployment
+- Manual "Refresh preview" button still available if needed
+
+Known Issue (Fixed in v2.1.32):
+- Auto-refresh didn't trigger because `previewUrl` check always failed (empty in database)
+- Fixed by removing previewUrl requirement from condition
+
+Deployment:
+- Version: 84c4f92b-9f3f-4136-b367-fda6ba6c8335
+- Container: onaria-platform-userappsandboxservice:84c4f92b
+- Routes: onaria.xyz/*, *.onaria.xyz/*
+- Deployed: 2025-11-17 UTC
+- GitHub commit: 7e73e31
+- Status: Build successful, deployed (but auto-refresh didn't work until v2.1.32 fix)
+
 ### v2.1.30 (2025-11-17)
 **Comprehensive Platform Improvements: Security, Performance, and Quality**
 
