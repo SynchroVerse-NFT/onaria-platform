@@ -99,6 +99,7 @@ export default function AppView() {
 	const [isGitCloneModalOpen, setIsGitCloneModalOpen] = useState(false);
 	const [activeFilePath, setActiveFilePath] = useState<string>();
 	const previewIframeRef = useRef<HTMLIFrameElement>(null);
+	const hasAutoRefreshedRef = useRef(false);
 
 	const fetchAppDetails = useCallback(async () => {
 		if (!id) return;
@@ -142,6 +143,24 @@ export default function AppView() {
 		fetchAppDetails();
 	}, [id, fetchAppDetails]);
 
+	// Auto-refresh preview on page load for completed apps
+	useEffect(() => {
+		if (
+			!hasAutoRefreshedRef.current &&
+			app &&
+			app.status === 'completed' &&
+			!app.cloudflareUrl &&
+			!app.previewUrl &&
+			!isDeploying &&
+			!loading
+		) {
+			hasAutoRefreshedRef.current = true;
+			// Trigger preview deployment after a short delay
+			setTimeout(() => {
+				handlePreviewDeploy();
+			}, 1000);
+		}
+	}, [app, isDeploying, loading]);
 
 	// Convert agent files to chat FileType format
 	const files = useMemo<FileType[]>(() => {
