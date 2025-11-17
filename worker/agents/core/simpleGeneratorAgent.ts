@@ -1,7 +1,7 @@
 import { Agent, AgentContext, Connection, ConnectionContext } from 'agents';
-import { 
-    Blueprint, 
-    PhaseConceptGenerationSchemaType, 
+import {
+    Blueprint,
+    PhaseConceptGenerationSchemaType,
     PhaseConceptType,
     FileConceptType,
     FileOutputType,
@@ -10,7 +10,7 @@ import {
 import { ExecuteCommandsResponse, GitHubPushRequest, PreviewType, StaticAnalysisResponse, TemplateDetails } from '../../services/sandbox/sandboxTypes';
 import {  GitHubExportResult } from '../../services/github/types';
 import { GitHubService } from '../../services/github/GitHubService';
-import { CodeGenState, CurrentDevState, MAX_PHASES } from './state';
+import { CodeGenState, CurrentDevState, MAX_PHASES, FileState } from './state';
 import { AllIssues, AgentSummary, AgentInitArgs, PhaseExecutionResult, UserContext } from './types';
 import { PREVIEW_EXPIRED_ERROR, WebSocketMessageResponses } from '../constants';
 import { broadcastToConnections, handleWebSocketClose, handleWebSocketMessage, sendToConnection } from './websocket';
@@ -1754,14 +1754,18 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             'implementationRoadmap'
         ]);
         const filtered: Partial<Blueprint> = {};
+        // Type assertion for dynamic property access - Blueprint keys are validated against the allowed set
+        const patchData = patch as Record<string, unknown>;
+        const filteredData = filtered as Record<string, unknown>;
+
         for (const k of keys) {
-            if (allowed.has(k) && typeof (patch as any)[k] !== 'undefined') {
-                (filtered as any)[k] = (patch as any)[k];
+            if (allowed.has(k) && typeof patchData[k] !== 'undefined') {
+                filteredData[k] = patchData[k];
             }
         }
         if (typeof filtered.projectName === 'string' && filtered.projectName) {
             await this.updateProjectName(filtered.projectName);
-            delete (filtered as any).projectName;
+            delete filteredData.projectName;
         }
         const updated: Blueprint = { ...this.state.blueprint, ...(filtered as Blueprint) } as Blueprint;
         this.setState({
@@ -1792,7 +1796,7 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
     async execCommands(commands: string[], shouldSave: boolean, timeout?: number): Promise<ExecuteCommandsResponse> {
         const { sandboxInstanceId } = this.state;
         if (!sandboxInstanceId) {
-            return { success: false, results: [], error: 'No sandbox instance' } as any;
+            return { success: false, results: [], error: 'No sandbox instance' };
         }
         const result = await this.getSandboxServiceClient().executeCommands(sandboxInstanceId, commands, timeout);
         if (shouldSave) {
@@ -1896,11 +1900,14 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
 
         // Return files with diffs from FileState
         return {
-            files: result.files.map(f => ({
-                path: f.filePath,
-                purpose: f.filePurpose || '',
-                diff: (f as any).lastDiff || '' // FileState has lastDiff
-            }))
+            files: result.files.map(f => {
+                const fileState = f as FileState;
+                return {
+                    path: f.filePath,
+                    purpose: f.filePurpose || '',
+                    diff: fileState.lastDiff || ''
+                };
+            })
         };
     }
 

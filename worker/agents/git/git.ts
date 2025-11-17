@@ -64,9 +64,8 @@ export class GitVersionControl {
     async init(): Promise<void> {
         try {
             await git.init({ ...this.gitConfig, defaultBranch: 'main' });
-            console.log('[Git] Repository initialized');
-        } catch (error) {
-            console.log('[Git] Repository already initialized:', error);
+        } catch {
+            // Repository already initialized
         }
     }
 
@@ -76,11 +75,8 @@ export class GitVersionControl {
      */
     async stage(files: FileSnapshot[]): Promise<void> {
         if (!files.length) {
-            console.log('[Git] No files to stage');
             return;
         }
-
-        console.log(`[Git] Staging ${files.length} files`);
 
         for (const file of files) {
             try {
@@ -92,8 +88,6 @@ export class GitVersionControl {
                 throw new Error(`Failed to stage file ${file}: ${error instanceof Error ? error.message : String(error)}`);
             }
         }
-
-        console.log(`[Git] Staged ${files.length} files`, files);
     }
 
     private normalizePath(path: string): string {
@@ -101,18 +95,14 @@ export class GitVersionControl {
     }
 
     async commit(files: FileSnapshot[], message?: string): Promise<string | null> {
-        console.log(`[Git] Starting commit with ${files.length} files`);
         if (files.length) {
-            // Stage all files first
             await this.stage(files);
         }
 
         if (!await this.hasChanges()) {
-            console.log('[Git] No changes to commit');
             return null;
         }
 
-        console.log('[Git] Creating commit...');
         const oid = await git.commit({
             ...this.gitConfig,
             message: message || `Auto-checkpoint (${new Date().toISOString()})`,
@@ -122,7 +112,6 @@ export class GitVersionControl {
                 timestamp: Math.floor(Date.now() / 1000)
             }
         });
-        console.log(`[Git] Commit created: ${oid}`);
         return oid;
     }
 

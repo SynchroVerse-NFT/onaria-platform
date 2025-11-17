@@ -8,7 +8,7 @@ import { AgentActionKey, AIModels, InferenceContext, ModelConfig } from './confi
 import { AGENT_CONFIG } from './config';
 import { createLogger } from '../../logger';
 import { RateLimitExceededError, SecurityError } from 'shared/types/errors';
-import { ToolDefinition } from '../tools/types';
+import { AnyToolDefinition } from '../tools/types';
 
 const logger = createLogger('InferenceUtils');
 
@@ -31,7 +31,7 @@ interface InferenceParamsBase {
     modelName?: AIModels | string;
     retryLimit?: number;
     agentActionName: AgentActionKey;
-    tools?: ToolDefinition<any, any>[];
+    tools?: AnyToolDefinition[];
     stream?: {
         chunk_size: number;
         onChunk: (chunk: string) => void;
@@ -140,7 +140,6 @@ export async function executeInference<T extends z.AnyZodObject>(   {
                 providerOverride: finalConf.providerOverride,
             });
             logger.info(`Successfully completed ${agentActionName} operation`);
-            // console.log(result);
             return result;
         } catch (error) {
             if (error instanceof RateLimitExceededError || error instanceof SecurityError) {

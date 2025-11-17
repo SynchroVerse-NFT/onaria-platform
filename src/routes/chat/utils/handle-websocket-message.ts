@@ -159,8 +159,7 @@ export function createWebSocketMessageHandler(deps: HandleMessageDeps) {
             }
             case 'agent_connected': {
                 const { state, templateDetails } = message;
-                console.log('Agent connected', state, templateDetails);
-                
+
                 if (!isInitialStateRestored) {
                     logger.debug('📥 Performing initial state restoration');
                     

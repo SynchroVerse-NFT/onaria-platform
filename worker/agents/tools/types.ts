@@ -30,6 +30,10 @@ export type ToolDefinition<
     onComplete?: (args: TArgs, result: TResult) => void;
 };
 
-export type ExtractToolArgs<T> = T extends ToolImplementation<infer A, any> ? A : never;
+// Generic tool definition for arrays of tools with different signatures
+export type AnyToolDefinition = ToolDefinition<Record<string, unknown>, unknown>;
 
-export type ExtractToolResult<T> = T extends ToolImplementation<any, infer R> ? R : never;
+// Utility types for extracting tool argument and result types
+export type ExtractToolArgs<T> = T extends ToolImplementation<infer A, unknown> ? A : never;
+
+export type ExtractToolResult<T> = T extends ToolImplementation<unknown, infer R> ? R : never;

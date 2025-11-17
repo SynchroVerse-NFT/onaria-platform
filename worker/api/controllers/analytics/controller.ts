@@ -7,6 +7,7 @@ import { BaseController } from '../baseController';
 import { RouteContext } from '../../types/route-context';
 import { ApiResponse, ControllerResponse } from '../types';
 import { AiGatewayAnalyticsService } from '../../../services/analytics/AiGatewayAnalyticsService';
+import { AppService } from '../../../database/services/AppService';
 
 import { UserAnalyticsResponseData, AgentAnalyticsResponseData } from './types';
 import { AnalyticsError } from '../../../services/analytics/types';
@@ -38,9 +39,13 @@ export class AnalyticsController extends BaseController {
 				);
 			}
 
-			// TODO: Add ownership verification - users should only see their own analytics
-			// For now, allow authenticated users to query any user analytics
-			// Later: if (authUser.id !== userId && !authUser.isAdmin) { return 403; }
+			// Ownership verification - users can only see their own analytics
+			if (authUser.id !== userId) {
+				return AnalyticsController.createErrorResponse<UserAnalyticsResponseData>(
+					'Unauthorized: You can only view your own analytics',
+					403,
+				);
+			}
 
 			// Parse query parameters
 			const url = new URL(request.url);
@@ -114,9 +119,23 @@ export class AnalyticsController extends BaseController {
 				);
 			}
 
-			// TODO: Add ownership verification - users should only see analytics for their own agents
-			// This would require checking if the agent/chat belongs to the authenticated user
-			// For now, allow authenticated users to query any agent analytics
+			// Ownership verification - agentId is the appId, check if user owns the app
+			const appService = new AppService(env);
+			const ownershipCheck = await appService.checkAppOwnership(agentId, authUser.id);
+
+			if (!ownershipCheck.exists) {
+				return AnalyticsController.createErrorResponse<AgentAnalyticsResponseData>(
+					'Agent not found',
+					404,
+				);
+			}
+
+			if (!ownershipCheck.isOwner) {
+				return AnalyticsController.createErrorResponse<AgentAnalyticsResponseData>(
+					'Unauthorized: You can only view analytics for your own agents',
+					403,
+				);
+			}
 
 			// Parse query parameters
 			const url = new URL(request.url);

@@ -3,25 +3,50 @@ import { StructuredLogger } from '../../logger';
 import { TemplateDetails } from 'worker/services/sandbox/sandboxTypes';
 import { generateNanoId } from '../../utils/idGenerator';
 import { generateProjectName } from '../utils/templateCustomizer';
+import { ConversationMessage } from '../inferutils/common';
+
+// Legacy file format interface for migration
+interface LegacyFileFormat {
+    filePath?: string;
+    file_path?: string;
+    fileContents?: string;
+    file_contents?: string;
+    filePurpose?: string;
+    file_purpose?: string;
+}
+
+// State with potential deprecated properties
+interface StateWithDeprecatedProps extends CodeGenState {
+    latestScreenshot?: unknown;
+    templateDetails?: TemplateDetails;
+}
+
+// Inference context with potential legacy properties
+interface LegacyInferenceContext {
+    userApiKeys?: unknown;
+    [key: string]: unknown;
+}
 
 export class StateMigration {
     static migrateIfNeeded(state: CodeGenState, logger: StructuredLogger): CodeGenState | null {
         let needsMigration = false;
-        
+
         //------------------------------------------------------------------------------------
         // Migrate files from old schema
         //------------------------------------------------------------------------------------
-        const migrateFile = (file: any): any => {
+        const migrateFile = (file: FileState | LegacyFileFormat): FileState => {
             const hasOldFormat = 'file_path' in file || 'file_contents' in file || 'file_purpose' in file;
-            
+
             if (hasOldFormat) {
+                const legacyFile = file as LegacyFileFormat;
                 return {
-                    filePath: file.filePath || file.file_path,
-                    fileContents: file.fileContents || file.file_contents,
-                    filePurpose: file.filePurpose || file.file_purpose,
+                    filePath: legacyFile.filePath || legacyFile.file_path || '',
+                    fileContents: legacyFile.fileContents || legacyFile.file_contents || '',
+                    filePurpose: legacyFile.filePurpose || legacyFile.file_purpose || '',
+                    lastDiff: ''
                 };
             }
-            return file;
+            return file as FileState;
         };
 
         const migratedFilesMap: Record<string, FileState> = {};
@@ -66,7 +91,7 @@ export class StateMigration {
             }
             
             uniqueMessages.sort((a, b) => {
-                const getTimestamp = (msg: any) => {
+                const getTimestamp = (msg: ConversationMessage): number => {
                     if (msg.conversationId && typeof msg.conversationId === 'string' && msg.conversationId.startsWith('conv-')) {
                         const parts = msg.conversationId.split('-');
                         if (parts.length >= 2) {
@@ -122,23 +147,29 @@ export class StateMigration {
         //------------------------------------------------------------------------------------
         let migratedInferenceContext = state.inferenceContext;
         if (migratedInferenceContext && 'userApiKeys' in migratedInferenceContext) {
+            const legacyContext = migratedInferenceContext as unknown as LegacyInferenceContext;
+            const { userApiKeys, ...cleanContext } = legacyContext;
+            // Rebuild InferenceContext with required properties
             migratedInferenceContext = {
-                ...migratedInferenceContext
+                enableRealtimeCodeFix: state.inferenceContext.enableRealtimeCodeFix,
+                enableFastSmartCodeFix: state.inferenceContext.enableFastSmartCodeFix,
+                agentId: state.inferenceContext.agentId,
+                userId: state.inferenceContext.userId,
+                ...cleanContext
             };
-            
-            delete (migratedInferenceContext as any).userApiKeys;
             needsMigration = true;
         }
 
         //------------------------------------------------------------------------------------
         // Migrate deprecated props
-        //------------------------------------------------------------------------------------  
-        const stateHasDeprecatedProps = 'latestScreenshot' in (state as any);
+        //------------------------------------------------------------------------------------
+        const stateWithDeprecated = state as unknown as StateWithDeprecatedProps;
+        const stateHasDeprecatedProps = 'latestScreenshot' in stateWithDeprecated;
         if (stateHasDeprecatedProps) {
             needsMigration = true;
         }
 
-        const stateHasProjectUpdatesAccumulator = 'projectUpdatesAccumulator' in (state as any);
+        const stateHasProjectUpdatesAccumulator = 'projectUpdatesAccumulator' in stateWithDeprecated;
         if (!stateHasProjectUpdatesAccumulator) {
             needsMigration = true;
         }
@@ -147,10 +178,9 @@ export class StateMigration {
         // Migrate templateDetails -> templateName
         //------------------------------------------------------------------------------------
         let migratedTemplateName = state.templateName;
-        const hasTemplateDetails = 'templateDetails' in (state as any);
-        if (hasTemplateDetails) {
-            const templateDetails = (state as any).templateDetails;
-            migratedTemplateName = (templateDetails as TemplateDetails).name;
+        const hasTemplateDetails = 'templateDetails' in stateWithDeprecated;
+        if (hasTemplateDetails && stateWithDeprecated.templateDetails) {
+            migratedTemplateName = stateWithDeprecated.templateDetails.name;
             needsMigration = true;
             logger.info('Migrating templateDetails to templateName', { templateName: migratedTemplateName });
         }
@@ -177,7 +207,7 @@ export class StateMigration {
                 removedUserApiKeys: state.inferenceContext && 'userApiKeys' in state.inferenceContext,
             });
             
-            const newState = {
+            const newState: CodeGenState = {
                 ...state,
                 generatedFilesMap: migratedFilesMap,
                 conversationMessages: migratedConversationMessages,
@@ -186,15 +216,18 @@ export class StateMigration {
                 templateName: migratedTemplateName,
                 projectName: migratedProjectName
             };
-            
-            // Remove deprecated fields
-            if (stateHasDeprecatedProps) {
-                delete (newState as any).latestScreenshot;
+
+            // Remove deprecated fields by reconstructing without them
+            const newStateWithDeprecated = newState as unknown as StateWithDeprecatedProps;
+            if (stateHasDeprecatedProps && 'latestScreenshot' in newStateWithDeprecated) {
+                const { latestScreenshot, ...stateWithoutScreenshot } = newStateWithDeprecated;
+                Object.assign(newState, stateWithoutScreenshot);
             }
-            if (hasTemplateDetails) {
-                delete (newState as any).templateDetails;
+            if (hasTemplateDetails && 'templateDetails' in newStateWithDeprecated) {
+                const { templateDetails, ...stateWithoutTemplateDetails } = newStateWithDeprecated;
+                Object.assign(newState, stateWithoutTemplateDetails);
             }
-            
+
             return newState;
         }
 

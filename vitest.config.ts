@@ -14,6 +14,6 @@ export default defineWorkersConfig({
     globals: true,
     setupFiles: ['./test/setup.ts'],
     include: ['**/*.{test,spec}.{js,ts,jsx,tsx}'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/test/**', '**/worker/api/routes/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/test/integration/**', '**/test/e2e/**', '**/worker/api/routes/**'],
   },
 });

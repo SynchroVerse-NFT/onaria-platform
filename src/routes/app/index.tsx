@@ -24,7 +24,7 @@ import {
 	Github,
 	GitBranch,
 } from 'lucide-react';
-import { MonacoEditor } from '@/components/monaco-editor/monaco-editor';
+import { LazyMonacoEditor } from '@/components/monaco-editor/lazy-monaco-editor';
 import { getFileType } from '@/utils/string';
 import { Button } from '@/components/ui/button';
 import {
@@ -985,7 +985,7 @@ export default function AppView() {
 														</div>
 
 														<div className="flex-1 min-h-0">
-															<MonacoEditor
+															<LazyMonacoEditor
 																className="h-full"
 																createOptions={{
 																	value: activeFile.fileContents,

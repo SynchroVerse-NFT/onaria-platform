@@ -537,16 +537,13 @@ ${block.error}
 
 export function IsRealtimeCodeFixerEnabled(inferenceContext: InferenceContext): boolean {
     if (AGENT_CONFIG.realtimeCodeFixer.name !== AIModels.DISABLED) {
-        console.log("Realtime code fixer enabled");
-        return true;
-    }
-    
-    if (inferenceContext.userModelConfigs?.['realtimeCodeFixer'] && inferenceContext.userModelConfigs['realtimeCodeFixer'].name !== AIModels.DISABLED) {
-        console.log("Realtime code fixer enabled by user");
         return true;
     }
 
-    console.log("Realtime code fixer disabled", inferenceContext.userModelConfigs);
+    if (inferenceContext.userModelConfigs?.['realtimeCodeFixer'] && inferenceContext.userModelConfigs['realtimeCodeFixer'].name !== AIModels.DISABLED) {
+        return true;
+    }
+
     return false;
 }
     

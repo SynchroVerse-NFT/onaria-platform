@@ -160,29 +160,31 @@ class PerformanceMonitor {
   }
 
   logMetrics(): void {
-    console.group('Performance Metrics');
+    if (import.meta.env.DEV) {
+      console.group('Performance Metrics');
 
-    if (this.marks.size > 0) {
-      console.group('Marks');
-      this.marks.forEach((time, name) => {
-        console.log(`${name}: ${time.toFixed(2)}ms`);
-      });
+      if (this.marks.size > 0) {
+        console.group('Marks');
+        this.marks.forEach((time, name) => {
+          console.log(`${name}: ${time.toFixed(2)}ms`);
+        });
+        console.groupEnd();
+      }
+
+      if (this.measures.size > 0) {
+        console.group('Measures');
+        this.measures.forEach((duration, name) => {
+          console.log(`${name}: ${duration.toFixed(2)}ms`);
+        });
+        console.groupEnd();
+      }
+
+      if (this.fpsHistory.length > 0) {
+        console.log(`Average FPS: ${this.getAverageFPS()}`);
+      }
+
       console.groupEnd();
     }
-
-    if (this.measures.size > 0) {
-      console.group('Measures');
-      this.measures.forEach((duration, name) => {
-        console.log(`${name}: ${duration.toFixed(2)}ms`);
-      });
-      console.groupEnd();
-    }
-
-    if (this.fpsHistory.length > 0) {
-      console.log(`Average FPS: ${this.getAverageFPS()}`);
-    }
-
-    console.groupEnd();
   }
 
   reset(): void {

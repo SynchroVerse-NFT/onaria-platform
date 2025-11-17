@@ -217,15 +217,6 @@ export async function generateBlueprint({ env, inferenceContext, query, language
             userMessage
         ];
 
-        // Log messages to console for debugging
-        // logger.info('Blueprint messages:', JSON.stringify(messages, null, 2));
-        
-        // let reasoningEffort: "high" | "medium" | "low" | undefined = "medium" as const;
-        // if (templateMetaInfo?.complexity === 'simple' || templateMetaInfo?.complexity === 'moderate') {
-        //     console.log(`Using medium reasoning for simple/moderate queries`);
-        //     modelName = AIModels.OPENAI_O4_MINI;
-        //     reasoningEffort = undefined;
-        // }
 
         const { object: results } = await executeInference({
             env,

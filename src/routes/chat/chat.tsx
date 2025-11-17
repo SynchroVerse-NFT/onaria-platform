@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { ArrowRight, Image as ImageIcon } from 'react-feather';
 import { useParams, useSearchParams, useNavigate } from 'react-router';
-import { MonacoEditor } from '../../components/monaco-editor/monaco-editor';
+import { LazyMonacoEditor } from '../../components/monaco-editor/lazy-monaco-editor';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Expand, Github, GitBranch, LoaderCircle, RefreshCw, MoreHorizontal, RotateCcw, X, Loader2, AlertCircle, Rocket, Code } from 'lucide-react';
 import clsx from 'clsx';
@@ -1109,7 +1109,7 @@ export default function Chat() {
 												onFileClick={handleFileClick}
 											/>
 											<div className="flex-1">
-												<MonacoEditor
+												<LazyMonacoEditor
 													className="h-full"
 													createOptions={{
 														value:

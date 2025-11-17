@@ -587,8 +587,6 @@ export class UserConversationProcessor extends AgentOperation<UserConversationIn
         const turns = this.countTurns(messages);
         const estimatedTokens = this.estimateTokens(messages);
 
-        console.log(`[UserConversationProcessor] shouldCompactify: turns=${turns}, estimatedTokens=${estimatedTokens}`);
-        
         if (turns >= COMPACTIFICATION_CONFIG.MAX_TURNS) {
             return { should: true, reason: 'turns', turns, estimatedTokens };
         }

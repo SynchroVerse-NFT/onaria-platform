@@ -722,7 +722,7 @@ export function parseMarkdownContent<OutputSchema extends z.AnyZodObject>(
     const cleanedMarkdown = preprocessMarkdown(markdownInput, debug);
     if (debug) {
         logger.debug("--- Cleaned Markdown Input ---");
-        console.log(cleanedMarkdown); // Use console.log for multi-line visibility
+        logger.debug(cleanedMarkdown);
         logger.debug("--- End Cleaned Markdown Input ---");
     }
 
@@ -732,8 +732,7 @@ export function parseMarkdownContent<OutputSchema extends z.AnyZodObject>(
         root = mdParser.parse(cleanedMarkdown) as Root;
         if (debug) {
             logger.debug("--- MDAST Root ---");
-            // console.log(JSON.stringify(root, null, 2)); // Full AST can be huge
-            console.log(JSON.stringify(root, (key, value) => key === 'position' ? undefined : value, 2)); // Cleaner log
+            logger.debug(JSON.stringify(root, (key, value) => key === 'position' ? undefined : value, 2));
             logger.debug("--- End MDAST Root ---");
         }
     } catch (error) {
@@ -749,8 +748,7 @@ export function parseMarkdownContent<OutputSchema extends z.AnyZodObject>(
         sectionTree = buildSectionTree(root);
         if (debug) {
             logger.debug("--- Section Tree ---");
-            // console.log(JSON.stringify(sectionTree, null, 2)); // Full tree can be huge
-            console.log(JSON.stringify(sectionTree, (key, value) => key === 'position' ? undefined : value, 2)); // Cleaner log
+            logger.debug(JSON.stringify(sectionTree, (key, value) => key === 'position' ? undefined : value, 2));
             logger.debug("--- End Section Tree ---");
         }
     } catch (error) {
@@ -763,10 +761,10 @@ export function parseMarkdownContent<OutputSchema extends z.AnyZodObject>(
     let draftData: any;
     try {
         // Pass the original schema (including wrappers) to the mapping function
-        draftData = mapSectionToSchema(sectionTree, schema, [], debug, schema); // Pass root schema
+        draftData = mapSectionToSchema(sectionTree, schema, [], debug, schema);
         if (debug) {
             logger.debug("--- Draft Data (Before Validation) ---");
-            console.log(JSON.stringify(draftData, null, 2));
+            logger.debug(JSON.stringify(draftData, null, 2));
             logger.debug("--- End Draft Data ---");
         }
     } catch (error) {

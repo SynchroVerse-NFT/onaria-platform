@@ -14,7 +14,7 @@ import {
     type ChatCompletionChunk,
 } from 'openai/resources.mjs';
 import { Message, MessageContent, MessageRole } from './common';
-import { ToolCallResult, ToolDefinition } from '../tools/types';
+import { ToolCallResult, ToolDefinition, AnyToolDefinition } from '../tools/types';
 import { AgentActionKey, AIModels, InferenceMetadata } from './config.types';
 // import { SecretsService } from '../../database';
 import { RateLimitService } from '../../services/rate-limit/rateLimits';
@@ -54,12 +54,9 @@ function accumulateToolCallDelta(
     // Look up existing entry by id or index
     if (idFromDelta && byId.has(idFromDelta)) {
         entry = byId.get(idFromDelta)!;
-        console.log(`[TOOL_CALL_DEBUG] Found existing entry by id: ${idFromDelta}`);
     } else if (idx !== undefined && byIndex.has(idx)) {
         entry = byIndex.get(idx)!;
-        console.log(`[TOOL_CALL_DEBUG] Found existing entry by index: ${idx}`);
     } else {
-        console.log(`[TOOL_CALL_DEBUG] Creating new entry - id: ${idFromDelta}, index: ${idx}`);
         // Create new entry
         const provisionalId = idFromDelta || synthIdForIndex(idx ?? byId.size);
         entry = {
@@ -116,17 +113,6 @@ function accumulateToolCallDelta(
 
         if (!isComplete) {
             entry.function.arguments += chunk;
-
-            // Debug logging for tool call argument accumulation
-            console.log(`[TOOL_CALL_DEBUG] Accumulating arguments for ${entry.function.name || 'unknown'}:`, {
-                id: entry.id,
-                index: entry.index,
-                before_length: before.length,
-                chunk_length: chunk.length,
-                chunk_content: chunk,
-                after_length: entry.function.arguments.length,
-                after_content: entry.function.arguments
-            });
         }
     }
 }
@@ -187,33 +173,24 @@ function optimizeTextContent(content: string): string {
 }
 
 export async function buildGatewayUrl(env: Env, providerOverride?: AIGatewayProviders): Promise<string> {
-    console.log(`[DEBUG] buildGatewayUrl called with providerOverride: "${providerOverride}", type: ${typeof providerOverride}`);
-
-    // If CLOUDFLARE_AI_GATEWAY_URL is set and is a valid URL, use it directly
     if (env.CLOUDFLARE_AI_GATEWAY_URL &&
         env.CLOUDFLARE_AI_GATEWAY_URL !== 'none' &&
         env.CLOUDFLARE_AI_GATEWAY_URL.trim() !== '') {
 
         try {
             const url = new URL(env.CLOUDFLARE_AI_GATEWAY_URL);
-            // Validate it's actually an HTTP/HTTPS URL
             if (url.protocol === 'http:' || url.protocol === 'https:') {
-                // Add 'providerOverride' as a segment to the URL
-                const cleanPathname = url.pathname.replace(/\/$/, ''); // Remove trailing slash
+                const cleanPathname = url.pathname.replace(/\/$/, '');
                 url.pathname = providerOverride ? `${cleanPathname}/${providerOverride}` : `${cleanPathname}/compat`;
-                console.log(`[DEBUG] Using CLOUDFLARE_AI_GATEWAY_URL path, returning: ${url.toString()}`);
                 return url.toString();
             }
-        } catch (error) {
+        } catch {
             // Invalid URL, fall through to use bindings
-            console.warn(`Invalid CLOUDFLARE_AI_GATEWAY_URL provided: ${env.CLOUDFLARE_AI_GATEWAY_URL}. Falling back to AI bindings.`);
         }
     }
 
-    // Build the url via bindings
     const gateway = env.AI.gateway(env.CLOUDFLARE_AI_GATEWAY);
     const baseUrl = providerOverride ? await gateway.getUrl(providerOverride) : `${await gateway.getUrl()}compat`;
-    console.log(`[DEBUG] Using AI bindings path, providerOverride=${providerOverride}, returning: ${baseUrl}`);
     return baseUrl;
 }
 
@@ -229,31 +206,11 @@ function isValidApiKey(apiKey: string): boolean {
 }
 
 async function getApiKey(provider: string, env: Env, _userId: string): Promise<string> {
-    console.log("Getting API key for provider: ", provider);
-    // try {
-    //     const secretsService = new SecretsService(env);
-    //     const userProviderKeys = await secretsService.getUserBYOKKeysMap(userId);
-    //     // First check if user has a custom API key for this provider
-    //     if (userProviderKeys && provider in userProviderKeys) {
-    //         const userKey = userProviderKeys.get(provider);
-    //         if (userKey && isValidApiKey(userKey)) {
-    //             console.log("Found user API key for provider: ", provider, userKey);
-    //             return userKey;
-    //         }
-    //     }
-    // } catch (error) {
-    //     console.error("Error getting API key for provider: ", provider, error);
-    // }
-    // Fallback to environment variables
     const providerKeyString = provider.toUpperCase().replaceAll('-', '_');
     const envKey = `${providerKeyString}_API_KEY` as keyof Env;
     let apiKey: string = env[envKey] as string;
 
-    console.log(`[DEBUG] getApiKey: provider=${provider}, envKey=${envKey}, hasKey=${!!apiKey}, keyValid=${isValidApiKey(apiKey)}, keyLength=${apiKey?.length || 0}, keyPrefix=${apiKey?.substring(0, 10) || 'none'}`);
-
-    // Check if apiKey is empty or undefined and is valid
     if (!isValidApiKey(apiKey)) {
-        console.log(`[DEBUG] getApiKey: Invalid or missing API key for ${provider}, falling back to CLOUDFLARE_AI_GATEWAY_TOKEN`);
         apiKey = env.CLOUDFLARE_AI_GATEWAY_TOKEN;
     }
     return apiKey;
@@ -299,9 +256,7 @@ export async function getConfigurationForModel(
     // Check for Gateway token - try new name first, then legacy name
     const gatewayToken = env.AI_GATEWAY_AUTH_TOKEN || env.CLOUDFLARE_AI_GATEWAY_TOKEN || "";
 
-    // If providerOverride is 'direct', bypass AI Gateway and use direct provider URLs
     if (configProviderOverride === 'direct') {
-        console.log(`[Gateway] Provider override set to 'direct', using direct provider URL for: ${provider}`);
         if (provider === 'google-ai-studio') {
             return {
                 baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
@@ -375,7 +330,7 @@ type InferArgsBase = {
         chunk_size: number;
         onChunk: (chunk: string) => void;
     };
-    tools?: ToolDefinition<any, any>[];
+    tools?: AnyToolDefinition[];
     providerOverride?: 'cloudflare' | 'direct';
     userApiKeys?: Record<string, string>;
     abortSignal?: AbortSignal;
@@ -477,7 +432,6 @@ async function executeToolCalls(openAiToolCalls: ChatCompletionMessageFunctionTo
                     throw new Error(`Tool ${tc.function.name} not found`);
                 }
                 const result = await executeToolWithDefinition(td, args);
-                console.log(`Tool execution result for ${tc.function.name}:`, result);
                 return {
                     id: tc.id,
                     name: tc.function.name,
@@ -561,7 +515,6 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
         await RateLimitService.enforceLLMCallsRateLimit(env, userConfig.security.rateLimit, metadata.userId, modelName)
 
         const { apiKey, baseURL, defaultHeaders } = await getConfigurationForModel(modelName, env, metadata.userId, providerOverride);
-        console.log(`baseUrl: ${baseURL}, modelName: ${modelName}`);
 
         // Remove [*.] from model name
         modelName = modelName.replace(/\[.*?\]/, '');
@@ -587,9 +540,7 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
                 }
             : {};
 
-        // Optimize messages to reduce token count
         const optimizedMessages = optimizeInputs(messages);
-        console.log(`Token optimization: Original messages size ~${JSON.stringify(messages).length} chars, optimized size ~${JSON.stringify(optimizedMessages).length} chars`);
 
         let messagesToPass = [...optimizedMessages];
         if (toolCallContext && toolCallContext.messages) {
@@ -645,8 +596,6 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
             }
         }
 
-        console.log(`Running inference with ${modelName} using structured output with ${format} format, reasoning effort: ${reasoning_effort}, max tokens: ${maxTokens}, temperature: ${temperature}, baseURL: ${baseURL}`);
-
         const toolsOpts = tools ? { tools, tool_choice: 'auto' as const } : {};
         let response: OpenAI.ChatCompletion | OpenAI.ChatCompletionChunk | Stream<OpenAI.ChatCompletionChunk>;
         try {
@@ -672,11 +621,8 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
                     })
                 }
             });
-            console.log(`Inference response received`);
         } catch (error) {
-            // Check if error is due to abort
             if (error instanceof Error && (error.name === 'AbortError' || error.message?.includes('aborted') || error.message?.includes('abort'))) {
-                console.log('Inference cancelled by user');
                 throw new AbortError('**User cancelled inference**', toolCallContext);
             }
             
@@ -700,12 +646,6 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
                 
                 for await (const event of response) {
                     const delta = (event as ChatCompletionChunk).choices[0]?.delta;
-                    
-                    // Provider-specific logging
-                    const provider = modelName.split('/')[0];
-                    if (delta?.tool_calls && (provider === 'google-ai-studio' || provider === 'gemini')) {
-                        console.log(`[PROVIDER_DEBUG] ${provider} tool_calls delta:`, JSON.stringify(delta.tool_calls, null, 2));
-                    }
                     
                     if (delta?.tool_calls) {
                         try {
@@ -742,9 +682,7 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
                     }
                     if (toolCall.function.arguments) {
                         try {
-                            // Validate JSON arguments early for visibility
-                            const parsed = JSON.parse(toolCall.function.arguments);
-                            console.log(`[TOOL_CALL_VALIDATION] Successfully parsed arguments for ${toolCall.function.name}:`, parsed);
+                            JSON.parse(toolCall.function.arguments);
                         } catch (error) {
                             console.error(`[TOOL_CALL_VALIDATION] Invalid JSON in tool call arguments for ${toolCall.function.name}:`, {
                                 error: error instanceof Error ? error.message : String(error),
@@ -776,26 +714,18 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
                 console.warn(`[TOOL_CALL_WARNING] Dropping ${droppedNonStream.length} non-stream tool_call(s) without function name`, droppedNonStream);
             }
             toolCalls = allToolCalls.filter(tc => tc.function.name && tc.function.name.trim() !== '');
-            // Also print the total number of tokens used in the prompt
-            const totalTokens = (response as OpenAI.ChatCompletion).usage?.total_tokens;
-            console.log(`Total tokens used in prompt: ${totalTokens}`);
         }
 
         if (!content && !stream && !toolCalls.length) {
-            // // Only error if not streaming and no content
-            // console.error('No content received from OpenAI', JSON.stringify(response, null, 2));
-            // throw new Error('No content received from OpenAI');
             console.warn('No content received from OpenAI', JSON.stringify(response, null, 2));
             return { string: "", toolCallContext };
         }
         let executedToolCalls: ToolCallResult[] = [];
         if (tools) {
-            // console.log(`Tool calls:`, JSON.stringify(toolCalls, null, 2), 'definition:', JSON.stringify(tools, null, 2));
             executedToolCalls = await executeToolCalls(toolCalls, tools);
         }
 
         if (executedToolCalls.length) {
-            console.log(`Tool calls executed:`, JSON.stringify(executedToolCalls, null, 2));
             // Generate a new response with the tool calls executed
             const newMessages = [
                 ...(toolCallContext?.messages || []),
@@ -817,8 +747,7 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
             };
             
             const executedCallsWithResults = executedToolCalls.filter(result => result.result);
-            console.log(`${actionKey}: Tool calling depth: ${newDepth}/${getMaxToolCallingDepth(actionKey)}`);
-            
+
             if (executedCallsWithResults.length) {
                 if (schema && schemaName) {
                     const output = await infer<OutputSchema>({
@@ -875,8 +804,6 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
             const result = schema.safeParse(parsedContent);
 
             if (!result.success) {
-                console.log('Raw content:', content);
-                console.log('Parsed data:', parsedContent);
                 console.error('Schema validation errors:', result.error.format());
                 throw new Error(`Failed to validate AI response against schema: ${result.error.message}`);
             }

@@ -37,4 +37,5 @@
 		}
 	},
 	"include": ["src", "shared"],
+	"exclude": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "test/**/*"]
 }

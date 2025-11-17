@@ -183,7 +183,7 @@ export class AutoScreenshotSystem {
     });
   }
 
-  private async captureAuto(trigger: string) {
+  private async captureAuto(_trigger: string) {
     try {
       const screenshot = await captureScreenshot({
         quality: 0.6,
@@ -204,11 +204,6 @@ export class AutoScreenshotSystem {
       }
 
       this.onScreenshot?.(screenshot);
-      
-      console.log(`Auto screenshot captured: ${trigger}`, {
-        timestamp: screenshot.metadata.timestamp,
-        url: screenshot.metadata.url
-      });
     } catch (error) {
       console.error('Auto screenshot failed:', error);
     }

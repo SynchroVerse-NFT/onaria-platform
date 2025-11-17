@@ -90,7 +90,7 @@ export class AppService extends BaseService {
                 this.logger.error('executeRankedQuery failed', {
                     errorMessage: error instanceof Error ? error.message : String(error),
                     errorName: error instanceof Error ? error.name : 'UnknownError',
-                    errorCause: (error as any)?.cause,
+                    errorCause: error instanceof Error && 'cause' in error ? error.cause : undefined,
                     errorStack: error instanceof Error ? error.stack?.split('\n').slice(0, 5).join('\n') : undefined,
                     sort,
                     period,
@@ -109,7 +109,7 @@ export class AppService extends BaseService {
                     this.logger.error('Count query failed', {
                         errorMessage: error instanceof Error ? error.message : String(error),
                         errorName: error instanceof Error ? error.name : 'UnknownError',
-                        errorCause: (error as any)?.cause
+                        errorCause: error instanceof Error && 'cause' in error ? error.cause : undefined
                     });
                     throw error;
                 });
@@ -162,8 +162,8 @@ export class AppService extends BaseService {
             this.logger.error('getPublicApps failed', {
                 errorMessage: error instanceof Error ? error.message : String(error),
                 errorName: error instanceof Error ? error.name : 'UnknownError',
-                errorCause: (error as any)?.cause,
-                errorType: error?.constructor?.name || 'Unknown',
+                errorCause: error instanceof Error && 'cause' in error ? error.cause : undefined,
+                errorType: error instanceof Object ? error.constructor?.name : 'Unknown',
                 options
             });
             throw error;
@@ -176,21 +176,29 @@ export class AppService extends BaseService {
      */
     private buildCommonAppFilters(framework?: string, search?: string): WhereCondition[] {
         const conditions: WhereCondition[] = [];
-        
+
         if (framework) {
             conditions.push(eq(schema.apps.framework, framework));
         }
-        
+
         if (search) {
-            const searchTerm = `%${search.toLowerCase()}%`;
+            // Escape special LIKE characters: %, _, \
+            // This prevents SQL injection in LIKE patterns
+            const escapedSearch = search
+                .replace(/\\/g, '\\\\')  // Escape backslash first
+                .replace(/%/g, '\\%')     // Escape percent
+                .replace(/_/g, '\\_')     // Escape underscore
+                .toLowerCase();
+
+            const searchTerm = `%${escapedSearch}%`;
             conditions.push(
                 or(
-                    sql`LOWER(${schema.apps.title}) LIKE ${searchTerm}`,
-                    sql`LOWER(${schema.apps.description}) LIKE ${searchTerm}`
+                    sql`LOWER(${schema.apps.title}) LIKE ${searchTerm} ESCAPE '\\'`,
+                    sql`LOWER(${schema.apps.description}) LIKE ${searchTerm} ESCAPE '\\'`
                 )
             );
         }
-        
+
         return conditions.filter(Boolean);
     }
 
