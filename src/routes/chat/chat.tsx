@@ -353,7 +353,6 @@ export default function Chat() {
 			urlChatId !== 'new' &&
 			app &&
 			app.status === 'completed' &&
-			previewUrl &&
 			!isGeneratingBlueprint &&
 			!isBootstrapping
 		) {
@@ -363,7 +362,7 @@ export default function Chat() {
 				setManualRefreshTrigger(Date.now());
 			}, 1000);
 		}
-	}, [urlChatId, app, previewUrl, isGeneratingBlueprint, isBootstrapping]);
+	}, [urlChatId, app, isGeneratingBlueprint, isBootstrapping]);
 
 	useEffect(() => {
 		if (chatId) {
