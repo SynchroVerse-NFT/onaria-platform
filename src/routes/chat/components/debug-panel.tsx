@@ -1070,14 +1070,14 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                 return (
                   <div
                     key={message.id}
-                    className={`border-l-4 rounded-r-lg p-3 pr-10 transition-all relative ${
+                    className={`border-l-4 rounded-r-lg p-3 pr-10 transition-all relative backdrop-blur-sm ${
                       message.type === 'error'
-                        ? 'border-red-500 bg-red-50 dark:bg-gradient-to-r dark:from-red-500/10 dark:to-orange-600/10 dark:border-red-400 dark:shadow-[0_0_10px_rgba(239,68,68,0.2)]'
+                        ? 'border-red-500 bg-red-50 dark:bg-gradient-to-r dark:from-red-500/25 dark:to-orange-600/20 dark:border-red-400 dark:shadow-[0_0_10px_rgba(239,68,68,0.2)]'
                         : message.type === 'warning'
-                        ? 'border-yellow-500 bg-yellow-50 dark:bg-gradient-to-r dark:from-yellow-500/10 dark:to-amber-500/10 dark:border-yellow-400'
+                        ? 'border-yellow-500 bg-yellow-50 dark:bg-gradient-to-r dark:from-yellow-500/25 dark:to-amber-500/20 dark:border-yellow-400'
                         : message.type === 'websocket'
-                        ? 'border-purple-500 bg-purple-50 dark:bg-gradient-to-r dark:from-purple-500/10 dark:to-blue-500/10 dark:border-purple-400'
-                        : 'border-blue-500 bg-blue-50 dark:bg-gradient-to-r dark:from-blue-500/10 dark:to-purple-500/10 dark:border-[#64b5f6]'
+                        ? 'border-purple-500 bg-purple-50 dark:bg-gradient-to-r dark:from-purple-500/25 dark:to-blue-500/20 dark:border-purple-400'
+                        : 'border-blue-500 bg-blue-50 dark:bg-gradient-to-r dark:from-blue-500/25 dark:to-purple-500/20 dark:border-[#64b5f6]'
                     } ${bookmarkedMessages.has(message.id) ? 'ring-2 ring-amber-300 dark:ring-amber-400/50' : ''}`}
                   >
                     {/* Bookmark Button */}
@@ -1102,12 +1102,12 @@ function DebugPanelCore({ messages, onClear, chatSessionId }: DebugPanelProps) {
                           {message.type}
                         </span>
                         {message.messageType && (
-                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-mono dark:bg-[#a855f7]/30 dark:text-purple-200 dark:border dark:border-[#a855f7]/40">
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-mono dark:bg-purple-500/40 dark:text-purple-100 dark:border dark:border-purple-400/60">
                             {message.messageType}
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-gray-600 dark:text-gray-300">
+                      <span className="text-xs text-gray-600 dark:text-gray-200">
                         {new Date(message.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
