@@ -42,6 +42,7 @@ import { looksLikeCommand, validateAndCleanBootstrapCommands } from '../utils/co
 import { customizePackageJson, customizeTemplateFiles, generateBootstrapScript, generateProjectName } from '../utils/templateCustomizer';
 import { generateBlueprint } from '../planning/blueprint';
 import { AppService } from '../../database';
+import { TrackedFeatureService } from '../../database/services/TrackedFeatureService';
 import { RateLimitExceededError } from 'shared/types/errors';
 import { ImageAttachment, type ProcessedImageAttachment } from '../../types/image-attachment';
 import { OperationOptions } from '../operations/common';
@@ -712,6 +713,17 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             userId: this.state.inferenceContext.userId,
             title: this.state.blueprint.title
         });
+
+        // Save tracked features to database
+        if (this.state.trackedFeatures && this.state.trackedFeatures.length > 0) {
+            const trackedFeatureService = new TrackedFeatureService(this.env);
+            await trackedFeatureService.createTrackedFeatures(
+                this.state.inferenceContext.agentId,
+                this.state.trackedFeatures
+            );
+            this.logger().info(`Saved ${this.state.trackedFeatures.length} tracked features to database`);
+        }
+
         this.logger().info(`Agent initialized successfully for agent ${this.state.inferenceContext.agentId}`);
     }
 
@@ -917,6 +929,13 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         this.broadcastMessage({
             type: 'features_added',
             features: [trackedFeature]
+        });
+
+        // Save tracked feature to database
+        const trackedFeatureService = new TrackedFeatureService(this.env);
+        await trackedFeatureService.createTrackedFeature({
+            ...trackedFeature,
+            appId: this.state.inferenceContext.agentId
         });
 
         if (images && images.length > 0) {
