@@ -339,7 +339,23 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         );
         
         this.logger().info('Generated project name', { projectName });
-        
+
+        // Create tracked feature for the initial query
+        const initialTrackedFeature: TrackedFeature = {
+            id: `feat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            description: query,
+            status: 'pending',
+            requestedAt: Math.floor(Date.now() / 1000),
+            requestedInPhase: 0, // Phase 0 = initial request
+            requiresConfirmation: true,
+            userConfirmed: false,
+        };
+
+        this.logger().info('Tracked initial feature', {
+            featureId: initialTrackedFeature.id,
+            description: query.substring(0, 100) + '...'
+        });
+
         this.setState({
             ...this.initialState,
             projectName,
@@ -353,6 +369,7 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             sessionId: sandboxSessionId,
             hostname,
             inferenceContext,
+            trackedFeatures: [initialTrackedFeature],
         });
 
         await this.gitInit();
@@ -389,6 +406,13 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         });
         this.logger().info(`Agent ${this.getAgentId()} session: ${this.state.sessionId} initialized successfully`);
         await this.saveToDatabase();
+
+        // Broadcast initial tracked feature to frontend
+        this.broadcastMessage({
+            type: 'features_added',
+            features: [initialTrackedFeature]
+        });
+
         return this.state;
     }
 
