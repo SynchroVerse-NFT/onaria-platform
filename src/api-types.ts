@@ -59,6 +59,16 @@ export type {
   AgentAnalyticsResponseData,
 } from 'worker/api/controllers/analytics/types';
 
+// Usage and Cost Tracking API Types
+export type {
+  UsageStatsData,
+  TotalCostData,
+  RecentUsageData,
+  LLMUsageRecord
+} from 'worker/api/controllers/usage/types';
+
+export type { UsageStats } from 'worker/database/services/LLMUsageService';
+
 export type { PlatformStatusData } from 'worker/api/controllers/status/types';
 
 // Model Config API Types

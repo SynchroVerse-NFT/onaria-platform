@@ -23,6 +23,32 @@ import { SecurityError, RateLimitExceededError } from 'shared/types/errors';
 import { executeToolWithDefinition } from '../tools/customTools';
 import { RateLimitType } from 'worker/services/rate-limit/config';
 import { getMaxToolCallingDepth, MAX_LLM_MESSAGES } from '../constants';
+import { LLMUsageService } from '../../database/services/LLMUsageService';
+
+/**
+ * Helper function to record LLM usage asynchronously
+ */
+async function recordLLMUsage(
+    env: Env,
+    params: {
+        userId: string;
+        appId: string;
+        agentActionName: string;
+        modelName: string;
+        promptTokens: number;
+        completionTokens: number;
+        totalTokens: number;
+        metadata?: Record<string, unknown>;
+    }
+): Promise<void> {
+    try {
+        const usageService = new LLMUsageService(env);
+        await usageService.recordUsage(params);
+    } catch (error) {
+        // Log but don't throw - usage tracking should not break inference
+        console.error('Error recording LLM usage:', error);
+    }
+}
 
 function optimizeInputs(messages: Message[]): Message[] {
     return messages.map((message) => ({
@@ -714,6 +740,29 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
                 console.warn(`[TOOL_CALL_WARNING] Dropping ${droppedNonStream.length} non-stream tool_call(s) without function name`, droppedNonStream);
             }
             toolCalls = allToolCalls.filter(tc => tc.function.name && tc.function.name.trim() !== '');
+        }
+
+        // Extract usage data from response for cost tracking
+        const usage = (response as OpenAI.ChatCompletion).usage;
+        if (usage) {
+            // Record usage asynchronously (don't block on it)
+            recordLLMUsage(env, {
+                userId: metadata.userId,
+                appId: metadata.agentId, // Using agentId as appId for now
+                agentActionName: actionKey,
+                modelName,
+                promptTokens: usage.prompt_tokens || 0,
+                completionTokens: usage.completion_tokens || 0,
+                totalTokens: usage.total_tokens || 0,
+                metadata: {
+                    schemaName,
+                    hasTools: Boolean(tools && tools.length > 0),
+                    streaming: Boolean(stream),
+                    reasoningEffort: reasoning_effort,
+                },
+            }).catch(error => {
+                console.error('Failed to record LLM usage:', error);
+            });
         }
 
         if (!content && !stream && !toolCalls.length) {

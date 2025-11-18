@@ -617,3 +617,4 @@ Deployment:
 - Deployed: 2025-11-15 (UTC)
 - When you are going to "wait" for something to complete, you need to set a timeout in the foreground
 - When writting in the UI box, you need to add all the text in one prompt
+- use wrangler to deploy, not npm

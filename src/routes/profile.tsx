@@ -22,12 +22,14 @@ import {
   X,
   Globe,
   Zap,
+  DollarSign,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { capitalizeFirstLetter, cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useUserStats, useUserActivity } from '@/hooks/use-stats';
+import { useTotalCost } from '@/hooks/use-usage';
 import { apiClient } from '@/lib/api-client';
 import { useApps } from '@/hooks/use-apps';
 
@@ -58,6 +60,7 @@ export default function Profile() {
   const { stats, loading: statsLoading } = useUserStats();
   const { activities = [], loading: activityLoading } = useUserActivity();
   const { apps: recentApps, loading: appsLoading } = useApps();
+  const { totalCost, loading: costLoading } = useTotalCost({ period: '30d' });
 
   // Transform achievements from stats
   const achievements = stats?.achievements || [];
@@ -193,6 +196,16 @@ export default function Profile() {
               <Star className="h-32 w-32 text-cosmic-orange absolute -top-10 -left-6 opacity-10" />
               <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-orange to-cosmic-blue bg-clip-text text-transparent">{statsLoading ? '-' : stats?.totalLikesReceived}</p>
               <p className="text-md text-text-tertiary">Total Likes</p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center hover:shadow-lg hover:shadow-green-500/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-green-500/20">
+            <CardContent className="pt-6 relative overflow-hidden">
+              <DollarSign className="h-32 w-32 text-green-500 absolute -top-10 -left-6 opacity-10" />
+              <p className="text-6xl font-semibold bg-gradient-to-br from-green-500 to-emerald-400 bg-clip-text text-transparent">
+                {costLoading ? '-' : `$${totalCost.toFixed(4)}`}
+              </p>
+              <p className="text-md text-text-tertiary">LLM Cost (30d)</p>
             </CardContent>
           </Card>
 

@@ -21,6 +21,9 @@ import type{
 	UserActivityData,
 	UserAnalyticsResponseData,
 	AgentAnalyticsResponseData,
+	UsageStatsData,
+	TotalCostData,
+	RecentUsageData,
 	ModelConfigsData,
 	ModelConfigData,
 	ModelConfigUpdateData,
@@ -673,6 +676,57 @@ class ApiClient {
 		return this.request<AgentAnalyticsResponseData>(
 			`/api/agent/${agentId}/analytics${queryParams}`,
 		);
+	}
+
+	// ===============================
+	// Usage and Cost Tracking API Methods
+	// ===============================
+
+	/**
+	 * Get user LLM usage statistics
+	 */
+	async getUserUsageStats(params?: {
+		startDate?: string;
+		endDate?: string;
+		period?: '7d' | '30d' | '90d' | 'all';
+	}): Promise<ApiResponse<UsageStatsData>> {
+		const queryParams = new URLSearchParams();
+		if (params?.startDate) queryParams.set('startDate', params.startDate);
+		if (params?.endDate) queryParams.set('endDate', params.endDate);
+		if (params?.period) queryParams.set('period', params.period);
+		const query = queryParams.toString();
+		return this.request<UsageStatsData>(`/api/usage/stats${query ? `?${query}` : ''}`);
+	}
+
+	/**
+	 * Get usage statistics for a specific app
+	 */
+	async getAppUsageStats(appId: string): Promise<ApiResponse<UsageStatsData>> {
+		return this.request<UsageStatsData>(`/api/usage/app/${appId}`);
+	}
+
+	/**
+	 * Get user's total LLM cost
+	 */
+	async getUserTotalCost(params?: {
+		startDate?: string;
+		endDate?: string;
+		period?: '7d' | '30d' | '90d' | 'all';
+	}): Promise<ApiResponse<TotalCostData>> {
+		const queryParams = new URLSearchParams();
+		if (params?.startDate) queryParams.set('startDate', params.startDate);
+		if (params?.endDate) queryParams.set('endDate', params.endDate);
+		if (params?.period) queryParams.set('period', params.period);
+		const query = queryParams.toString();
+		return this.request<TotalCostData>(`/api/usage/total-cost${query ? `?${query}` : ''}`);
+	}
+
+	/**
+	 * Get recent LLM usage records
+	 */
+	async getRecentUsage(limit?: number): Promise<ApiResponse<RecentUsageData>> {
+		const query = limit ? `?limit=${limit}` : '';
+		return this.request<RecentUsageData>(`/api/usage/recent${query}`);
 	}
 
 	// ===============================

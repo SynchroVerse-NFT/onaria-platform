@@ -1,7 +1,7 @@
 {
 	"name": "onaria-platform",
 	"private": true,
-	"version": "2.1.38",
+	"version": "2.1.40",
 	"description": "AI-powered full-stack application generation platform with cosmic design system, built on Cloudflare infrastructure",
 	"type": "module",
 	"scripts": {
@@ -25,8 +25,8 @@
 		"test:all": "npm run test && npm run test:integration && npm run test:e2e",
 		"db:generate": "drizzle-kit generate --config=drizzle.config.local.ts",
 		"db:generate:remote": "drizzle-kit generate --config=drizzle.config.remote.ts",
-		"db:migrate:local": "wrangler d1 migrations apply vibesdk-db --local",
-		"db:migrate:remote": "CI=true wrangler d1 migrations apply vibesdk-db --remote",
+		"db:migrate:local": "wrangler d1 migrations apply onaria_db --local",
+		"db:migrate:remote": "CI=true wrangler d1 migrations apply onaria_db --remote",
 		"db:studio": "drizzle-kit studio --config=drizzle.config.local.ts",
 		"db:studio:remote": "drizzle-kit studio --config=drizzle.config.remote.ts",
 		"db:drop": "drizzle-kit drop --config=drizzle.config.local.ts",

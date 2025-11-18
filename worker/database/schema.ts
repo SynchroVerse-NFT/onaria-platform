@@ -649,3 +649,49 @@ export type NewUserModelProvider = typeof userModelProviders.$inferInsert;
 
 export type Star = typeof stars.$inferSelect;
 export type NewStar = typeof stars.$inferInsert;
+
+// ========================================
+// LLM USAGE AND COST TRACKING
+// ========================================
+
+/**
+ * LLM Usage table - Track token usage and costs for all LLM API calls
+ * Enables cost analytics, budget monitoring, and usage optimization
+ */
+export const llmUsage = sqliteTable('llm_usage', {
+    id: text('id').primaryKey(),
+
+    // Context - Who and What
+    userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }), // Null for system operations
+    appId: text('app_id').references(() => apps.id, { onDelete: 'cascade' }), // Null for non-app operations
+
+    // Operation Details
+    agentActionName: text('agent_action_name').notNull(), // Maps to AgentActionKey (user_conversation, phase_generation, etc.)
+    modelName: text('model_name').notNull(), // Model used (gpt-4o, claude-sonnet-4, gemini-2.0-flash, etc.)
+    provider: text('provider').notNull(), // Provider (openai, anthropic, google-ai-studio, etc.)
+
+    // Token Usage
+    promptTokens: integer('prompt_tokens').notNull(), // Input tokens
+    completionTokens: integer('completion_tokens').notNull(), // Output tokens
+    totalTokens: integer('total_tokens').notNull(), // Total tokens
+
+    // Cost
+    cost: real('cost').notNull(), // Calculated cost in USD
+
+    // Additional Context
+    metadata: text('metadata', { mode: 'json' }), // Additional context (tool calls, streaming, reasoning effort, etc.)
+
+    // Timing
+    requestedAt: integer('requested_at', { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull(),
+}, (table) => ({
+    userIdIdx: index('llm_usage_user_id_idx').on(table.userId),
+    appIdIdx: index('llm_usage_app_id_idx').on(table.appId),
+    agentActionIdx: index('llm_usage_agent_action_idx').on(table.agentActionName),
+    providerIdx: index('llm_usage_provider_idx').on(table.provider),
+    requestedAtIdx: index('llm_usage_requested_at_idx').on(table.requestedAt),
+    userRequestedAtIdx: index('llm_usage_user_requested_at_idx').on(table.userId, table.requestedAt),
+    appRequestedAtIdx: index('llm_usage_app_requested_at_idx').on(table.appId, table.requestedAt),
+}));
+
+export type LLMUsage = typeof llmUsage.$inferSelect;
+export type NewLLMUsage = typeof llmUsage.$inferInsert;

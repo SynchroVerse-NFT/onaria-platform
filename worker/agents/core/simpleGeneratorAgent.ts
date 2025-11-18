@@ -1167,6 +1167,13 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                 throw error;
             }
             this.broadcastError("Error generating phase", error);
+
+            // Clear isThinking state in frontend by sending PHASE_GENERATED message
+            this.broadcast(WebSocketMessageResponses.PHASE_GENERATED, {
+                message: "Phase generation failed due to an error",
+                phase: undefined
+            });
+
             return {
                 currentDevState: CurrentDevState.IDLE,
             };

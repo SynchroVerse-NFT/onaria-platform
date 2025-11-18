@@ -10,6 +10,7 @@ import { setupGitHubExporterRoutes } from './githubExporterRoutes';
 import { setupCodegenRoutes } from './codegenRoutes';
 import { setupScreenshotRoutes } from './imagesRoutes';
 import { setupSentryRoutes } from './sentryRoutes';
+import { setupUsageRoutes } from './usageRoutes';
 import { Hono } from "hono";
 import { AppEnv } from "../../types/appenv";
 import { setupStatusRoutes } from './statusRoutes';
@@ -43,7 +44,10 @@ export function setupRoutes(app: Hono<AppEnv>): void {
     
     // AI Gateway Analytics routes
     setupAnalyticsRoutes(app);
-    
+
+    // LLM Usage and Cost Tracking routes
+    setupUsageRoutes(app);
+
     // Secrets management routes
     setupSecretsRoutes(app);
     
