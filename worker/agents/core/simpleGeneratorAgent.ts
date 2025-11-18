@@ -409,8 +409,7 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         await this.saveToDatabase();
 
         // Broadcast initial tracked feature to frontend
-        this.broadcastMessage({
-            type: 'features_added',
+        this.broadcast('features_added', {
             features: [initialTrackedFeature]
         });
 
@@ -926,8 +925,7 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         });
 
         // Broadcast feature addition to frontend
-        this.broadcastMessage({
-            type: 'features_added',
+        this.broadcast('features_added', {
             features: [trackedFeature]
         });
 
@@ -1083,8 +1081,7 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             });
 
             if (completedFeatures.some(f => f.status === 'completed')) {
-                this.broadcastMessage({
-                    type: 'features_updated',
+                this.broadcast('features_updated', {
                     features: completedFeatures
                         .filter(f => f.status === 'completed')
                         .map(f => ({
@@ -1290,8 +1287,7 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             });
 
             // Send feature confirmation request to user
-            this.broadcastMessage({
-                type: 'feature_confirmation_required',
+            this.broadcast('feature_confirmation_required', {
                 features: pendingFeatures.map(f => ({
                     id: f.id,
                     description: f.description,
