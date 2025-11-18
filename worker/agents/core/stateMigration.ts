@@ -200,6 +200,17 @@ export class StateMigration {
             logger.info('Generating missing projectName', { projectName: migratedProjectName });
         }
 
+        //------------------------------------------------------------------------------------
+        // Migrate trackedFeatures -> initialize if missing
+        //------------------------------------------------------------------------------------
+        let migratedTrackedFeatures = state.trackedFeatures;
+        if (!state.trackedFeatures) {
+            // Initialize empty tracked features array for older apps
+            migratedTrackedFeatures = [];
+            needsMigration = true;
+            logger.info('Initializing trackedFeatures array for feature tracking system');
+        }
+
         if (needsMigration) {
             logger.info('Migrating state: schema format, conversation cleanup, security fixes, and bootstrap setup', {
                 generatedFilesCount: Object.keys(migratedFilesMap).length,
@@ -214,7 +225,8 @@ export class StateMigration {
                 inferenceContext: migratedInferenceContext,
                 projectUpdatesAccumulator: [],
                 templateName: migratedTemplateName,
-                projectName: migratedProjectName
+                projectName: migratedProjectName,
+                trackedFeatures: migratedTrackedFeatures
             };
 
             // Remove deprecated fields by reconstructing without them

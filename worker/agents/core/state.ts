@@ -14,6 +14,20 @@ export interface PhaseState extends PhaseConceptType {
     completed: boolean;
 }
 
+export type TrackedFeatureStatus = 'pending' | 'in_progress' | 'completed' | 'deferred' | 'cancelled';
+
+export interface TrackedFeature {
+    id: string;                    // Unique ID (uuid)
+    description: string;           // Feature description
+    status: TrackedFeatureStatus;  // Current status
+    requestedAt: number;           // Timestamp (unixepoch)
+    requestedInPhase: number;      // Phase number when requested
+    implementedInPhase?: number;   // Phase number when completed
+    requiresConfirmation: boolean; // Whether to ask user
+    userConfirmed?: boolean;       // User confirmation status
+    notes?: string;                // LLM explanation (why deferred, etc.)
+}
+
 export enum CurrentDevState {
     IDLE,
     PHASE_GENERATING,
@@ -44,6 +58,7 @@ export interface CodeGenState {
     phasesCounter: number;
 
     pendingUserInputs: string[];
+    trackedFeatures: TrackedFeature[]; // Individual feature tracking with validation
     currentDevState: CurrentDevState;
     reviewCycles?: number; // Number of review cycles for code review phase
     currentPhase?: PhaseConceptType; // Current phase being worked on

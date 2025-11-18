@@ -483,6 +483,42 @@ type AutoFixAbortedMessage = {
 	queueSize: number;
 };
 
+type FeaturesAddedMessage = {
+	type: 'features_added';
+	features: Array<{
+		id: string;
+		description: string;
+		status: 'pending' | 'in_progress' | 'completed' | 'deferred' | 'cancelled';
+		requestedAt: number;
+		requestedInPhase: number;
+		implementedInPhase?: number;
+		requiresConfirmation: boolean;
+		userConfirmed?: boolean;
+		notes?: string;
+	}>;
+};
+
+type FeaturesUpdatedMessage = {
+	type: 'features_updated';
+	features: Array<{
+		id: string;
+		status: 'pending' | 'in_progress' | 'completed' | 'deferred' | 'cancelled';
+		implementedInPhase?: number;
+		notes?: string;
+	}>;
+};
+
+type FeatureConfirmationRequiredMessage = {
+	type: 'feature_confirmation_required';
+	features: Array<{
+		id: string;
+		description: string;
+		status: string;
+		requestedInPhase: number;
+		implementedInPhase?: number;
+	}>;
+};
+
 export type WebSocketMessage =
 	| StateMessage
 	| AgentConnectedMessage
@@ -543,7 +579,10 @@ export type WebSocketMessage =
 	| AutoFixErrorFixedMessage
 	| AutoFixErrorFailedMessage
 	| AutoFixStatsMessage
-	| AutoFixAbortedMessage;
+	| AutoFixAbortedMessage
+	| FeaturesAddedMessage
+	| FeaturesUpdatedMessage
+	| FeatureConfirmationRequiredMessage;
 
 // A type representing all possible message type strings (e.g., 'generation_started', 'file_generating', etc.)
 export type WebSocketMessageType = WebSocketMessage['type'];

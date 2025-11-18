@@ -221,6 +221,40 @@ export const stars = sqliteTable('stars', {
     appStarredAtIdx: index('stars_app_starred_at_idx').on(table.appId, table.starredAt),
 }));
 
+/**
+ * Tracked Features table - Track individual feature requests and their implementation status
+ * Ensures all user-requested features are validated and completed before finalization
+ */
+export const trackedFeatures = sqliteTable('tracked_features', {
+    id: text('id').primaryKey(),
+    appId: text('app_id').notNull().references(() => apps.id, { onDelete: 'cascade' }),
+
+    // Feature Details
+    description: text('description').notNull(), // What the feature does
+    status: text('status', { enum: ['pending', 'in_progress', 'completed', 'deferred', 'cancelled'] }).notNull().default('pending'),
+
+    // Tracking Metadata
+    requestedAt: integer('requested_at', { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull(),
+    requestedInPhase: integer('requested_in_phase').notNull(), // Phase number when requested
+    implementedInPhase: integer('implemented_in_phase'), // Phase number when completed
+
+    // User Confirmation
+    requiresConfirmation: integer('requires_confirmation', { mode: 'boolean' }).default(true).notNull(),
+    userConfirmed: integer('user_confirmed', { mode: 'boolean' }).default(false).notNull(),
+
+    // Additional Context
+    notes: text('notes'), // LLM explanation (why deferred, implementation notes, etc.)
+
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
+}, (table) => ({
+    appIdIdx: index('tracked_features_app_id_idx').on(table.appId),
+    statusIdx: index('tracked_features_status_idx').on(table.status),
+    requestedAtIdx: index('tracked_features_requested_at_idx').on(table.requestedAt),
+    appStatusIdx: index('tracked_features_app_status_idx').on(table.appId, table.status),
+}));
+
 // ========================================
 // COMMUNITY INTERACTIONS
 // ========================================

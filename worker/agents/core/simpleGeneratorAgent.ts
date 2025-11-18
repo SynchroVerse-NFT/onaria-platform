@@ -10,7 +10,7 @@ import {
 import { ExecuteCommandsResponse, GitHubPushRequest, PreviewType, StaticAnalysisResponse, TemplateDetails } from '../../services/sandbox/sandboxTypes';
 import {  GitHubExportResult } from '../../services/github/types';
 import { GitHubService } from '../../services/github/GitHubService';
-import { CodeGenState, CurrentDevState, MAX_PHASES, FileState } from './state';
+import { CodeGenState, CurrentDevState, MAX_PHASES, FileState, TrackedFeature } from './state';
 import { AllIssues, AgentSummary, AgentInitArgs, PhaseExecutionResult, UserContext } from './types';
 import { PREVIEW_EXPIRED_ERROR, WebSocketMessageResponses } from '../constants';
 import { broadcastToConnections, handleWebSocketClose, handleWebSocketMessage, sendToConnection } from './websocket';
@@ -152,6 +152,7 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         commandsHistory: [],
         lastPackageJson: '',
         pendingUserInputs: [],
+        trackedFeatures: [],
         inferenceContext: {} as InferenceContext,
         sessionId: '',
         hostname: '',
@@ -870,16 +871,41 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
 
     async queueUserRequest(request: string, images?: ProcessedImageAttachment[]): Promise<void> {
         this.rechargePhasesCounter(3);
+
+        // Create tracked feature for this request
+        const trackedFeature: TrackedFeature = {
+            id: `feat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            description: request,
+            status: 'pending',
+            requestedAt: Math.floor(Date.now() / 1000), // Unix epoch
+            requestedInPhase: this.state.generatedPhases.length + 1,
+            requiresConfirmation: true,
+            userConfirmed: false,
+        };
+
         this.setState({
             ...this.state,
-            pendingUserInputs: [...this.state.pendingUserInputs, request]
+            pendingUserInputs: [...this.state.pendingUserInputs, request],
+            trackedFeatures: [...this.state.trackedFeatures, trackedFeature]
         });
+
+        // Broadcast feature addition to frontend
+        this.broadcastMessage({
+            type: 'features_added',
+            features: [trackedFeature]
+        });
+
         if (images && images.length > 0) {
             this.logger().info('Storing user images in-memory for phase generation', {
                 imageCount: images.length,
             });
             this.pendingUserImages = [...this.pendingUserImages, ...images];
         }
+
+        this.logger().info('Feature tracked for request', {
+            featureId: trackedFeature.id,
+            description: request.substring(0, 100) + '...'
+        });
     }
 
     private fetchPendingUserRequests(): string[] {
@@ -994,7 +1020,38 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         } finally {
             // Clear abort controller after generation completes
             this.clearAbortController();
-            
+
+            // Mark all pending features as completed (simple MVP approach)
+            // In future, this should be more sophisticated with user confirmation
+            const completedFeatures = this.state.trackedFeatures.map(feature => {
+                if (feature.status === 'pending' || feature.status === 'in_progress') {
+                    return {
+                        ...feature,
+                        status: 'completed' as const,
+                        implementedInPhase: this.state.generatedPhases.length
+                    };
+                }
+                return feature;
+            });
+
+            this.setState({
+                ...this.state,
+                trackedFeatures: completedFeatures
+            });
+
+            if (completedFeatures.some(f => f.status === 'completed')) {
+                this.broadcastMessage({
+                    type: 'features_updated',
+                    features: completedFeatures
+                        .filter(f => f.status === 'completed')
+                        .map(f => ({
+                            id: f.id,
+                            status: f.status,
+                            implementedInPhase: f.implementedInPhase
+                        }))
+                });
+            }
+
             const appService = new AppService(this.env);
             await appService.updateApp(
                 this.getAgentId(),
@@ -1177,6 +1234,33 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
      */
     async executeFinalizing(): Promise<CurrentDevState> {
         this.logger().info("Executing FINALIZING state - final review and cleanup");
+
+        // Check for pending features before finalizing
+        const pendingFeatures = this.state.trackedFeatures.filter(f =>
+            f.status === 'pending' || f.status === 'in_progress'
+        );
+
+        if (pendingFeatures.length > 0) {
+            this.logger().warn("Cannot finalize - pending features exist", {
+                pendingCount: pendingFeatures.length,
+                features: pendingFeatures.map(f => ({ id: f.id, description: f.description.substring(0, 100) }))
+            });
+
+            // Send feature confirmation request to user
+            this.broadcastMessage({
+                type: 'feature_confirmation_required',
+                features: pendingFeatures.map(f => ({
+                    id: f.id,
+                    description: f.description,
+                    status: f.status,
+                    requestedInPhase: f.requestedInPhase,
+                    implementedInPhase: f.implementedInPhase
+                }))
+            });
+
+            // Continue generating to address pending features
+            return CurrentDevState.PHASE_GENERATING;
+        }
 
         // Only do finalizing stage if it wasn't done before
         if (this.state.mvpGenerated) {
