@@ -3,6 +3,7 @@
  */
 
 import { BaseService } from './BaseService';
+import { TrackedFeatureService } from './TrackedFeatureService';
 import * as schema from '../schema';
 import { eq, and, or, desc, asc, sql, isNull, inArray } from 'drizzle-orm';
 import { generateId } from '../../utils/idGenerator';
@@ -553,7 +554,7 @@ export class AppService extends BaseService {
         // Use 'fresh' strategy for user-specific queries for consistency
         const userReadDb = userId ? this.getReadDb('fresh') : readDb;
         
-        const [viewCount, starCount, isFavorite, userHasStarred] = await Promise.all([
+        const [viewCount, starCount, isFavorite, userHasStarred, trackedFeatures] = await Promise.all([
             // View count
             readDb
                 .select({ count: sql<number>`count(*)` })
@@ -561,7 +562,7 @@ export class AppService extends BaseService {
                 .where(eq(schema.appViews.appId, appId))
                 .get()
                 .then(r => r?.count || 0),
-            
+
             // Star count
             readDb
                 .select({ count: sql<number>`count(*)` })
@@ -569,7 +570,7 @@ export class AppService extends BaseService {
                 .where(eq(schema.stars.appId, appId))
                 .get()
                 .then(r => r?.count || 0),
-            
+
             // Is favorited by current user
             userId ? userReadDb
                 .select({ id: schema.favorites.id })
@@ -580,7 +581,7 @@ export class AppService extends BaseService {
                 ))
                 .get()
                 .then(r => !!r) : false,
-            
+
             // Is starred by current user
             userId ? userReadDb
                 .select({ id: schema.stars.id })
@@ -590,9 +591,13 @@ export class AppService extends BaseService {
                     eq(schema.stars.appId, appId)
                 ))
                 .get()
-                .then(r => !!r) : false
+                .then(r => !!r) : false,
+
+            // Tracked features
+            new TrackedFeatureService(this.env)
+                .getTrackedFeatures(appId)
         ]);
-        
+
         return {
             ...app,
             userName: appResult.userName,
@@ -600,7 +605,8 @@ export class AppService extends BaseService {
             starCount,
             userStarred: userHasStarred,
             userFavorited: isFavorite,
-            viewCount
+            viewCount,
+            trackedFeatures
         };
     }
 

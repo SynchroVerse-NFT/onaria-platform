@@ -4,6 +4,7 @@
 
 import * as schema from './schema';
 import type { ModelConfig } from '../agents/inferutils/config.types';
+import type { TrackedFeature } from '../agents/core/state';
 
 // ========================================
 // CORE SHARED INTERFACES
@@ -33,6 +34,7 @@ export interface EnhancedAppData extends schema.App {
     viewCount?: number;
     forkCount?: number;
     likeCount?: number;
+    trackedFeatures?: TrackedFeature[];
 }
 
 /**
