@@ -268,6 +268,84 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 
 ## Recent Deployments
 
+### v2.1.40 (2025-11-18)
+**LLM Usage and Cost Tracking + Planning Message Bug Fix**
+
+Features Added:
+1. Backend API endpoints for LLM usage and cost analytics
+2. Frontend UI components for displaying cost data on profile page
+3. Bug fix: "Planning..." message persisting after generation completes
+
+Backend Changes:
+
+Database Migration (llm_usage table):
+- Created llm_usage table for comprehensive LLM usage tracking
+- Fields: id, user_id, app_id, agent_action_name, model_name, provider, prompt_tokens, completion_tokens, total_tokens, cost, metadata, requested_at
+- Indexes: user_id, app_id, agent_action, provider, requested_at
+- Composite indexes: (user_id, requested_at), (app_id, requested_at)
+- File: migrations/0004_warm_nico_minoru.sql
+
+API Controllers:
+- UsageController with 4 endpoints:
+  - GET /api/usage/stats - User usage statistics with date range filters
+  - GET /api/usage/app/:appId - App-specific usage stats
+  - GET /api/usage/total-cost - User total cost with period filters (7d, 30d, 90d, all)
+  - GET /api/usage/recent - Recent usage records (limit: 100, max: 1000)
+- Location: worker/api/controllers/usage/controller.ts:17-172
+
+Database Service:
+- LLMUsageService for usage tracking and analytics
+- Methods: trackUsage(), getUserUsageStats(), getAppUsageStats(), getUserTotalCost(), getUserRecentUsage()
+- File: worker/database/services/LLMUsageService.ts
+
+Frontend Changes:
+
+API Client Integration:
+- Added 4 type-safe API client methods in src/lib/api-client.ts
+- getUserUsageStats(), getAppUsageStats(), getUserTotalCost(), getUserRecentUsage()
+
+Custom Hooks:
+- useUsageStats(params?) - Hook for usage statistics with loading/error states
+- useTotalCost(params?) - Hook for total cost with period filtering
+- File: src/hooks/use-usage.ts
+
+Profile Page Enhancement:
+- Added LLM Cost stat card with cosmic green gradient (green-500 to emerald-400)
+- Displays 30-day cost with 4 decimal precision
+- Location: src/routes/profile.tsx:131-140
+
+Bug Fix: Planning Message Persistence
+
+Issue:
+- "Planning..." message stayed visible after generation completed
+- Root cause: executePhaseGeneration() catch block didn't send PHASE_GENERATED message
+- Result: isThinking state stayed true indefinitely
+
+Fix Applied:
+- Added PHASE_GENERATED broadcast in catch block (worker/agents/core/simpleGeneratorAgent.ts:1171-1175)
+- Ensures isThinking state is cleared even when errors occur
+- Message: "Phase generation failed due to an error"
+
+Technical Details:
+- Type safety: All types exported via src/api-types.ts
+- Controller pattern: Extends BaseController with static async methods
+- Error handling: Supports both string and BaseErrorResponse objects
+- Query params: startDate, endDate, period (7d/30d/90d/all)
+
+Impact:
+- Platform now tracks all LLM usage and costs
+- Users can view spending on profile page
+- Foundation for cost analytics and budgeting features
+- Fixed critical UX bug with persistent loading indicators
+
+Deployment:
+- Version: ade118f5-1855-4925-bb38-2ef6835d103a
+- Container: onaria-platform-userappsandboxservice:ade118f5
+- Routes: onaria.xyz/*, *.onaria.xyz/*
+- Deployed: 2025-11-18 05:48 UTC
+- GitHub commit: 375cfa9
+- Files changed: 10 modified, 2 added
+
 ### v2.1.33 (2025-11-17)
 **Auto-Refresh Preview on App Detail Page**
 
