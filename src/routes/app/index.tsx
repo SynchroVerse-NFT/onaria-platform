@@ -150,7 +150,6 @@ export default function AppView() {
 			app &&
 			app.status === 'completed' &&
 			!app.cloudflareUrl &&
-			!app.previewUrl &&
 			!isDeploying &&
 			!loading
 		) {
