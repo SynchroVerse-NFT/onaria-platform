@@ -121,6 +121,7 @@ export class TrackedFeatureService extends BaseService {
             }));
         } catch (error) {
             this.handleDatabaseError(error, 'getTrackedFeatures', { appId });
+            return []; // Return empty array on error instead of undefined
         }
     }
 
