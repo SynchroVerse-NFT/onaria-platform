@@ -268,6 +268,68 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 
 ## Recent Deployments
 
+### v2.1.41 (2025-11-18)
+**App Detail Page Auto-Refresh Fix**
+
+Issue: User reported "when i click into the app from the profile page it doesnt reload the preview of the APP". The auto-refresh feature worked correctly on chat pages (/chat/:id) from v2.1.33, but NOT on app detail pages (/app/:id). When users navigated to apps from profile or gallery, previews showed "Deploy for Preview" button instead of automatically refreshing.
+
+Root Cause: Auto-refresh code at src/routes/app/index.tsx:148-162 included check for `!app.previewUrl` (line 153). However, `previewUrl` is stored only in Durable Object state, NOT persisted in D1 database. API response always returns `previewUrl: ""` (empty string), causing the condition to fail and auto-refresh never triggering.
+
+Fix Applied: Removed `!app.previewUrl &&` check from auto-refresh useEffect condition (src/routes/app/index.tsx:148-162). Auto-refresh now triggers for any completed app without cloudflareUrl deployment, regardless of previewUrl value. The preview URL is fetched from agent during the refresh process.
+
+Technical Details:
+- Location: src/routes/app/index.tsx:148-162
+- Removed line: `!app.previewUrl &&` from useEffect condition
+- Conditions now: completed status, no cloudflareUrl, not deploying, not loading
+- Same pattern as chat page fix from v2.1.32
+
+Before (v2.1.40 - BROKEN):
+```typescript
+if (
+  !hasAutoRefreshedRef.current &&
+  app &&
+  app.status === 'completed' &&
+  !app.cloudflareUrl &&
+  !app.previewUrl &&  // PROBLEM: Always empty in API response
+  !isDeploying &&
+  !loading
+)
+```
+
+After (v2.1.41 - FIXED):
+```typescript
+if (
+  !hasAutoRefreshedRef.current &&
+  app &&
+  app.status === 'completed' &&
+  !app.cloudflareUrl &&
+  // Removed: !app.previewUrl check
+  !isDeploying &&
+  !loading
+)
+```
+
+User Experience:
+- Users click on app from profile/gallery and preview auto-refreshes automatically
+- No manual "Deploy for Preview" button click required
+- Same seamless experience as chat page
+- Non-tech users get automatic preview refresh
+
+Testing:
+- Navigated to CulinaryCanvas app (e055a63d-6681-45b1-b7df-821e93993a43) from profile page
+- Auto-refresh triggered successfully (showed "Connecting to agent..." and "Deploying...")
+- Preview deployed to sandbox and displayed full functional app
+- Recipe cards, search, categories, favorites all working correctly
+- Screenshot captured showing successful preview
+
+Deployment:
+- Version: cf4c4cc8-880b-4df1-94bb-89122be3290f
+- Container: onaria-platform-userappsandboxservice:cf4c4cc8
+- Routes: onaria.xyz/*, *.onaria.xyz/*
+- Deployed: 2025-11-18 UTC
+- GitHub commit: a8e1d21
+- Status: Tested and verified on live site
+
 ### v2.1.40 (2025-11-18)
 **LLM Usage and Cost Tracking + Planning Message Bug Fix**
 
