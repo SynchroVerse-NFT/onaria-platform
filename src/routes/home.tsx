@@ -27,6 +27,7 @@ import {
 	LazyWormholeEffect,
 } from '@/components/animations/lazy-animations';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 
 export default function Home() {
 	const navigate = useNavigate();
@@ -74,7 +75,7 @@ export default function Home() {
 	// Discover section should appear only when enough apps are available and loading is done
 	const discoverReady = useMemo(() => !loading && (apps?.length ?? 0) > 5, [loading, apps]);
 
-	const handleCreateApp = (query: string, mode: AgentMode) => {
+	const handleCreateApp = async (query: string, mode: AgentMode) => {
 		try {
 			if (!query.trim()) {
 				toast.error('Please enter a description for your app');
@@ -108,8 +109,20 @@ export default function Home() {
 				return;
 			}
 
-			// User is already authenticated, navigate immediately
-			navigate(intendedUrl);
+			// Create the app in the database first
+			const response = await apiClient.createApp({
+				title: query.trim(),
+				description: query.trim(),
+			});
+
+			if (!response.success || !response.data?.app) {
+				throw new Error(response.error?.message || 'Failed to create app');
+			}
+
+			// Navigate to the chat page with the created app ID
+			const appId = response.data.app.id;
+			navigate(`/chat/${appId}?query=${encodedQuery}&agentMode=${encodedMode}${imageParam}`);
+
 			// Clear images after navigation
 			clearImages();
 		} catch (error) {
