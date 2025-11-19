@@ -1092,17 +1092,41 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                 });
             }
 
-            const appService = new AppService(this.env);
-            await appService.updateApp(
-                this.getAgentId(),
-                {
-                    status: 'completed',
+            // Update app status to completed with retry logic
+            let statusUpdateSuccess = false;
+            const maxRetries = 3;
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    this.logger().info(`Updating app status to completed (attempt ${attempt}/${maxRetries})...`);
+                    const appService = new AppService(this.env);
+                    await appService.updateApp(
+                        this.getAgentId(),
+                        {
+                            status: 'completed',
+                        }
+                    );
+                    statusUpdateSuccess = true;
+                    this.logger().info("Successfully updated app status to completed");
+                    break;
+                } catch (error) {
+                    this.logger().error(`Failed to update app status (attempt ${attempt}/${maxRetries}):`, error);
+                    if (attempt === maxRetries) {
+                        this.logger().error("All retry attempts exhausted. App status will remain in generating state.");
+                    } else {
+                        // Wait before retrying (exponential backoff)
+                        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                    }
                 }
-            );
+            }
+
+            // Always clean up and broadcast completion, even if status update failed
             this.generationPromise = null;
             this.broadcast(WebSocketMessageResponses.GENERATION_COMPLETE, {
-                message: "Code generation and review process completed.",
+                message: statusUpdateSuccess
+                    ? "Code generation and review process completed."
+                    : "Code generation completed, but status update failed. You may need to refresh.",
                 instanceId: this.state.sandboxInstanceId,
+                statusUpdateFailed: !statusUpdateSuccess
             });
         }
     }
