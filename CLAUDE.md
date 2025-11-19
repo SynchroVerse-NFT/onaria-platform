@@ -269,6 +269,59 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 
 ## Recent Deployments
 
+### v2.1.44 (2025-11-19)
+**Revert Broken App Creation Flow**
+
+CRITICAL BUG FIX: v2.1.43 completely broke app creation by calling a non-existent backend endpoint.
+
+Issue: All app creation attempts failed with "Failed to create app. Please try again." error
+- Frontend showed 405 Method Not Allowed error
+- Console error: "Failed to load resource: the server responded with a status of 405"
+- 100% failure rate for creating new apps
+
+Root Cause Investigation:
+- v2.1.43 added call to `apiClient.createApp()` before navigation
+- This called `POST /api/apps` endpoint which DOES NOT EXIST in backend
+- Checked `worker/api/routes/appRoutes.ts` - no POST route for creating apps
+- Checked `worker/api/controllers/apps/controller.ts` - no createApp method
+- Only found type definition `CreateAppData` but no implementation
+
+Original Flow Discovery:
+By examining git history and backend code, discovered the CORRECT flow:
+1. Navigate to `/chat/new?query=...`
+2. Frontend calls `POST /api/agent/start` with query
+3. **Backend creates DB record automatically** at `worker/api/controllers/agent/controller.ts:119`
+4. Backend initializes Durable Object agent
+5. Frontend connects via WebSocket
+
+Database records ARE created, but via agent initialization, not a separate endpoint!
+
+Fix Applied:
+- Reverted `src/routes/home.tsx:78-120` to original non-async handleCreateApp
+- Removed non-existent `apiClient.createApp()` call
+- Removed unused `apiClient` import (line 30)
+- Restored direct navigation to `/chat/new?query=...`
+- Backend handles database creation automatically via POST `/api/agent/start`
+
+Technical Details:
+- Location: `src/routes/home.tsx`, `package.json:4`, `src/components/layout/app-layout.tsx:13`
+- Database creation: `worker/api/controllers/agent/controller.ts:119-130`
+- Method: `CodingAgentController.startCodeGeneration()`
+- Creates app record before WebSocket connection to pass ownership check
+
+Deployment:
+- Version: d5830fca-1adf-4cea-9b14-99ccff4b40bd
+- Container: onaria-platform-userappsandboxservice:d5830fca
+- Routes: onaria.xyz/*, *.onaria.xyz/*
+- Deployed: 2025-11-19 UTC
+- GitHub commit: 8461dcb
+- Status: Deployed successfully, app creation flow restored
+
+### v2.1.43 (2025-11-19) - REVERTED IN v2.1.44
+**BROKEN: Attempted Database Record Creation Before Navigation**
+
+This version was immediately reverted due to calling a non-existent `POST /api/apps` endpoint, breaking all app creation.
+
 ### v2.1.42 (2025-11-19)
 **App Status Update Retry Logic and Error Handling**
 
