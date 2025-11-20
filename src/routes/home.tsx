@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { ArrowRight, Info } from 'react-feather';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/contexts/theme-context';
 import {
@@ -33,6 +33,7 @@ export default function Home() {
 	const { requireAuth } = useAuthGuard();
 	const { showAuthModal } = useAuthModal();
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const [searchParams] = useSearchParams();
 	const [agentMode, setAgentMode] = useState<AgentMode>('deterministic');
 	const [query, setQuery] = useState('');
 	const { user } = useAuth();
@@ -132,6 +133,16 @@ export default function Home() {
 	useEffect(() => {
 		adjustTextareaHeight();
 	}, []);
+
+	// Pre-fill query from URL parameters (template support)
+	useEffect(() => {
+		const queryParam = searchParams.get('query');
+		if (queryParam) {
+			setQuery(queryParam);
+			// Also adjust textarea height after setting query
+			setTimeout(() => adjustTextareaHeight(), 0);
+		}
+	}, [searchParams]);
 
 	// Typewriter effect
 	useEffect(() => {
