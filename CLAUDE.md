@@ -269,6 +269,37 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 
 ## Recent Deployments
 
+### v2.1.46 (2025-11-19)
+**Remove Cloudflare Footer Branding from Generated Apps**
+
+Removed the instruction for AI to add "Built with ❤️ at Cloudflare" footer in generated applications.
+
+Issue: User requested removal of Cloudflare branding from generated apps.
+
+Root Cause: System prompt in PhaseImplementation.ts instructed the AI to add Cloudflare footer to all generated applications.
+
+Fix Applied:
+- Removed line 253 from `worker/agents/operations/PhaseImplementation.ts`
+- System prompt no longer includes footer branding instruction
+- Future generated apps will not include "Built with ❤️ at Cloudflare" footer
+
+Technical Details:
+- Location: `worker/agents/operations/PhaseImplementation.ts:253`
+- Version bumped: package.json:4, src/components/layout/app-layout.tsx:13
+- Removed instruction: `•   **In the footer of pages, you can mention the following: "Built with ❤️ at Cloudflare"**`
+
+Impact:
+- All new apps generated after this deployment will not include Cloudflare branding
+- Existing apps retain their current footer (no retroactive changes)
+- Clean, unbranded app generation experience
+
+Deployment:
+- GitHub commit: f7c6ab6
+- Status: Committed and pushed
+- Files changed: 3 modified (PhaseImplementation.ts, package.json, app-layout.tsx)
+- Deployment initiated: 2025-11-19 UTC
+- Note: Deployment uses same TypeScript build configuration as v2.1.45 (type errors present but non-blocking)
+
 ### v2.1.44 (2025-11-19)
 **Revert Broken App Creation Flow**
 
