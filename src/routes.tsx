@@ -11,6 +11,7 @@ const Settings = lazy(() => import('./routes/settings/index'));
 const AppsPage = lazy(() => import('./routes/apps'));
 const AppView = lazy(() => import('./routes/app'));
 const DiscoverPage = lazy(() => import('./routes/discover'));
+const TemplatesPage = lazy(() => import('./routes/templates'));
 
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
 	<Suspense fallback={
@@ -60,6 +61,10 @@ const routes = [
 			{
 				path: 'discover',
 				element: React.createElement(SuspenseWrapper, { children: React.createElement(DiscoverPage) }),
+			},
+			{
+				path: 'templates',
+				element: React.createElement(SuspenseWrapper, { children: React.createElement(TemplatesPage) }),
 			},
 		],
 	},

@@ -64,6 +64,41 @@ Selection: "react-social"
 complexity: "simple" // Because single page application
 Reasoning: "Social template provides user interactions, content sharing, and community features closest to recipe sharing needs"
 
+**Example 4 - Digital Product Store:**
+User: "I want to sell Notion templates and ebooks with Stripe checkout"
+Templates: ["react-ecommerce", "digital-product-store", "react-social"]
+Selection: "digital-product-store"
+complexity: "simple"
+Reasoning: "Digital product store template is purpose-built for selling downloads with Stripe integration and email capture"
+
+**Example 5 - Coaching Business:**
+User: "Create a booking site for my coaching calls with payment upfront"
+Templates: ["booking-system", "coaching-booking", "calendar-app"]
+Selection: "coaching-booking"
+complexity: "simple"
+Reasoning: "Coaching booking template includes calendar integration, intake forms, and Stripe payment before confirmation"
+
+**Example 6 - Paid Newsletter:**
+User: "I'm starting a paid newsletter and need a landing page"
+Templates: ["blog-template", "paid-newsletter", "membership-site"]
+Selection: "paid-newsletter"
+complexity: "simple"
+Reasoning: "Paid newsletter template handles free/paid tiers with Stripe, email signup, and subscriber management"
+
+**Example 7 - Online Course:**
+User: "Help me sell my online course with testimonials and checkout"
+Templates: ["online-course", "membership-site", "saas-landing"]
+Selection: "online-course"
+complexity: "simple"
+Reasoning: "Course platform template includes sales page, curriculum overview, testimonials, and Stripe checkout flow"
+
+**Example 8 - Local Service Business:**
+User: "I run a cleaning business and want people to book online with deposits"
+Templates: ["booking-system", "local-service-booking", "appointment-scheduler"]
+Selection: "local-service-booking"
+complexity: "simple"
+Reasoning: "Local service template built for quote requests, booking calendar, and optional Stripe deposits"
+
 ## SELECTION CRITERIA:
 1. **Feature Alignment** - Templates with similar core functionality
 2. **Tech Stack Match** - Compatible frameworks and dependencies  
