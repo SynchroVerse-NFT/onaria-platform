@@ -34,6 +34,33 @@ declare namespace Cloudflare {
 		AI: Ai;
 		CF_VERSION_METADATA: WorkerVersionMetadata;
 		ASSETS: Fetcher;
+		// Additional environment variables (secrets and optional configs)
+		CLOUDFLARE_AI_GATEWAY_URL?: string;
+		CLOUDFLARE_AI_GATEWAY_TOKEN?: string;
+		OPENROUTER_API_KEY?: string;
+		ANTHROPIC_API_KEY?: string;
+		AI_GATEWAY_AUTH_TOKEN?: string;
+		OPENAI_API_KEY?: string;
+		CEREBRAS_API_KEY?: string;
+		AI_PROXY_JWT_SECRET?: string;
+		SENTRY_DSN?: string;
+		SERPAPI_KEY?: string;
+		GOOGLE_CLIENT_ID?: string;
+		GOOGLE_CLIENT_SECRET?: string;
+		GITHUB_CLIENT_ID?: string;
+		GITHUB_CLIENT_SECRET?: string;
+		CF_ACCESS_ID?: string;
+		CF_ACCESS_SECRET?: string;
+		DISPATCHER?: DispatchNamespace;
+		ENVIRONMENT?: string;
+		GITHUB_EXPORTER_CLIENT_ID?: string;
+		GITHUB_EXPORTER_CLIENT_SECRET?: string;
+		SANDBOX_SERVICE_TYPE?: string;
+		SANDBOX_SERVICE_URL?: string;
+		SANDBOX_SERVICE_API_KEY?: string;
+		ALLOCATION_STRATEGY?: string;
+		USE_TUNNEL_FOR_PREVIEW?: string;
+		CUSTOM_PREVIEW_DOMAIN?: string;
 	}
 }
 interface Env extends Cloudflare.Env {}

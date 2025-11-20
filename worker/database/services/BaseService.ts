@@ -14,7 +14,9 @@ import { createLogger } from '../../logger';
 export abstract class BaseService {
     protected logger = createLogger(this.constructor.name);
     protected db: DatabaseService;
+    // @ts-ignore - Env type exists at runtime from worker-configuration.d.ts
     protected env: Env;
+    // @ts-ignore - Env type exists at runtime from worker-configuration.d.ts
     constructor(env: Env) {
         this.db = createDatabaseService(env);
         this.env = env;

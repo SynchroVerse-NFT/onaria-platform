@@ -237,7 +237,7 @@ async function getApiKey(provider: string, env: Env, _userId: string): Promise<s
     let apiKey: string = env[envKey] as string;
 
     if (!isValidApiKey(apiKey)) {
-        apiKey = env.CLOUDFLARE_AI_GATEWAY_TOKEN;
+        apiKey = env.CLOUDFLARE_AI_GATEWAY_TOKEN || '';
     }
     return apiKey;
 }
@@ -260,7 +260,7 @@ export async function getConfigurationForModel(
         if (provider === 'openrouter') {
             return {
                 baseURL: 'https://openrouter.ai/api/v1',
-                apiKey: env.OPENROUTER_API_KEY,
+                apiKey: env.OPENROUTER_API_KEY || '',
             };
         } else if (provider === 'gemini') {
             return {
@@ -270,7 +270,7 @@ export async function getConfigurationForModel(
         } else if (provider === 'claude') {
             return {
                 baseURL: 'https://api.anthropic.com/v1/',
-                apiKey: env.ANTHROPIC_API_KEY,
+                apiKey: env.ANTHROPIC_API_KEY || '',
             };
         }
         providerForcedOverride = provider as AIGatewayProviders;
@@ -291,17 +291,17 @@ export async function getConfigurationForModel(
         } else if (provider === 'anthropic') {
             return {
                 baseURL: 'https://api.anthropic.com/v1/',
-                apiKey: env.ANTHROPIC_API_KEY,
+                apiKey: env.ANTHROPIC_API_KEY || '',
             };
         } else if (provider === 'openai') {
             return {
                 baseURL: 'https://api.openai.com/v1',
-                apiKey: env.OPENAI_API_KEY,
+                apiKey: env.OPENAI_API_KEY || '',
             };
         } else if (provider === 'cerebras') {
             return {
                 baseURL: 'https://api.cerebras.ai/v1',
-                apiKey: env.CEREBRAS_API_KEY,
+                apiKey: env.CEREBRAS_API_KEY || '',
             };
         }
     }
@@ -317,12 +317,12 @@ export async function getConfigurationForModel(
         } else if (provider === 'anthropic') {
             return {
                 baseURL: 'https://api.anthropic.com/v1/',
-                apiKey: env.ANTHROPIC_API_KEY,
+                apiKey: env.ANTHROPIC_API_KEY || '',
             };
         } else if (provider === 'openai') {
             return {
                 baseURL: 'https://api.openai.com/v1',
-                apiKey: env.OPENAI_API_KEY,
+                apiKey: env.OPENAI_API_KEY || '',
             };
         }
     }

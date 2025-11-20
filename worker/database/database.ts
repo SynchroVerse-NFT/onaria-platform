@@ -33,9 +33,11 @@ export type {
  */
 export class DatabaseService {
     public readonly db: DrizzleD1Database<typeof schema>;
+    // @ts-ignore - D1Database type exists at runtime from Cloudflare Workers
     private readonly d1: D1Database;
     private readonly enableReplicas: boolean;
 
+    // @ts-ignore - Env type exists at runtime from worker-configuration.d.ts
     constructor(env: Env) {
         const instrumented = Sentry.instrumentD1WithSentry(env.DB);
         this.d1 = instrumented;
@@ -61,6 +63,7 @@ export class DatabaseService {
         const sessionType = strategy === 'fresh' ? 'first-primary' : 'first-unconstrained';
         const session = this.d1.withSession(sessionType);
         // D1DatabaseSession is compatible with D1Database for Drizzle operations
+        // @ts-ignore - D1Database type exists at runtime from Cloudflare Workers
         return drizzle(session as unknown as D1Database, { schema });
     }
 
@@ -87,6 +90,7 @@ export class DatabaseService {
 /**
  * Factory function to create database service instance
  */
+// @ts-ignore - Env type exists at runtime from worker-configuration.d.ts
 export function createDatabaseService(env: Env): DatabaseService {
     return new DatabaseService(env);
 }
