@@ -18,7 +18,6 @@ import { ToolCallResult, ToolDefinition, AnyToolDefinition } from '../tools/type
 import { AgentActionKey, AIModels, InferenceMetadata } from './config.types';
 // import { SecretsService } from '../../database';
 import { RateLimitService } from '../../services/rate-limit/rateLimits';
-import { getUserConfigurableSettings } from '../../config';
 import { SecurityError, RateLimitExceededError } from 'shared/types/errors';
 import { executeToolWithDefinition } from '../tools/customTools';
 import { RateLimitType } from 'worker/services/rate-limit/config';
@@ -536,9 +535,21 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
     }
     
     try {
-        const userConfig = await getUserConfigurableSettings(env, metadata.userId)
-        // Maybe in the future can expand using config object for other stuff like global model configs?
-        await RateLimitService.enforceLLMCallsRateLimit(env, userConfig.security.rateLimit, metadata.userId, modelName)
+        // Tier-based rate limiting with smart fallback
+        const rateLimitResult = await RateLimitService.enforceTierBasedLLMLimit(env, metadata.userId, modelName as AIModels);
+
+        // Use the returned model (might be fallback if rate limited)
+        if (rateLimitResult.model !== modelName) {
+            console.info('Using fallback model due to tier rate limit', {
+                userId: metadata.userId,
+                requestedModel: modelName,
+                fallbackModel: rateLimitResult.model,
+                message: rateLimitResult.message
+            });
+        }
+
+        // Override modelName with tier-approved model (either requested or fallback)
+        modelName = rateLimitResult.model;
 
         const { apiKey, baseURL, defaultHeaders } = await getConfigurationForModel(modelName, env, metadata.userId, providerOverride);
 

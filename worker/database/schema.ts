@@ -40,7 +40,14 @@ export const users = sqliteTable('users', {
     // Account Status
     isActive: integer('is_active', { mode: 'boolean' }).default(true),
     isSuspended: integer('is_suspended', { mode: 'boolean' }).default(false),
-    
+
+    // Subscription and Billing
+    subscriptionTier: text('subscription_tier', { enum: ['free', 'basic', 'pro', 'enterprise'] }).default('free'),
+    subscriptionStatus: text('subscription_status', { enum: ['active', 'trialing', 'past_due', 'canceled', 'unpaid'] }).default('active'),
+    subscriptionExpiresAt: integer('subscription_expires_at', { mode: 'timestamp' }),
+    stripeCustomerId: text('stripe_customer_id'),
+    stripeSubscriptionId: text('stripe_subscription_id'),
+
     // Metadata
     createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
     updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),

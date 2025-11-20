@@ -69,10 +69,10 @@ OR
 
 export const AGENT_CONFIG: AgentConfig = {
     templateSelection: {
-        name: AIModels.GEMINI_2_0_FLASH,
+        name: AIModels.GEMINI_2_5_FLASH,
         providerOverride: 'direct',
         max_tokens: 2000,
-        fallbackModel: AIModels.GEMINI_2_5_FLASH,
+        fallbackModel: AIModels.GEMINI_2_0_FLASH,
         temperature: 0.6,
     },
     blueprint: {
@@ -84,12 +84,12 @@ export const AGENT_CONFIG: AgentConfig = {
         temperature: 0.7,
     },
     projectSetup: {
-        name: AIModels.GEMINI_2_0_FLASH,
+        name: AIModels.GEMINI_2_5_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 10000,
         temperature: 0.2,
-        fallbackModel: AIModels.GEMINI_2_5_FLASH,
+        fallbackModel: AIModels.GEMINI_2_0_FLASH,
     },
     phaseGeneration: {
         name: AIModels.GEMINI_2_0_FLASH,
@@ -131,12 +131,12 @@ export const AGENT_CONFIG: AgentConfig = {
         fallbackModel: AIModels.GEMINI_2_5_FLASH,
     },
     conversationalResponse: {
-        name: AIModels.GEMINI_2_0_FLASH,
+        name: AIModels.GEMINI_2_5_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 4000,
         temperature: 0,
-        fallbackModel: AIModels.GEMINI_2_5_FLASH,
+        fallbackModel: AIModels.GEMINI_2_0_FLASH,
     },
     deepDebugger: {
         name: AIModels.GEMINI_2_0_FLASH,

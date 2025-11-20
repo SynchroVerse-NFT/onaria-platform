@@ -7,6 +7,8 @@ import { KVRateLimitStore } from './KVRateLimitStore';
 import { RateLimitExceededError, SecurityError } from 'shared/types/errors';
 import { isDev } from 'worker/utils/envs';
 import { AIModels } from 'worker/agents/inferutils/config.types';
+import { getTierLimits, generateUpgradeMessage, SubscriptionTier } from './tierConfig';
+import { UserService } from '../../database/services/UserService';
 
 export class RateLimitService {
     static logger = createObjectLogger(this, 'RateLimitService');
@@ -284,6 +286,124 @@ export class RateLimitService {
 				throw error;
 			}
 			this.logger.error('Failed to enforce LLM calls rate limit', error);
+		}
+	}
+
+	/**
+	 * Tier-based LLM rate limiting with smart fallback
+	 * Returns fallback model instead of throwing error when limit is hit
+	 */
+	static async enforceTierBasedLLMLimit(
+		env: Env,
+		userId: string,
+		requestedModel: AIModels
+	): Promise<{
+		allowed: boolean;
+		model: AIModels;
+		message?: string;
+	}> {
+		// Skip in dev mode
+		if (isDev(env)) {
+			return { allowed: true, model: requestedModel };
+		}
+
+		try {
+			// Fetch user's subscription tier
+			const userService = new UserService(env);
+			const user = await userService.findUser({ id: userId });
+
+			if (!user) {
+				this.logger.error('User not found for tier-based rate limiting', { userId });
+				return { allowed: true, model: requestedModel };
+			}
+
+			const tier = (user.subscriptionTier || 'free') as SubscriptionTier;
+			const tierLimits = getTierLimits(tier);
+
+			// Check if enterprise (unlimited)
+			if (tierLimits.dailyCredits === -1) {
+				return { allowed: true, model: requestedModel };
+			}
+
+			// Calculate credit cost for requested model
+			const creditCost = DEFAULT_RATE_INCREMENTS_FOR_MODELS[requestedModel] || 1;
+
+			// Build rate limit key
+			const identifier = `user:${userId}`;
+			const key = this.buildRateLimitKey(RateLimitType.LLM_CALLS, identifier);
+
+			// Create temporary config for tier-specific limits
+			const tierConfig: RateLimitSettings = {
+				[RateLimitType.APP_CREATION]: { enabled: false, store: RateLimitStore.DURABLE_OBJECT, limit: 0, period: 0 },
+				[RateLimitType.LLM_CALLS]: {
+					enabled: true,
+					store: RateLimitStore.DURABLE_OBJECT,
+					limit: tierLimits.hourlyCredits,
+					period: 3600,
+					dailyLimit: tierLimits.dailyCredits,
+					excludeBYOKUsers: false,
+				},
+				[RateLimitType.API_RATE_LIMIT]: { enabled: false, store: RateLimitStore.RATE_LIMITER, bindingName: 'API_RATE_LIMITER' },
+				[RateLimitType.AUTH_RATE_LIMIT]: { enabled: false, store: RateLimitStore.RATE_LIMITER, bindingName: 'AUTH_RATE_LIMITER' },
+			};
+
+			// Try to enforce with requested model's credit cost
+			const success = await this.enforce(
+				env,
+				key,
+				tierConfig,
+				RateLimitType.LLM_CALLS,
+				creditCost
+			);
+
+			if (success) {
+				return { allowed: true, model: requestedModel };
+			}
+
+			// Rate limit exceeded - check for fallback model
+			if (tierLimits.fallbackModel) {
+				this.logger.info('Tier rate limit exceeded, falling back to cheaper model', {
+					userId,
+					tier,
+					requestedModel,
+					fallbackModel: tierLimits.fallbackModel,
+				});
+
+				// Calculate reset time (1 hour from now for hourly limit)
+				const resetTime = new Date(Date.now() + 3600 * 1000);
+				const message = generateUpgradeMessage(tier, tierLimits.dailyCredits, resetTime);
+
+				return {
+					allowed: true,
+					model: tierLimits.fallbackModel,
+					message,
+				};
+			}
+
+			// No fallback available (free tier)
+			const resetTime = new Date(Date.now() + 3600 * 1000);
+			const message = generateUpgradeMessage(tier, tierLimits.dailyCredits, resetTime);
+
+			this.logger.warn('Tier rate limit exceeded with no fallback', {
+				userId,
+				tier,
+				requestedModel,
+			});
+
+			throw new RateLimitExceededError(
+				message,
+				RateLimitType.LLM_CALLS,
+				tierLimits.hourlyCredits,
+				3600,
+				[message]
+			);
+		} catch (error) {
+			if (error instanceof RateLimitExceededError || error instanceof SecurityError) {
+				throw error;
+			}
+			this.logger.error('Failed to enforce tier-based LLM limit', error);
+			// Fail open - allow request with requested model
+			return { allowed: true, model: requestedModel };
 		}
 	}
 }
