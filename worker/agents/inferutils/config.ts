@@ -69,14 +69,14 @@ OR
 
 export const AGENT_CONFIG: AgentConfig = {
     templateSelection: {
-        name: AIModels.GEMINI_2_5_FLASH,
+        name: AIModels.GEMINI_2_0_FLASH,
         providerOverride: 'direct',
         max_tokens: 2000,
-        fallbackModel: AIModels.GEMINI_2_0_FLASH,
+        fallbackModel: AIModels.GEMINI_2_5_FLASH,
         temperature: 0.6,
     },
     blueprint: {
-        name: AIModels.GEMINI_2_5_PRO,
+        name: AIModels.GEMINI_2_0_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'medium',
         max_tokens: 64000,
@@ -84,15 +84,15 @@ export const AGENT_CONFIG: AgentConfig = {
         temperature: 0.7,
     },
     projectSetup: {
-        name: AIModels.GEMINI_2_5_FLASH,
+        name: AIModels.GEMINI_2_0_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 10000,
         temperature: 0.2,
-        fallbackModel: AIModels.GEMINI_2_0_FLASH,
+        fallbackModel: AIModels.GEMINI_2_5_FLASH,
     },
     phaseGeneration: {
-        name: AIModels.GEMINI_2_5_PRO,
+        name: AIModels.GEMINI_2_0_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 32000,
@@ -100,7 +100,7 @@ export const AGENT_CONFIG: AgentConfig = {
         fallbackModel: AIModels.GEMINI_2_5_FLASH,
     },
     firstPhaseImplementation: {
-        name: AIModels.GEMINI_2_5_PRO,
+        name: AIModels.GEMINI_2_0_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 64000,
@@ -108,7 +108,7 @@ export const AGENT_CONFIG: AgentConfig = {
         fallbackModel: AIModels.GEMINI_2_5_FLASH,
     },
     phaseImplementation: {
-        name: AIModels.GEMINI_2_5_PRO,
+        name: AIModels.GEMINI_2_0_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 64000,
@@ -131,15 +131,15 @@ export const AGENT_CONFIG: AgentConfig = {
         fallbackModel: AIModels.GEMINI_2_5_FLASH,
     },
     conversationalResponse: {
-        name: AIModels.GEMINI_2_5_FLASH,
+        name: AIModels.GEMINI_2_0_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 4000,
         temperature: 0,
-        fallbackModel: AIModels.GEMINI_2_0_FLASH,
+        fallbackModel: AIModels.GEMINI_2_5_FLASH,
     },
     deepDebugger: {
-        name: AIModels.GEMINI_2_5_PRO,
+        name: AIModels.GEMINI_2_0_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'high',
         max_tokens: 8000,
@@ -147,7 +147,7 @@ export const AGENT_CONFIG: AgentConfig = {
         fallbackModel: AIModels.GEMINI_2_5_FLASH,
     },
     codeReview: {
-        name: AIModels.GEMINI_2_5_PRO,
+        name: AIModels.GEMINI_2_0_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'medium',
         max_tokens: 32000,
@@ -155,7 +155,7 @@ export const AGENT_CONFIG: AgentConfig = {
         fallbackModel: AIModels.GEMINI_2_5_FLASH,
     },
     fileRegeneration: {
-        name: AIModels.GEMINI_2_5_PRO,
+        name: AIModels.GEMINI_2_0_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'low',
         max_tokens: 32000,
@@ -164,7 +164,7 @@ export const AGENT_CONFIG: AgentConfig = {
     },
     // Not used right now
     screenshotAnalysis: {
-        name: AIModels.GEMINI_2_5_PRO,
+        name: AIModels.GEMINI_2_0_FLASH,
         providerOverride: 'direct',
         reasoning_effort: 'medium',
         max_tokens: 8000,

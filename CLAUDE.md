@@ -269,6 +269,76 @@ Edit `/worker/agents/operations/UserConversationProcessor.ts` (system prompt lin
 
 ## Recent Deployments
 
+### v2.1.48 (2025-11-20)
+**Template Pre-Fill Functionality Fix**
+
+CRITICAL UX BUG FIX: Template "Use Template" buttons were completely broken - queries never pre-filled.
+
+Issue: When users clicked "Use Template" on any of the 26 templates (including 14 monetization templates):
+- URL contained correct query parameter with full template query
+- But textbox remained empty - no pre-fill occurred
+- Non-tech users had to manually copy-paste queries
+- Build button stayed disabled
+- Completely defeated the purpose of template system
+
+Test Case:
+- Clicked "Use Template" on Digital Product Store template
+- Navigated to https://onaria.xyz/?query=I%20want%20a%20digital%20product...&template=digital-product-store
+- Textbox showed placeholder text instead of actual pre-filled query
+- Build button remained disabled
+
+Root Cause:
+Home page component (`src/routes/home.tsx`) never read URL query parameters:
+- `query` state initialized as empty string (line 38)
+- No `useSearchParams` hook imported
+- No useEffect to read and populate query from URL parameter
+- Result: Template pre-filled queries completely ignored
+
+Fix Applied:
+- Added `useSearchParams` import from react-router (line 3)
+- Initialized hook in component: `const [searchParams] = useSearchParams();` (line 36)
+- Added useEffect to read query param and populate state (lines 137-145)
+- Auto-adjusts textarea height after population
+
+Technical Details:
+Location: `src/routes/home.tsx`, `package.json:4`
+- Line 3: Import useSearchParams
+- Line 36: Initialize useSearchParams hook
+- Lines 137-145: useEffect to populate query from URL
+
+Code Implementation:
+```typescript
+useEffect(() => {
+  const queryParam = searchParams.get('query');
+  if (queryParam) {
+    setQuery(queryParam);
+    setTimeout(() => adjustTextareaHeight(), 0);
+  }
+}, [searchParams]);
+```
+
+Impact:
+- Template pre-fill NOW works for all 26 templates
+- Users see query auto-populated in textbox immediately
+- Build button enables automatically
+- Seamless UX for non-tech users
+- Ready for systematic template testing
+
+Testing:
+- Clicked "Use Template" on Digital Product Store template
+- Query pre-filled correctly: "I want a digital product store to sell ebooks, Notion templates, and digital downloads with Stripe checkout and email capture for customers"
+- Build button enabled immediately
+- Textarea adjusted height correctly
+- URL parameter properly parsed and displayed
+
+Deployment:
+- Version: f122a9b7-c774-4d0d-8310-b2b1fdf28bf0
+- Container: onaria-platform-userappsandboxservice:f122a9b7
+- Routes: onaria.xyz/*, *.onaria.xyz/*
+- Deployed: 2025-11-20 UTC
+- GitHub commit: 69cf32a
+- Status: Tested and verified on live site
+
 ### v2.1.46 (2025-11-19)
 **Remove Cloudflare Footer Branding from Generated Apps**
 
