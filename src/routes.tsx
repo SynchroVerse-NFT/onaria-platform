@@ -14,7 +14,7 @@ const AppView = lazy(() => import('./routes/app'));
 const DiscoverPage = lazy(() => import('./routes/discover'));
 const TemplatesPage = lazy(() => import('./routes/templates'));
 const Pricing = lazy(() => import('./routes/pricing'));
-const HelpPage = lazy(() => import('./routes/help'));
+const HelpPage = lazy(() => import('./routes/help/index'));
 const RequestPasswordReset = lazy(() => import('./routes/reset-password/request'));
 const ConfirmPasswordReset = lazy(() => import('./routes/reset-password/confirm'));
 
