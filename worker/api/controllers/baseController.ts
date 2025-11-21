@@ -85,6 +85,7 @@ export abstract class BaseController {
      * Require authentication with standardized error
      */
     static requireAuthentication(user: unknown): void {
+        // @ts-expect-error - ControllerErrorHandler narrows unknown to AuthUser type through type guard
         ControllerErrorHandler.requireAuthentication(user);
     }
 

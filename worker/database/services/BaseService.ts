@@ -51,10 +51,57 @@ export abstract class BaseService {
     /**
      * Get read-optimized database connection using D1 read replicas
      * For read-only queries to reduce global latency
-     * 
+     *
      * @param strategy - 'fast' for lowest latency, 'fresh' for latest data
      */
     protected getReadDb(strategy: 'fast' | 'fresh' = 'fast') {
         return this.db.getReadDb(strategy);
+    }
+
+    /**
+     * Execute a database transaction with standardized error handling
+     *
+     * Provides a clean abstraction for atomic multi-table operations.
+     * Automatically rolls back on errors and logs transaction lifecycle.
+     *
+     * @param operation - Async function containing transactional operations
+     * @param context - Context object for logging (operation name, IDs, etc.)
+     * @returns Result of the transaction
+     *
+     * @example
+     * ```typescript
+     * await this.executeTransaction(async (tx) => {
+     *   await tx.insert(schema.users).values(userData);
+     *   await tx.insert(schema.sessions).values(sessionData);
+     *   return userData;
+     * }, { operation: 'user-registration', userId });
+     * ```
+     */
+    protected async executeTransaction<T>(
+        operation: (tx: ReturnType<typeof this.database.transaction>) => Promise<T>,
+        context?: Record<string, unknown>
+    ): Promise<T> {
+        const startTime = Date.now();
+
+        try {
+            this.logger.debug('Transaction started', context);
+
+            const result = await this.database.transaction(operation as any);
+
+            const duration = Date.now() - startTime;
+            this.logger.debug('Transaction committed', { ...context, duration });
+
+            // @ts-expect-error - Transaction result type is correctly inferred but TypeScript can't verify through the any cast
+            return result;
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            this.logger.error('Transaction rolled back', {
+                ...context,
+                duration,
+                error: error instanceof Error ? error.message : String(error)
+            });
+
+            throw error;
+        }
     }
 }

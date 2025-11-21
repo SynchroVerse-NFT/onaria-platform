@@ -975,10 +975,20 @@ export class AppService extends BaseService {
 
     /**
      * Delete an app with ownership verification and cascade delete related records
+     *
+     * Uses transaction to ensure atomic deletion of app + all related records.
+     * Rollback occurs if any deletion fails, preventing orphaned records.
+     *
+     * Transaction boundaries:
+     * - Favorites deletion (favorites table)
+     * - Stars deletion (stars table)
+     * - App views deletion (app_views table)
+     * - Fork relationship updates (apps table)
+     * - App deletion (apps table)
      */
     async deleteApp(appId: string, userId: string): Promise<{ success: boolean; error?: string }> {
         try {
-            // First check if app exists and user owns it
+            // Check ownership outside transaction for early validation
             const ownershipResult = await this.checkAppOwnership(appId, userId);
 
             if (!ownershipResult.exists) {
@@ -989,51 +999,84 @@ export class AppService extends BaseService {
                 return { success: false, error: 'You can only delete your own apps' };
             }
 
-            // Delete related records first (foreign key constraints)
-            // This follows the cascade delete pattern for data integrity
+            // Execute atomic transaction: cascade delete all related records + app
+            await this.database.transaction(async (tx) => {
+                // 1. Delete favorites
+                await tx
+                    .delete(schema.favorites)
+                    .where(eq(schema.favorites.appId, appId));
 
-            // Delete favorites
-            await this.database
-                .delete(schema.favorites)
-                .where(eq(schema.favorites.appId, appId));
+                // 2. Delete stars
+                await tx
+                    .delete(schema.stars)
+                    .where(eq(schema.stars.appId, appId));
 
-            // Delete stars
-            await this.database
-                .delete(schema.stars)
-                .where(eq(schema.stars.appId, appId));
+                // 3. Delete app views
+                await tx
+                    .delete(schema.appViews)
+                    .where(eq(schema.appViews.appId, appId));
 
-            // Delete app views
-            await this.database
-                .delete(schema.appViews)
-                .where(eq(schema.appViews.appId, appId));
+                // 4. Delete tracked features
+                await tx
+                    .delete(schema.trackedFeatures)
+                    .where(eq(schema.trackedFeatures.appId, appId));
 
-            // Handle fork relationships properly
-            // If this app is a parent, make forks independent (don't delete them!)
-            await this.database
-                .update(schema.apps)
-                .set({ parentAppId: null })
-                .where(eq(schema.apps.parentAppId, appId));
+                // 5. Delete app comments
+                await tx
+                    .delete(schema.appComments)
+                    .where(eq(schema.appComments.appId, appId));
 
-            // If this app is a fork, we don't need to do anything special
-            // (the parent fork count will be handled by analytics recalculation)
+                // 6. Delete comment likes for this app's comments (no direct FK, need subquery)
+                const commentsToDelete = await tx
+                    .select({ id: schema.appComments.id })
+                    .from(schema.appComments)
+                    .where(eq(schema.appComments.appId, appId));
 
-            // Finally delete the app itself
-            const deleteResult = await this.database
-                .delete(schema.apps)
-                .where(and(
-                    eq(schema.apps.id, appId),
-                    eq(schema.apps.userId, userId)
-                ))
-                .returning({ id: schema.apps.id });
+                if (commentsToDelete.length > 0) {
+                    const commentIds = commentsToDelete.map(c => c.id);
+                    await tx
+                        .delete(schema.commentLikes)
+                        .where(inArray(schema.commentLikes.commentId, commentIds));
+                }
 
-            if (deleteResult.length === 0) {
-                return { success: false, error: 'Failed to delete app - app may have been already deleted' };
-            }
+                // 7. Delete app likes
+                await tx
+                    .delete(schema.appLikes)
+                    .where(eq(schema.appLikes.appId, appId));
 
+                // 8. Handle fork relationships - make child forks independent
+                await tx
+                    .update(schema.apps)
+                    .set({ parentAppId: null })
+                    .where(eq(schema.apps.parentAppId, appId));
+
+                // 9. Delete LLM usage records for this app
+                await tx
+                    .delete(schema.llmUsage)
+                    .where(eq(schema.llmUsage.appId, appId));
+
+                // 10. Finally delete the app itself
+                const deleteResult = await tx
+                    .delete(schema.apps)
+                    .where(and(
+                        eq(schema.apps.id, appId),
+                        eq(schema.apps.userId, userId)
+                    ))
+                    .returning({ id: schema.apps.id });
+
+                if (deleteResult.length === 0) {
+                    throw new Error('Failed to delete app - app may have been already deleted');
+                }
+            });
+
+            this.logger?.info('App deleted successfully', { appId, userId });
             return { success: true };
         } catch (error) {
             this.logger?.error('Error deleting app:', error);
-            return { success: false, error: 'An error occurred while deleting the app' };
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'An error occurred while deleting the app'
+            };
         }
     }
 

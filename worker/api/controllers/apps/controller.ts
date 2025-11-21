@@ -13,12 +13,14 @@ import {
     AppDeleteData,
     BulkScreenshotCaptureData
 } from './types';
-// import { withCache } from '../../../services/cache/wrapper';
+import { withCache } from '../../../services/cache/wrapper';
+import { CacheService } from '../../../services/cache/CacheService';
 import { createLogger } from '../../../logger';
 import { uploadImage, ImageType, type ImageAttachment } from '../../../utils/images';
 
 export class AppController extends BaseController {
     static logger = createLogger('AppController');
+    private static cacheService = new CacheService();
 
     // Get all apps for the current user
     static async getUserApps(_request: Request, env: Env, _ctx: ExecutionContext, context: RouteContext): Promise<ControllerResponse<ApiResponse<AppsListData>>> {
@@ -106,8 +108,19 @@ export class AppController extends BaseController {
         }
     }
 
-    // Get public apps feed (like a global board)
-   static getPublicApps = async function(this: AppController, request: Request, env: Env, _ctx: ExecutionContext, _context: RouteContext): Promise<ControllerResponse<ApiResponse<PublicAppsData>>> {
+    // Get public apps feed (like a global board) - CACHED VERSION
+   static getPublicAppsCached = withCache(
+        async function(this: AppController, request: Request, env: Env, _ctx: ExecutionContext, _context: RouteContext): Promise<ControllerResponse<ApiResponse<PublicAppsData>>> {
+            return AppController.getPublicAppsUncached(request, env, _ctx, _context);
+        },
+        {
+            ttlSeconds: 300, // 5 minutes
+            tags: ['public-apps', 'apps-list']
+        }
+    );
+
+    // Get public apps feed (like a global board) - UNCACHED VERSION (for internal use)
+   static getPublicAppsUncached = async function(this: AppController, request: Request, env: Env, _ctx: ExecutionContext, _context: RouteContext): Promise<ControllerResponse<ApiResponse<PublicAppsData>>> {
         try {
             const url = new URL(request.url);
             
@@ -214,7 +227,17 @@ export class AppController extends BaseController {
                 return AppController.createErrorResponse<UpdateAppVisibilityData>(result.error || 'Failed to update app visibility', statusCode);
             }
 
-            const responseData: UpdateAppVisibilityData = { 
+            // Invalidate public apps cache when visibility changes to public
+            if (validVisibility === 'public') {
+                try {
+                    await AppController.cacheService.invalidateByTags(['public-apps', 'apps-list']);
+                    this.logger.debug('Invalidated public apps cache after visibility change', { appId });
+                } catch (cacheError) {
+                    this.logger.warn('Failed to invalidate cache', { error: cacheError });
+                }
+            }
+
+            const responseData: UpdateAppVisibilityData = {
                 app: {
                     ...result.app!,
                     visibility: result.app!.visibility
@@ -245,6 +268,14 @@ export class AppController extends BaseController {
                 const statusCode = result.error === 'App not found' ? 404 :
                                  result.error?.includes('only delete your own apps') ? 403 : 500;
                 return AppController.createErrorResponse<AppDeleteData>(result.error || 'Failed to delete app', statusCode);
+            }
+
+            // Invalidate public apps cache after deletion
+            try {
+                await AppController.cacheService.invalidateByTags(['public-apps', 'apps-list']);
+                this.logger.debug('Invalidated public apps cache after deletion', { appId });
+            } catch (cacheError) {
+                this.logger.warn('Failed to invalidate cache', { error: cacheError });
             }
 
             const responseData: AppDeleteData = {

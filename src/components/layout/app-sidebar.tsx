@@ -11,6 +11,7 @@ import {
 	Bookmark,
 	// LayoutGrid,
 	Compass,
+	HelpCircle,
 } from 'lucide-react';
 import './sidebar-overrides.css';
 import { useRecentApps, useFavoriteApps, useApps } from '@/hooks/use-apps';
@@ -227,6 +228,7 @@ export function AppSidebar() {
 										<Tooltip>
 											<TooltipTrigger asChild>
 												<button
+													data-tour="create-app"
 													className={cn(
 														'group relative flex w-full items-center gap-2 font-medium p-2 rounded-md cursor-pointer',
 														'bg-gradient-to-r from-accent to-accent/90',
@@ -379,6 +381,7 @@ export function AppSidebar() {
 													{moreAvailable && (
 														<SidebarMenuItem>
 															<SidebarMenuButton
+																data-tour="my-apps"
 																onClick={() =>
 																	navigate(
 																		'/apps',
@@ -590,6 +593,20 @@ export function AppSidebar() {
 									{!isCollapsed && (
 										<span className="text-text-primary/80 font-medium group-hover:text-accent transition-colors">
 											Discover
+										</span>
+									)}
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									onClick={() => navigate('/help')}
+									tooltip="Help & Documentation"
+									className="group hover:cursor-pointer hover:bg-accent/5 transition-all duration-200 border border-transparent hover:border-accent/10 rounded-md"
+								>
+									<HelpCircle className="h-6 w-6 text-text-primary/60 group-hover:text-accent group-hover:drop-shadow-[0_0_8px_rgba(246,130,31,0.3)] transition-all duration-200" />
+									{!isCollapsed && (
+										<span className="font-medium text-text-primary/80 group-hover:text-accent transition-colors">
+											Help
 										</span>
 									)}
 								</SidebarMenuButton>

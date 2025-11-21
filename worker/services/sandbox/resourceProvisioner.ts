@@ -7,10 +7,26 @@ export interface ResourceProvisionResult {
     error?: string;
 }
 
+/**
+ * Cloudflare API error structure
+ */
+interface CloudflareAPIError {
+    code: number;
+    message: string;
+}
+
+/**
+ * Cloudflare API message structure
+ */
+interface CloudflareAPIMessage {
+    code?: number;
+    message: string;
+}
+
 export interface CloudflareKVNamespaceResponse {
     success: boolean;
-    errors: any[];
-    messages: any[];
+    errors: CloudflareAPIError[];
+    messages: CloudflareAPIMessage[];
     result?: {
         id: string;
         title: string;
@@ -20,8 +36,8 @@ export interface CloudflareKVNamespaceResponse {
 
 export interface CloudflareD1DatabaseResponse {
     success: boolean;
-    errors: any[];
-    messages: any[];
+    errors: CloudflareAPIError[];
+    messages: CloudflareAPIMessage[];
     result?: {
         uuid: string;
         name: string;

@@ -216,15 +216,11 @@ function getLayoutConfig(
 }
 
 // Reusable components to eliminate duplicate JSX
-const StatItem = ({
-	icon: Icon,
-	value,
-	highlighted = false,
-}: {
+const StatItem = React.memo<{
 	icon: LucideIcon;
 	value: number;
 	highlighted?: boolean;
-}) => (
+}>(({ icon: Icon, value, highlighted = false }) => (
 	<div className="flex items-center gap-1 group-hover:scale-105 transition-transform duration-200">
 		<Icon
 			className={cn(
@@ -237,29 +233,29 @@ const StatItem = ({
 			{value || 0}
 		</span>
 	</div>
-);
+));
+StatItem.displayName = 'StatItem';
 
-const StatsDisplay = ({ stats }: { stats: StatsData }) => (
+const StatsDisplay = React.memo<{ stats: StatsData }>(({ stats }) => (
 	<div className="flex items-center gap-2 text-sm text-text-tertiary/80">
 		<StatItem
 			icon={STATS_ICONS.starCount}
 			value={stats.starCount || 0}
 			highlighted={stats.userStarred}
 		/>
-		{/* Fork functionality temporarily removed - showing view count instead */}
-		{/* <StatItem icon={STATS_ICONS.forkCount} value={stats.forkCount || 0} /> */}
 		<StatItem icon={STATS_ICONS.viewCount} value={stats.viewCount || 0} />
 	</div>
-);
+));
+StatsDisplay.displayName = 'StatsDisplay';
 
-const AppMetadata = ({
-	app,
-	layoutConfig,
-	hasOverlayStatus,
-}: {
+const AppMetadata = React.memo<{
 	app: AppCardData;
 	layoutConfig: LayoutConfig;
 	hasOverlayStatus?: boolean;
+}>(({
+	app,
+	layoutConfig,
+	hasOverlayStatus,
 }) => {
 	if (layoutConfig.primaryMetadata === 'social' && isPublicApp(app)) {
 		// Discover page layout - show user info
@@ -303,7 +299,6 @@ const AppMetadata = ({
 					{app.title}
 				</span>
 				<div className="flex items-center gap-2.5 text-sm">
-					{/* Only show deployment status if there's no overlay status indicator */}
 					{deploymentStatus && !hasOverlayStatus && (
 						<>
 							<div className="flex items-center gap-1.5">
@@ -370,7 +365,8 @@ const AppMetadata = ({
 			</span>
 		</div>
 	);
-};
+});
+AppMetadata.displayName = 'AppMetadata';
 
 export const AppCard = React.memo<AppCardProps>(
 	({
@@ -380,10 +376,19 @@ export const AppCard = React.memo<AppCardProps>(
 		showActions = false,
 		className,
 	}) => {
-		const layoutConfig = getLayoutConfig(showUser, showActions);
-		const deploymentStatus = getDeploymentStatusInfo(app);
+		// Memoize expensive computations to prevent recalculation on every render
+		const layoutConfig = React.useMemo(
+			() => getLayoutConfig(showUser, showActions),
+			[showUser, showActions]
+		);
 
-		const itemVariants = {
+		const deploymentStatus = React.useMemo(
+			() => getDeploymentStatusInfo(app),
+			[app]
+		);
+
+		// Memoize animation variants (static object, no dependencies)
+		const itemVariants = React.useMemo(() => ({
 			hidden: { y: 10, opacity: 0 },
 			visible: {
 				y: 0,
@@ -402,7 +407,21 @@ export const AppCard = React.memo<AppCardProps>(
 					duration: 0.2,
 				},
 			},
-		};
+		}), []);
+
+		// Memoize click handler to prevent recreation
+		const handleClick = React.useCallback((e: React.MouseEvent) => {
+			e.preventDefault();
+			onClick(app.id);
+		}, [onClick, app.id]);
+
+		// Memoize GitHub button click handler
+		const handleGithubClick = React.useCallback((e: React.MouseEvent) => {
+			e.stopPropagation();
+			if (app.githubRepositoryUrl) {
+				window.open(app.githubRepositoryUrl, '_blank', 'noopener,noreferrer');
+			}
+		}, [app.githubRepositoryUrl]);
 
 		return (
 			<motion.div
@@ -413,13 +432,9 @@ export const AppCard = React.memo<AppCardProps>(
 				layout
 				className={className}
 			>
-				{/* Anchor wrapper for right-click context menu support */}
 				<a
 					href={`/app/${app.id}`}
-					onClick={(e) => {
-						e.preventDefault();
-						onClick(app.id);
-					}}
+					onClick={handleClick}
 					className="block h-full no-underline"
 				>
 					<Card
@@ -434,7 +449,6 @@ export const AppCard = React.memo<AppCardProps>(
 							'before:-z-10 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300',
 						)}
 					>
-					{/* Enhanced Preview Section with High-Quality Rendering */}
 					<div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-orange-900/20">
 						{app.screenshotUrl ? (
 							<img
@@ -442,7 +456,6 @@ export const AppCard = React.memo<AppCardProps>(
 								alt={`${app.title} preview`}
 								className={cn(
 									'w-full h-full transition-all duration-300 ease-out',
-									// High-quality rendering with smart cropping for better visual appeal
 									'object-cover object-center',
 									'bg-gradient-to-br from-red-50/60 to-red-100/60 dark:from-red-950/15 dark:to-red-900/15',
 								)}
@@ -452,39 +465,27 @@ export const AppCard = React.memo<AppCardProps>(
 								srcSet={`${app.screenshotUrl} 1x, ${app.screenshotUrl} 1.5x, ${app.screenshotUrl} 2x, ${app.screenshotUrl} 3x`}
 								decoding="async"
 								onError={(e) => {
-									// Smooth fallback to placeholder
 									const target = e.target as HTMLImageElement;
 									target.style.opacity = '0';
 									setTimeout(() => {
 										target.style.display = 'none';
-										const placeholder =
-											target.parentElement?.querySelector(
-												'.screenshot-placeholder',
-											) as HTMLElement;
+										const placeholder = target.parentElement?.querySelector('.screenshot-placeholder') as HTMLElement;
 										if (placeholder) {
-											placeholder.classList.remove(
-												'hidden',
-											);
+											placeholder.classList.remove('hidden');
 											placeholder.style.opacity = '1';
 										}
 									}, 150);
 								}}
 								onLoad={(e) => {
-									// Ensure smooth appearance with advanced quality enhancement
 									const target = e.target as HTMLImageElement;
 									target.style.opacity = '1';
-									// Apply dynamic quality optimizations after load
-									const devicePixelRatio =
-										window.devicePixelRatio || 1;
+									const devicePixelRatio = window.devicePixelRatio || 1;
 									if (devicePixelRatio >= 2) {
-										target.style.imageRendering =
-											'high-quality';
-										target.style.filter =
-											'contrast(1.05) saturate(1.06) brightness(1.02) unsharp-mask(0.7px 0.7px 0px)';
+										target.style.imageRendering = 'high-quality';
+										target.style.filter = 'contrast(1.05) saturate(1.06) brightness(1.02) unsharp-mask(0.7px 0.7px 0px)';
 									} else {
 										target.style.imageRendering = 'auto';
-										target.style.filter =
-											'contrast(1.04) saturate(1.05) brightness(1.02) unsharp-mask(0.5px 0.5px 0px)';
+										target.style.filter = 'contrast(1.04) saturate(1.05) brightness(1.02) unsharp-mask(0.5px 0.5px 0px)';
 									}
 									target.style.backfaceVisibility = 'hidden';
 									target.style.willChange = 'transform';
@@ -492,14 +493,12 @@ export const AppCard = React.memo<AppCardProps>(
 								style={{
 									opacity: 0,
 									transition: 'opacity 0.3s ease-out',
-									// Advanced CSS-level quality optimizations
 									imageRendering: 'auto',
 									backfaceVisibility: 'hidden',
 									transform: 'translate3d(0, 0, 0)',
 									willChange: 'transform',
 									contain: 'layout style paint',
 									isolation: 'isolate',
-									// Enhanced quality filters with cross-browser support
 									filter: 'contrast(1.04) saturate(1.05) brightness(1.02)',
 									WebkitFontSmoothing: 'subpixel-antialiased',
 									textRendering: 'optimizeLegibility',
@@ -511,10 +510,7 @@ export const AppCard = React.memo<AppCardProps>(
 						<div
 							className={cn(
 								'screenshot-placeholder w-full h-full flex flex-col items-center justify-center absolute inset-0 transition-all duration-300',
-								app.screenshotUrl
-									? 'hidden opacity-0'
-									: 'opacity-100',
-								// Enhanced placeholder design
+								app.screenshotUrl ? 'hidden opacity-0' : 'opacity-100',
 								'bg-gradient-to-br from-red-50 via-red-100/80 to-red-200/60 dark:from-red-950/30 dark:via-red-900/20 dark:to-red-800/10',
 							)}
 						>
@@ -529,7 +525,6 @@ export const AppCard = React.memo<AppCardProps>(
 							</div>
 						</div>
 
-						{/* Deploying status indicator - only show when actually deploying */}
 						{deploymentStatus?.color === 'text-blue-400' &&
 							getAppDeploymentStatus(app) === 'deploying' && (
 								<div
@@ -542,7 +537,6 @@ export const AppCard = React.memo<AppCardProps>(
 								</div>
 							)}
 
-						{/* Failed deployment status indicator - only show when deployment actually failed */}
 						{deploymentStatus?.color === 'text-red-400' &&
 							getAppDeploymentStatus(app) === 'failed' && (
 								<div
@@ -555,9 +549,6 @@ export const AppCard = React.memo<AppCardProps>(
 								</div>
 							)}
 
-						{/* GitHub Repository Badge - moved to app info section, removed from screenshot overlay */}
-
-						{/* Actions Dropdown - positioned in top-right on hover */}
 						{showActions && (
 							<div className="absolute top-2 right-2">
 								<AppActionsDropdown
@@ -570,26 +561,15 @@ export const AppCard = React.memo<AppCardProps>(
 							</div>
 						)}
 
-						{/* Visibility Badge for user apps (when not showing status overlays) */}
-						{(isUserApp(app) || isEnhancedApp(app)) &&
-							!deploymentStatus && (
-								<div className="absolute bottom-2 left-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-md border border-purple-400/30 rounded-lg p-1.5 shadow-lg">
-									{getVisibilityIcon(app.visibility)}
-								</div>
-							)}
-
-						{/* Visibility Badge positioned differently when status overlay exists */}
-						{(isUserApp(app) || isEnhancedApp(app)) &&
-							deploymentStatus && (
-								<div className="absolute bottom-2 left-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-md border border-purple-400/30 rounded-lg p-1.5 shadow-lg">
-									{getVisibilityIcon(app.visibility)}
-								</div>
-							)}
+						{(isUserApp(app) || isEnhancedApp(app)) && (
+							<div className="absolute bottom-2 left-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-md border border-purple-400/30 rounded-lg p-1.5 shadow-lg">
+								{getVisibilityIcon(app.visibility)}
+							</div>
+						)}
 					</div>
 
 					<div className="flex items-start justify-between gap-2 p-2 pb-1">
 						<div className="flex-1 min-w-0">
-							{/* Enhanced Adaptive Metadata with GitHub integration */}
 							<div className="transition-all duration-200 ease-out ">
 								<div className="flex items-center gap-3">
 									<div className="flex-1">
@@ -598,29 +578,15 @@ export const AppCard = React.memo<AppCardProps>(
 											layoutConfig={layoutConfig}
 											hasOverlayStatus={
 												!!deploymentStatus &&
-												deploymentStatus.color !==
-													'text-gray-500'
+												deploymentStatus.color !== 'text-gray-500'
 											}
 										/>
 									</div>
-									{/* GitHub Repository Button - integrated into app info */}
 									{app.githubRepositoryUrl &&
-										app.githubRepositoryVisibility !==
-											'private' && (
+										app.githubRepositoryVisibility !== 'private' && (
 											<button
 												className="group/github flex items-center gap-1.5 px-2 py-1 rounded-full bg-gradient-to-r from-gray-500/10 to-slate-500/10 hover:from-gray-500/20 hover:to-slate-500/20 backdrop-blur-sm border border-gray-500/20 hover:border-gray-400/40 hover:shadow-[0_0_15px_rgba(100,116,139,0.2)] transition-all duration-200"
-												onClick={(e) => {
-													e.stopPropagation();
-													if (
-														app.githubRepositoryUrl
-													) {
-														window.open(
-															app.githubRepositoryUrl,
-															'_blank',
-															'noopener,noreferrer',
-														);
-													}
-												}}
+												onClick={handleGithubClick}
 												title={`View on GitHub (${app.githubRepositoryVisibility || 'public'})`}
 												aria-label="View repository on GitHub"
 											>
@@ -636,6 +602,33 @@ export const AppCard = React.memo<AppCardProps>(
 			</motion.div>
 		);
 	},
+	(prevProps, nextProps) => {
+		// Custom comparison function for precise re-render control
+		// Only re-render if critical props change
+		const appChanged = (
+			prevProps.app.id !== nextProps.app.id ||
+			prevProps.app.title !== nextProps.app.title ||
+			prevProps.app.screenshotUrl !== nextProps.app.screenshotUrl ||
+			prevProps.app.updatedAt !== nextProps.app.updatedAt ||
+			prevProps.app.visibility !== nextProps.app.visibility ||
+			prevProps.app.githubRepositoryUrl !== nextProps.app.githubRepositoryUrl ||
+			prevProps.app.githubRepositoryVisibility !== nextProps.app.githubRepositoryVisibility
+		);
+
+		const propChanged = (
+			prevProps.showUser !== nextProps.showUser ||
+			prevProps.showActions !== nextProps.showActions ||
+			prevProps.className !== nextProps.className
+		);
+
+		const deploymentChanged = hasDeploymentFields(prevProps.app) && hasDeploymentFields(nextProps.app) &&
+			getAppDeploymentStatus(prevProps.app) !== getAppDeploymentStatus(nextProps.app);
+
+		const statsChanged = JSON.stringify(getAppStats(prevProps.app)) !== JSON.stringify(getAppStats(nextProps.app));
+
+		// Return true if nothing changed (prevent re-render)
+		return !appChanged && !propChanged && !deploymentChanged && !statsChanged;
+	}
 );
 
 AppCard.displayName = 'AppCard';

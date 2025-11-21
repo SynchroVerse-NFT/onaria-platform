@@ -84,6 +84,15 @@ export class SessionService extends BaseService {
     
     /**
      * Create a new session
+     *
+     * Uses transaction to ensure atomic session cleanup + session creation.
+     * Rollback occurs if either operation fails.
+     *
+     * Transaction boundaries:
+     * - Old session cleanup (sessions table)
+     * - New session creation (sessions table)
+     *
+     * Note: Token generation and hashing done outside transaction (CPU intensive).
      */
     async createSession(
         userId: string,
@@ -93,55 +102,77 @@ export class SessionService extends BaseService {
         accessToken: string;
     }> {
         try {
-            // Clean up old sessions for this user
-            await this.cleanupUserSessions(userId);
-            
             // Generate session ID first
             const sessionId = generateId();
             const userEmail = await this.getUserEmail(userId);
-            
-            // Generate tokens WITH session ID
+
+            // Generate tokens WITH session ID (outside transaction - CPU intensive)
             const { accessToken } = await this.jwtUtils.createAccessToken(
                 userId,
                 userEmail,
                 sessionId
             );
-            
-            // Hash tokens for storage
+
+            // Hash tokens for storage (outside transaction - CPU intensive)
             const accessTokenHash = await this.jwtUtils.hashToken(accessToken);
-            
-            // Extract request metadata using centralized utility
+
+            // Extract request metadata
             const requestMetadata = extractRequestMetadata(request);
-            
-            // Create device info object
             const deviceInfo = requestMetadata.userAgent;
-            
-            // Create session
+
+            // Prepare session data
             const now = new Date();
             const expiresAt = new Date(Date.now() + SessionService.config.sessionTTL * 1000);
-            
-            await this.db.db.insert(schema.sessions).values({
-                id: sessionId,
-                userId,
-                accessTokenHash,
-                refreshTokenHash: '',
-                expiresAt,
-                lastActivity: now,
-                ipAddress: requestMetadata.ipAddress,
-                userAgent: requestMetadata.userAgent,
-                deviceInfo,
-                createdAt: now
+
+            // Execute atomic transaction: cleanup old sessions + create new session
+            await this.db.db.transaction(async (tx) => {
+                // 1. Clean up old sessions (keep only most recent)
+                const existingSessions = await tx
+                    .select({ id: schema.sessions.id })
+                    .from(schema.sessions)
+                    .where(eq(schema.sessions.userId, userId))
+                    .orderBy(desc(schema.sessions.lastActivity))
+                    .all();
+
+                if (existingSessions.length >= SessionService.config.maxSessions) {
+                    const sessionsToDelete = existingSessions.slice(SessionService.config.maxSessions - 1);
+
+                    for (const session of sessionsToDelete) {
+                        await tx
+                            .delete(schema.sessions)
+                            .where(eq(schema.sessions.id, session.id));
+                    }
+
+                    logger.debug('Cleaned up old user sessions', {
+                        userId,
+                        deleted: sessionsToDelete.length
+                    });
+                }
+
+                // 2. Create new session
+                await tx.insert(schema.sessions).values({
+                    id: sessionId,
+                    userId,
+                    accessTokenHash,
+                    refreshTokenHash: '',
+                    expiresAt,
+                    lastActivity: now,
+                    ipAddress: requestMetadata.ipAddress,
+                    userAgent: requestMetadata.userAgent,
+                    deviceInfo,
+                    createdAt: now
+                });
             });
-            
+
             const session: AuthSession = {
                 userId,
-                email: await this.getUserEmail(userId),
+                email: userEmail,
                 sessionId,
                 expiresAt: expiresAt,
             };
-            
+
             logger.info('Session created', { userId, sessionId });
-            
+
             return {
                 session,
                 accessToken,
@@ -273,39 +304,6 @@ export class SessionService extends BaseService {
         } catch (error) {
             logger.error('Error cleaning up sessions', error);
             return 0;
-        }
-    }
-    
-    /**
-     * Clean up old sessions for a user (keep only most recent)
-     */
-    private async cleanupUserSessions(userId: string): Promise<void> {
-        try {
-            // Get all sessions for user, ordered by last activity
-            const sessions = await this.db.db
-                .select({ id: schema.sessions.id })
-                .from(schema.sessions)
-                .where(eq(schema.sessions.userId, userId))
-                .orderBy(desc(schema.sessions.lastActivity))
-                .all();
-            
-            // Keep only the most recent sessions
-            if (sessions.length > SessionService.config.maxSessions) {
-                const sessionsToDelete = sessions.slice(SessionService.config.maxSessions);
-                
-                for (const session of sessionsToDelete) {
-                    await this.db.db
-                        .delete(schema.sessions)
-                        .where(eq(schema.sessions.id, session.id));
-                }
-                
-                logger.debug('Cleaned up old user sessions', { 
-                    userId, 
-                    deleted: sessionsToDelete.length 
-                });
-            }
-        } catch (error) {
-            logger.error('Error cleaning up user sessions', error);
         }
     }
     

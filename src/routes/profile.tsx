@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { StatCardSkeleton, ListItemSkeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import { 
   Mail, 
   Calendar,
@@ -167,48 +169,59 @@ export default function Profile() {
       <div className="container mx-auto px-4 py-8">
         {/* Stats Overview */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <Card className="text-center hover:shadow-lg hover:shadow-cosmic-blue/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-blue/20">
-            <CardContent className="pt-6 relative overflow-hidden">
-              <Code2 className="h-32 w-32 text-cosmic-blue absolute -top-10 -left-6 opacity-10" />
-              <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-blue to-cosmic-purple bg-clip-text text-transparent">{statsLoading ? '-' : stats?.appCount}</p>
-              <p className="text-md text-text-tertiary">Total Apps</p>
-            </CardContent>
-          </Card>
+          {statsLoading ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <Card className="text-center hover:shadow-lg hover:shadow-cosmic-blue/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-blue/20">
+                <CardContent className="pt-6 relative overflow-hidden">
+                  <Code2 className="h-32 w-32 text-cosmic-blue absolute -top-10 -left-6 opacity-10" />
+                  <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-blue to-cosmic-purple bg-clip-text text-transparent">{stats?.appCount || 0}</p>
+                  <p className="text-md text-text-tertiary">Total Apps</p>
+                </CardContent>
+              </Card>
 
-          <Card className="text-center hover:shadow-lg hover:shadow-cosmic-purple/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-purple/20">
-            <CardContent className="pt-6 relative overflow-hidden">
-              <Globe className="h-32 w-32 text-cosmic-purple absolute -top-10 -left-6 opacity-10" />
-              <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-purple to-cosmic-pink bg-clip-text text-transparent">{statsLoading ? '-' : stats?.publicAppCount}</p>
-              <p className="text-md text-text-tertiary">Public Apps</p>
-            </CardContent>
-          </Card>
+              <Card className="text-center hover:shadow-lg hover:shadow-cosmic-purple/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-purple/20">
+                <CardContent className="pt-6 relative overflow-hidden">
+                  <Globe className="h-32 w-32 text-cosmic-purple absolute -top-10 -left-6 opacity-10" />
+                  <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-purple to-cosmic-pink bg-clip-text text-transparent">{stats?.publicAppCount || 0}</p>
+                  <p className="text-md text-text-tertiary">Public Apps</p>
+                </CardContent>
+              </Card>
 
-          <Card className="text-center hover:shadow-lg hover:shadow-cosmic-pink/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-pink/20">
-            <CardContent className="pt-6 relative overflow-hidden">
-              <Activity className="h-32 w-32 text-cosmic-pink absolute -top-10 -left-6 opacity-10" />
-              <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-pink to-cosmic-orange bg-clip-text text-transparent">{statsLoading ? '-' : stats?.totalViewsReceived}</p>
-              <p className="text-md text-text-tertiary">Total Views</p>
-            </CardContent>
-          </Card>
+              <Card className="text-center hover:shadow-lg hover:shadow-cosmic-pink/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-pink/20">
+                <CardContent className="pt-6 relative overflow-hidden">
+                  <Activity className="h-32 w-32 text-cosmic-pink absolute -top-10 -left-6 opacity-10" />
+                  <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-pink to-cosmic-orange bg-clip-text text-transparent">{stats?.totalViewsReceived || 0}</p>
+                  <p className="text-md text-text-tertiary">Total Views</p>
+                </CardContent>
+              </Card>
 
-          <Card className="text-center hover:shadow-lg hover:shadow-cosmic-blue/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-blue/20">
-            <CardContent className="pt-6 relative overflow-hidden">
-              <Star className="h-32 w-32 text-cosmic-orange absolute -top-10 -left-6 opacity-10" />
-              <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-orange to-cosmic-blue bg-clip-text text-transparent">{statsLoading ? '-' : stats?.totalLikesReceived}</p>
-              <p className="text-md text-text-tertiary">Total Likes</p>
-            </CardContent>
-          </Card>
+              <Card className="text-center hover:shadow-lg hover:shadow-cosmic-blue/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-cosmic-blue/20">
+                <CardContent className="pt-6 relative overflow-hidden">
+                  <Star className="h-32 w-32 text-cosmic-orange absolute -top-10 -left-6 opacity-10" />
+                  <p className="text-6xl font-semibold bg-gradient-to-br from-cosmic-orange to-cosmic-blue bg-clip-text text-transparent">{stats?.totalLikesReceived || 0}</p>
+                  <p className="text-md text-text-tertiary">Total Likes</p>
+                </CardContent>
+              </Card>
 
-          <Card className="text-center hover:shadow-lg hover:shadow-green-500/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-green-500/20">
-            <CardContent className="pt-6 relative overflow-hidden">
-              <DollarSign className="h-32 w-32 text-green-500 absolute -top-10 -left-6 opacity-10" />
-              <p className="text-6xl font-semibold bg-gradient-to-br from-green-500 to-emerald-400 bg-clip-text text-transparent">
-                {costLoading ? '-' : `$${totalCost.toFixed(4)}`}
-              </p>
-              <p className="text-md text-text-tertiary">LLM Cost (30d)</p>
-            </CardContent>
-          </Card>
-
+              <Card className="text-center hover:shadow-lg hover:shadow-green-500/20 hover:scale-[1.02] transition-all bg-bg-3/50 backdrop-blur-sm border-green-500/20">
+                <CardContent className="pt-6 relative overflow-hidden">
+                  <DollarSign className="h-32 w-32 text-green-500 absolute -top-10 -left-6 opacity-10" />
+                  <p className="text-6xl font-semibold bg-gradient-to-br from-green-500 to-emerald-400 bg-clip-text text-transparent">
+                    {costLoading ? '-' : `$${totalCost.toFixed(4)}`}
+                  </p>
+                  <p className="text-md text-text-tertiary">LLM Cost (30d)</p>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         <Tabs defaultValue="about" className="space-y-6">
@@ -297,11 +310,10 @@ export default function Profile() {
               </CardHeader>
               <CardContent>
                 {appsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="text-center">
-                      <Activity className="h-8 w-8 mx-auto mb-2 text-text-tertiary animate-pulse" />
-                      <p className="text-sm text-text-tertiary">Loading apps...</p>
-                    </div>
+                  <div className="space-y-4">
+                    <ListItemSkeleton />
+                    <ListItemSkeleton />
+                    <ListItemSkeleton />
                   </div>
                 ) : recentApps && recentApps.length > 0 ? (
                   <div className="space-y-4">
@@ -334,13 +346,21 @@ export default function Profile() {
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <Code2 className="h-12 w-12 text-text-tertiary mb-4" />
-                    <p className="text-text-tertiary">No apps created yet</p>
-                    <Button className="mt-4" onClick={() => navigate('/chat')}>
-                      Create Your First App
-                    </Button>
-                  </div>
+                  <EmptyState
+                    icon={<Code2 className="h-12 w-12" />}
+                    title="No Apps Yet"
+                    description="Start building your first application with AI assistance"
+                    action={{
+                      label: 'Create Your First App',
+                      onClick: () => navigate('/'),
+                    }}
+                    secondaryAction={{
+                      label: 'Browse Templates',
+                      onClick: () => navigate('/templates'),
+                    }}
+                    type="no-data"
+                    className="min-h-[300px]"
+                  />
                 )}
               </CardContent>
             </Card>
@@ -353,11 +373,10 @@ export default function Profile() {
               </CardHeader>
               <CardContent>
                 {statsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="text-center">
-                      <Trophy className="h-8 w-8 mx-auto mb-2 text-text-tertiary animate-pulse" />
-                      <p className="text-sm text-text-tertiary">Loading achievements...</p>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <ListItemSkeleton />
+                    <ListItemSkeleton />
+                    <ListItemSkeleton />
                   </div>
                 ) : achievements && achievements.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -380,11 +399,17 @@ export default function Profile() {
                     })}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <Trophy className="h-12 w-12 text-text-tertiary mb-4" />
-                    <p className="text-text-tertiary">No achievements yet</p>
-                    <p className="text-sm text-text-tertiary mt-2">Start creating apps to unlock achievements!</p>
-                  </div>
+                  <EmptyState
+                    icon={<Trophy className="h-12 w-12" />}
+                    title="No Achievements Yet"
+                    description="Start creating apps to unlock achievements and showcase your progress!"
+                    action={{
+                      label: 'Start Building',
+                      onClick: () => navigate('/'),
+                    }}
+                    type="no-data"
+                    className="min-h-[300px]"
+                  />
                 )}
               </CardContent>
             </Card>
@@ -397,11 +422,10 @@ export default function Profile() {
               </CardHeader>
               <CardContent>
                 {activityLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="text-center">
-                      <Activity className="h-8 w-8 mx-auto mb-2 text-text-tertiary animate-pulse" />
-                      <p className="text-sm text-text-tertiary">Loading activity...</p>
-                    </div>
+                  <div className="space-y-4">
+                    <ListItemSkeleton />
+                    <ListItemSkeleton />
+                    <ListItemSkeleton />
                   </div>
                 ) : activities && activities.length > 0 ? (
                   <div className="space-y-4">
@@ -435,10 +459,13 @@ export default function Profile() {
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <Activity className="h-12 w-12 text-text-tertiary mb-4" />
-                    <p className="text-text-tertiary">No recent activity</p>
-                  </div>
+                  <EmptyState
+                    icon={<Activity className="h-12 w-12" />}
+                    title="No Recent Activity"
+                    description="Your activity timeline will appear here once you start creating and interacting with apps"
+                    type="no-data"
+                    className="min-h-[300px]"
+                  />
                 )}
               </CardContent>
             </Card>

@@ -6,6 +6,7 @@ import { Toaster } from './components/ui/sonner';
 import { AppLayout } from './components/layout/app-layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import AnimationWrapper from './components/animations/AnimationWrapper';
+import { OnboardingProvider } from './components/onboarding/onboarding-provider';
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
                 <Outlet />
               </AppLayout>
               <Toaster richColors position="top-right" />
+              <OnboardingProvider />
             </AuthModalProvider>
           </AuthProvider>
         </AnimationWrapper>

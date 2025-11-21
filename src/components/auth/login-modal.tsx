@@ -494,6 +494,21 @@ export function LoginModal({
 											{validationErrors.password && (
 												<p className="mt-1 text-sm text-red-400">{validationErrors.password}</p>
 											)}
+											{mode === 'login' && (
+												<div className="mt-2 text-right">
+													<a
+														href="/reset-password/request"
+														className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+														onClick={(e) => {
+															e.preventDefault();
+															handleClose();
+															window.location.href = '/reset-password/request';
+														}}
+													>
+														Forgot password?
+													</a>
+												</div>
+											)}
 										</div>
 
 										{mode === 'register' && (

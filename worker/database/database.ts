@@ -6,6 +6,7 @@
 import { drizzle } from 'drizzle-orm/d1';
 import * as Sentry from '@sentry/cloudflare';
 import * as schema from './schema';
+import * as relations from './relations';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 
 import type { HealthStatusResult } from './types';
@@ -41,7 +42,9 @@ export class DatabaseService {
     constructor(env: Env) {
         const instrumented = Sentry.instrumentD1WithSentry(env.DB);
         this.d1 = instrumented;
-        this.db = drizzle(instrumented, { schema });
+        // Include relations for eager loading support
+        // @ts-expect-error - Drizzle type inference with spread relations doesn't match schema type
+        this.db = drizzle(instrumented, { schema: { ...schema, ...relations } });
         this.enableReplicas = env.ENABLE_READ_REPLICAS === 'true';
     }
 
@@ -64,7 +67,7 @@ export class DatabaseService {
         const session = this.d1.withSession(sessionType);
         // D1DatabaseSession is compatible with D1Database for Drizzle operations
         // @ts-ignore - D1Database type exists at runtime from Cloudflare Workers
-        return drizzle(session as unknown as D1Database, { schema });
+        return drizzle(session as unknown as D1Database, { schema: { ...schema, ...relations } });
     }
 
     // ========================================

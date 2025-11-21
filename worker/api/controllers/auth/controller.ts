@@ -6,6 +6,7 @@ import { AuthService } from '../../../database/services/AuthService';
 import { SessionService } from '../../../database/services/SessionService';
 import { UserService } from '../../../database/services/UserService';
 import { ApiKeyService } from '../../../database/services/ApiKeyService';
+import { EmailService } from '../../../services/email/EmailService';
 import { generateApiKey } from '../../../utils/cryptoUtils';
 import {
     loginSchema,
@@ -14,11 +15,11 @@ import {
 } from './authSchemas';
 import { SecurityError } from 'shared/types/errors';
 import { ZodError } from 'zod';
-import { 
+import {
     formatAuthResponse,
-    mapUserResponse, 
-    setSecureAuthCookies, 
-    clearAuthCookies, 
+    mapUserResponse,
+    setSecureAuthCookies,
+    clearAuthCookies,
     extractSessionId
 } from '../../../utils/authUtils';
 import { RouteContext } from '../../types/route-context';
@@ -666,10 +667,10 @@ export class AuthController extends BaseController {
                 github: !!env.GITHUB_CLIENT_ID && !!env.GITHUB_CLIENT_SECRET,
                 email: true
             };
-            
+
             // Include CSRF token with provider info
             const csrfToken = CsrfService.getOrGenerateToken(request, false);
-            
+
             const response = AuthController.createSuccessResponse({
                 providers,
                 hasOAuth: providers.google || providers.github,
@@ -677,15 +678,92 @@ export class AuthController extends BaseController {
                 csrfToken,
                 csrfExpiresIn: Math.floor(CsrfService.defaults.tokenTTL / 1000)
             });
-            
+
             // Set CSRF token cookie with proper expiration
             const maxAge = Math.floor(CsrfService.defaults.tokenTTL / 1000);
             CsrfService.setTokenCookie(response, csrfToken, maxAge);
-            
+
             return response;
         } catch (error) {
             console.error('Get auth providers error:', error);
             return AuthController.createErrorResponse('Failed to get authentication providers', 500);
+        }
+    }
+
+    /**
+     * Request password reset
+     * POST /api/auth/reset-password/request
+     */
+    static async requestPasswordReset(request: Request, env: Env, _ctx: ExecutionContext, _routeContext: RouteContext): Promise<Response> {
+        try {
+            const bodyResult = await AuthController.parseJsonBody<{ email: string }>(request);
+            if (!bodyResult.success) {
+                return bodyResult.response!;
+            }
+
+            const { email } = bodyResult.data!;
+
+            if (!email || typeof email !== 'string') {
+                return AuthController.createErrorResponse('Email is required', 400);
+            }
+
+            const authService = new AuthService(env);
+            const { token } = await authService.requestPasswordReset(email, request);
+
+            // Send password reset email
+            const emailService = new EmailService(env);
+            const baseUrl = new URL(request.url).origin;
+
+            try {
+                await emailService.sendPasswordResetEmail(email, token, baseUrl);
+                this.logger.info('Password reset email sent', { email });
+            } catch (emailError) {
+                this.logger.error('Failed to send password reset email', emailError);
+                // Continue - don't reveal email sending failure for security
+            }
+
+            // Always return success to prevent email enumeration
+            return AuthController.createSuccessResponse({
+                message: 'If an account exists for this email, a password reset link has been sent.'
+            });
+        } catch (error) {
+            if (error instanceof SecurityError) {
+                return AuthController.createErrorResponse(error.message, error.statusCode);
+            }
+
+            return AuthController.handleError(error, 'request password reset');
+        }
+    }
+
+    /**
+     * Confirm password reset
+     * POST /api/auth/reset-password/confirm
+     */
+    static async confirmPasswordReset(request: Request, env: Env, _ctx: ExecutionContext, _routeContext: RouteContext): Promise<Response> {
+        try {
+            const bodyResult = await AuthController.parseJsonBody<{ token: string; newPassword: string }>(request);
+            if (!bodyResult.success) {
+                return bodyResult.response!;
+            }
+
+            const { token, newPassword } = bodyResult.data!;
+
+            if (!token || !newPassword) {
+                return AuthController.createErrorResponse('Token and new password are required', 400);
+            }
+
+            const authService = new AuthService(env);
+            await authService.confirmPasswordReset(token, newPassword, request);
+
+            return AuthController.createSuccessResponse({
+                message: 'Password reset successful. Please log in with your new password.'
+            });
+        } catch (error) {
+            if (error instanceof SecurityError) {
+                return AuthController.createErrorResponse(error.message, error.statusCode);
+            }
+
+            return AuthController.handleError(error, 'confirm password reset');
         }
     }
 }

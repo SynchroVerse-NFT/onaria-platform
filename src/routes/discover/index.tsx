@@ -6,6 +6,8 @@ import { AppFiltersForm } from '@/components/shared/AppFiltersForm';
 import { AppSortTabs } from '@/components/shared/AppSortTabs';
 import { useTheme } from '@/contexts/theme-context';
 import AnimatedBackground from '@/components/animations/AnimatedBackground';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Globe, Search } from 'lucide-react';
 import type { AppSortOption } from '@/api-types';
 
 export default function DiscoverPage() {
@@ -147,6 +149,55 @@ export default function DiscoverPage() {
 								showUser={true}
 								showStats={true}
 								infiniteScroll={true}
+								emptyState={
+									!searchQuery &&
+									filterFramework === 'all' &&
+									totalCount === 0
+										? {
+												title: 'No public apps yet',
+												description:
+													'Be the first to share your creation with the community!',
+												action: (
+													<EmptyState
+														icon={<Globe className="h-16 w-16" />}
+														title="No Apps to Discover Yet"
+														description="The community is just getting started. Create and publish your app to be among the first!"
+														action={{
+															label: 'Create & Publish',
+															onClick: () => navigate('/'),
+														}}
+														secondaryAction={{
+															label: 'View Templates',
+															onClick: () => navigate('/templates'),
+														}}
+														type="no-data"
+														className="mt-0 min-h-0 bg-transparent border-0"
+													/>
+												),
+											}
+										: searchQuery
+										? {
+												title: 'No apps found',
+												description: `No apps match "${searchQuery}". Try a different search term.`,
+												action: (
+													<EmptyState
+														icon={<Search className="h-16 w-16" />}
+														title="No Results Found"
+														description={`We couldn't find any apps matching "${searchQuery}"`}
+														action={{
+															label: 'Clear Search',
+															onClick: () => {
+																setSearchQuery('');
+																handleSearchSubmit({ preventDefault: () => {}, currentTarget: { query: { value: '' } } } as never);
+															},
+														}}
+														type="no-results"
+														className="mt-0 min-h-0 bg-transparent border-0"
+													/>
+												),
+											}
+										: undefined
+								}
 							/>
 						</motion.div>
 					</motion.div>

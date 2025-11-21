@@ -18,7 +18,8 @@ export function setupAppRoutes(app: Hono<AppEnv>): void {
     
     // FIXED: Main apps listing - PUBLIC for /apps frontend route
     // This powers the main /apps page that shows all public apps
-    appRouter.get('/public', setAuthLevel(AuthConfig.public), adaptController(AppController, AppController.getPublicApps));
+    // CACHED: 5 minute TTL for improved performance
+    appRouter.get('/public', setAuthLevel(AuthConfig.public), adaptController(AppController, AppController.getPublicAppsCached));
 
     // ========================================
     // AUTHENTICATED USER ROUTES (Personal dashboard routes)

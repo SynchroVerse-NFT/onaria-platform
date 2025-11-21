@@ -8,6 +8,8 @@ import { AppSortTabs } from '@/components/shared/AppSortTabs';
 import { VisibilityFilter } from '@/components/shared/VisibilityFilter';
 import { useTheme } from '@/contexts/theme-context';
 import AnimatedBackground from '@/components/animations/AnimatedBackground';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Sparkles } from 'lucide-react';
 import type { AppSortOption } from '@/api-types';
 
 export default function AppsPage() {
@@ -181,8 +183,24 @@ export default function AppsPage() {
 									? {
 											title: 'No apps yet',
 											description:
-												'Start building your first app with AI assistance.',
-											action: <div></div>,
+												'Start building your first app with AI assistance. Create anything from landing pages to full-stack applications.',
+											action: (
+												<EmptyState
+													icon={<Sparkles className="h-16 w-16" />}
+													title="Create Your First App"
+													description="Transform your ideas into reality with AI-powered development"
+													action={{
+														label: 'Start Building',
+														onClick: () => navigate('/'),
+													}}
+													secondaryAction={{
+														label: 'Browse Templates',
+														onClick: () => navigate('/templates'),
+													}}
+													type="no-data"
+													className="mt-0 min-h-0 bg-transparent border-0"
+												/>
+											),
 										}
 									: undefined
 							}

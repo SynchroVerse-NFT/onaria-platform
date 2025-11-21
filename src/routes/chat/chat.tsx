@@ -661,22 +661,23 @@ export default function Chat() {
 									transition={{ duration: 0.3, delay: 0.2 }}
 									className="px-4 mb-6"
 								>
-									<DeploymentControls
-										isPhase1Complete={isPhase1Complete}
-										isDeploying={isDeploying}
-										deploymentUrl={cloudflareDeploymentUrl}
-										instanceId={chatId || ''}
-										isRedeployReady={isRedeployReady}
-										deploymentError={deploymentError}
-										appId={app?.id || chatId}
-										appVisibility={app?.visibility}
-										isGenerating={
-											isGenerating ||
-											isGeneratingBlueprint
-										}
-										isPaused={isGenerationPaused}
-										onDeploy={handleDeploy}
-										onStopGeneration={handleStopGeneration}
+									<div data-tour="deployment-controls">
+										<DeploymentControls
+											isPhase1Complete={isPhase1Complete}
+											isDeploying={isDeploying}
+											deploymentUrl={cloudflareDeploymentUrl}
+											instanceId={chatId || ''}
+											isRedeployReady={isRedeployReady}
+											deploymentError={deploymentError}
+											appId={app?.id || chatId}
+											appVisibility={app?.visibility}
+											isGenerating={
+												isGenerating ||
+												isGeneratingBlueprint
+											}
+											isPaused={isGenerationPaused}
+											onDeploy={handleDeploy}
+											onStopGeneration={handleStopGeneration}
 										onResumeGeneration={
 											handleResumeGeneration
 										}
@@ -686,7 +687,8 @@ export default function Chat() {
 												app.visibility = newVisibility;
 											}
 										}}
-									/>
+										/>
+									</div>
 								</motion.div>
 							)}
 
@@ -755,6 +757,7 @@ export default function Chat() {
 							<div className="absolute inset-0 bg-gradient-to-r from-cosmic-blue/20 via-cosmic-purple/20 to-cosmic-pink/20 rounded-xl opacity-0 group-focus-within:opacity-100 blur-md transition-opacity duration-300 -z-10" />
 
 							<textarea
+								data-tour="chat-input"
 								value={newMessage}
 								onChange={(e) => {
 									const newValue = e.target.value;
@@ -858,7 +861,7 @@ export default function Chat() {
 						transition={{ duration: 0.3, ease: 'easeInOut' }}
 					>
 							{view === 'preview' && (
-								<div className="flex-1 flex flex-col bg-bg-3 rounded-xl shadow-md shadow-bg-2 overflow-hidden border border-border-primary">
+								<div data-tour="preview-panel" className="flex-1 flex flex-col bg-bg-3 rounded-xl shadow-md shadow-bg-2 overflow-hidden border border-border-primary">
 									<div className="grid grid-cols-3 px-2 h-10 border-b bg-bg-2">
 										<div className="flex items-center">
 											<ViewModeSwitch
@@ -1121,14 +1124,16 @@ export default function Chat() {
 											className="absolute inset-0 flex"
 											ref={editorRef}
 										>
-											<FileExplorer
-												files={files}
-												bootstrapFiles={
-													streamedBootstrapFiles
-												}
-												currentFile={activeFile}
-												onFileClick={handleFileClick}
-											/>
+											<div data-tour="file-explorer">
+												<FileExplorer
+													files={files}
+													bootstrapFiles={
+														streamedBootstrapFiles
+													}
+													currentFile={activeFile}
+													onFileClick={handleFileClick}
+												/>
+											</div>
 											<div className="flex-1">
 												<LazyMonacoEditor
 													className="h-full"

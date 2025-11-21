@@ -8,6 +8,8 @@ import {
 	Key,
 	Lock,
     Settings,
+	HelpCircle,
+	RotateCcw,
 } from 'lucide-react';
 import { ModelConfigTabs } from '@/components/model-config-tabs';
 import type {
@@ -1447,6 +1449,71 @@ export default function SettingsPage() {
 										</div>
 									))
 								)}
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* Help & Support Section with Cosmic Styling */}
+					<Card id="help-support" className="bg-bg-3/50 backdrop-blur-sm border-cosmic-blue/20 hover:border-cosmic-blue/30 transition-all duration-300 hover:shadow-lg hover:shadow-cosmic-blue/10">
+						<CardHeader variant="minimal">
+							<div className="flex items-center gap-3 border-b border-cosmic-blue/20 w-full py-3 text-text-primary">
+								<HelpCircle className="h-5 w-5 text-cosmic-blue" />
+								<div>
+									<CardTitle className="text-lg text-cosmic-blue">
+										Help & Support
+									</CardTitle>
+								</div>
+							</div>
+						</CardHeader>
+						<CardContent className="space-y-3 mt-2 px-6">
+							<div className="space-y-2">
+								<h4 className="font-medium text-cosmic-blue">
+									Onboarding Tour
+								</h4>
+								<div className="flex items-center justify-between p-3 rounded-lg border border-cosmic-blue/20 bg-cosmic-blue/5 hover:border-cosmic-blue/30 transition-all duration-300">
+									<div>
+										<p className="font-medium text-text-primary">Restart Platform Tour</p>
+										<p className="text-sm text-text-tertiary">
+											Take the guided tour again to learn about platform features
+										</p>
+									</div>
+									<Button
+										variant="outline"
+										className="gap-2 border-cosmic-blue/30 hover:border-cosmic-blue/50 hover:bg-cosmic-blue/10"
+										onClick={() => {
+											localStorage.removeItem('onboarding_completed');
+											window.location.href = '/';
+										}}
+									>
+										<RotateCcw className="h-4 w-4" />
+										Restart Tour
+									</Button>
+								</div>
+							</div>
+
+							<Separator />
+
+							<div className="space-y-2">
+								<h4 className="font-medium text-cosmic-blue">
+									Documentation
+								</h4>
+								<div className="grid gap-3">
+									<a
+										href="/help"
+										className="flex items-center justify-between p-3 rounded-lg border border-cosmic-blue/20 bg-cosmic-blue/5 hover:border-cosmic-blue/30 transition-all duration-300 no-underline"
+									>
+										<div className="flex items-center gap-3">
+											<HelpCircle className="h-5 w-5 text-cosmic-blue" />
+											<div>
+												<p className="font-medium text-text-primary">Help & Documentation</p>
+												<p className="text-sm text-text-tertiary">
+													Browse comprehensive guides and FAQs
+												</p>
+											</div>
+										</div>
+										<span className="text-cosmic-blue">→</span>
+									</a>
+								</div>
 							</div>
 						</CardContent>
 					</Card>

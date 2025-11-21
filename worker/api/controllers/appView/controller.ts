@@ -4,8 +4,8 @@ import { ApiResponse, ControllerResponse } from '../types';
 import type { RouteContext } from '../../types/route-context';
 import { getAgentStubLightweight } from '../../../agents';
 import { AppService } from '../../../database/services/AppService';
-import { 
-    AppDetailsData, 
+import {
+    AppDetailsData,
     AppStarToggleData,
     GitCloneTokenData,
 } from './types';

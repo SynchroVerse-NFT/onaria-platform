@@ -5,8 +5,17 @@
 import { createLogger } from '../logger';
 import { SecurityError } from 'shared/types/errors';
 import { errorResponse } from '../api/responses';
+import type { User } from '../database/schema';
 
 const logger = createLogger('ErrorHandling');
+
+/**
+ * Resource with ownership - for ownership verification
+ */
+export interface ResourceWithOwnership {
+    userId: string;
+    [key: string]: unknown;
+}
 
 /**
  * Standard error types for the application
@@ -211,7 +220,7 @@ export class ControllerErrorHandler {
     /**
      * Handle authentication requirement
      */
-    static requireAuthentication(user: any): void {
+    static requireAuthentication(user: User | null | undefined): void {
         if (!user) {
             throw ErrorFactory.authenticationError();
         }
@@ -220,7 +229,7 @@ export class ControllerErrorHandler {
     /**
      * Handle resource ownership verification
      */
-    static requireResourceOwnership(resource: any, userId: string, resourceName: string): void {
+    static requireResourceOwnership(resource: ResourceWithOwnership | null | undefined, userId: string, resourceName: string): void {
         if (!resource) {
             throw ErrorFactory.notFoundError(resourceName);
         }

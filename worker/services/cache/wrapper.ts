@@ -9,6 +9,7 @@ import type { BaseController } from '../../api/controllers/baseController';
 interface CacheOptions {
 	ttlSeconds: number;
 	tags?: string[];
+	bypassCache?: boolean;
 }
 
 type ControllerMethod<T extends BaseController> = (

@@ -3,6 +3,7 @@ import React, { lazy, Suspense } from 'react';
 
 import App from './App';
 import { ProtectedRoute } from './routes/protected-route';
+import { ErrorBoundary } from './components/error-boundary';
 
 const Home = lazy(() => import('./routes/home'));
 const Chat = lazy(() => import('./routes/chat/chat'));
@@ -13,15 +14,20 @@ const AppView = lazy(() => import('./routes/app'));
 const DiscoverPage = lazy(() => import('./routes/discover'));
 const TemplatesPage = lazy(() => import('./routes/templates'));
 const Pricing = lazy(() => import('./routes/pricing'));
+const HelpPage = lazy(() => import('./routes/help'));
+const RequestPasswordReset = lazy(() => import('./routes/reset-password/request'));
+const ConfirmPasswordReset = lazy(() => import('./routes/reset-password/confirm'));
 
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
-	<Suspense fallback={
-		<div className="flex items-center justify-center min-h-screen">
-			<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cosmic-blue"></div>
-		</div>
-	}>
-		{children}
-	</Suspense>
+	<ErrorBoundary>
+		<Suspense fallback={
+			<div className="flex items-center justify-center min-h-screen">
+				<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cosmic-blue"></div>
+			</div>
+		}>
+			{children}
+		</Suspense>
+	</ErrorBoundary>
 );
 
 const routes = [
@@ -70,6 +76,18 @@ const routes = [
 			{
 				path: 'pricing',
 				element: React.createElement(SuspenseWrapper, { children: React.createElement(Pricing) }),
+			},
+			{
+				path: 'help',
+				element: React.createElement(SuspenseWrapper, { children: React.createElement(HelpPage) }),
+			},
+			{
+				path: 'reset-password/request',
+				element: React.createElement(SuspenseWrapper, { children: React.createElement(RequestPasswordReset) }),
+			},
+			{
+				path: 'reset-password/confirm',
+				element: React.createElement(SuspenseWrapper, { children: React.createElement(ConfirmPasswordReset) }),
 			},
 		],
 	},

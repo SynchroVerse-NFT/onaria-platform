@@ -61,6 +61,10 @@ declare namespace Cloudflare {
 		ALLOCATION_STRATEGY?: string;
 		USE_TUNNEL_FOR_PREVIEW?: string;
 		CUSTOM_PREVIEW_DOMAIN?: string;
+		// Email service configuration
+		RESEND_API_KEY?: string;
+		SENDGRID_API_KEY?: string;
+		EMAIL_FROM?: string;
 	}
 }
 interface Env extends Cloudflare.Env {}

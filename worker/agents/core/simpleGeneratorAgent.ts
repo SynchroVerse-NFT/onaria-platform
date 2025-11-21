@@ -48,6 +48,7 @@ import { ImageAttachment, type ProcessedImageAttachment } from '../../types/imag
 import { OperationOptions } from '../operations/common';
 import { CodingAgentInterface } from '../services/implementations/CodingAgent';
 import { ImageType, uploadImage } from 'worker/utils/images';
+import { CacheService } from '../../services/cache/CacheService';
 import { ConversationMessage, ConversationState } from '../inferutils/common';
 import { DeepCodeDebugger } from '../assistants/codeDebugger';
 import { DeepDebugResult } from './types';
@@ -1118,6 +1119,16 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                     );
                     statusUpdateSuccess = true;
                     this.logger().info("Successfully updated app status to completed");
+
+                    // Invalidate public apps cache when app completes (might become public)
+                    try {
+                        const cacheService = new CacheService();
+                        await cacheService.invalidateByTags(['public-apps', 'apps-list']);
+                        this.logger().debug('Invalidated public apps cache after app completion');
+                    } catch (cacheError) {
+                        this.logger().warn('Failed to invalidate cache', { error: cacheError });
+                    }
+
                     break;
                 } catch (error) {
                     this.logger().error(`Failed to update app status (attempt ${attempt}/${maxRetries}):`, error);
