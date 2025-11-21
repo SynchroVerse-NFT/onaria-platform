@@ -5,12 +5,14 @@
 
 import { FileObject } from './types';
 import { CodeIssue } from '../sandbox/sandboxTypes';
-import { 
-    CodeFixResult, 
-    FixerContext, 
-    FileMap, 
+import {
+    CodeFixResult,
+    FixerContext,
+    FileMap,
     ProjectFile,
-    FixerRegistry
+    FixerRegistry,
+    FixedIssue,
+    UnfixableIssue
 } from './types';
 import { isScriptFile } from './utils/ast';
 import { canModifyFile } from './utils/modules';
@@ -210,8 +212,8 @@ function applyFixesSequentially(
     sortedIssues: CodeIssue[],
     fixerRegistry: FixerRegistry
 ): CodeFixResult {
-    const fixedIssues: any[] = [];
-    const unfixableIssues: any[] = [];
+    const fixedIssues: FixedIssue[] = [];
+    const unfixableIssues: UnfixableIssue[] = [];
     const modifiedFiles = new Map<string, FileObject>();
     const newFiles = new Map<string, FileObject>();
     

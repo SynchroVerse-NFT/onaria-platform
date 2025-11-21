@@ -10,7 +10,7 @@ interface AppLayoutProps {
   children?: React.ReactNode;
 }
 
-const APP_VERSION = '2.1.46';
+const APP_VERSION = '2.1.52';
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { pathname } = useLocation();

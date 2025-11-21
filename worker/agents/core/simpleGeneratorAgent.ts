@@ -55,6 +55,9 @@ import { StateMigration } from './stateMigration';
 import { generateNanoId } from 'worker/utils/idGenerator';
 import { updatePackageJson } from '../utils/packageSyncer';
 import { IdGenerator } from '../utils/idGenerator';
+import { ScreenshotManager } from './modules/screenshot-manager';
+import { GitHubOperations } from './modules/github-operations';
+import { CommandExecutor } from './modules/command-executor';
 
 interface Operations {
     regenerateFile: FileRegenerationOperation;
@@ -89,6 +92,9 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
     protected autoFixService: AutoFixService;
     protected errorMonitor: ErrorMonitor;
     protected git: GitVersionControl;
+    protected screenshotManager!: ScreenshotManager;
+    protected githubOperations!: GitHubOperations;
+    protected commandExecutor!: CommandExecutor;
 
     private previewUrlCache: string = '';
     private templateDetailsCache: TemplateDetails | null = null;
@@ -99,15 +105,7 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
     private currentAbortController?: AbortController;
     private deepDebugPromise: Promise<{ transcript: string } | { error: string }> | null = null;
     private deepDebugConversationId: string | null = null;
-    
-    // GitHub token cache (ephemeral, lost on DO eviction)
-    private githubTokenCache: {
-        token: string;
-        username: string;
-        expiresAt: number;
-    } | null = null;
-    
-    
+
     protected operations: Operations = {
         regenerateFile: new FileRegenerationOperation(),
         generateNextPhase: new PhaseGenerationOperation(),
@@ -140,6 +138,13 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
     getAgentId() {
         return this.state.inferenceContext.agentId;
     }
+
+    // AgentContext interface methods
+    getState(): CodeGenState {
+        return this.state;
+    }
+
+    // setState and broadcastError are already defined below
 
     initialState: CodeGenState = {
         blueprint: {} as Blueprint, 
@@ -198,6 +203,12 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             },
             SimpleCodeGeneratorAgent.MAX_COMMANDS_HISTORY
         );
+
+        // Initialize extracted modules
+        // Type assertion: SimpleCodeGeneratorAgent implements AgentContextWithServices interface
+        this.screenshotManager = new ScreenshotManager(this as any);
+        this.githubOperations = new GitHubOperations(this as any);
+        this.commandExecutor = new CommandExecutor(this as any);
 
         // Initialize AutoFixService with WebSocket broadcasting
         this.autoFixService = new AutoFixService({
@@ -2327,43 +2338,21 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
      * Token is ephemeral - lost on DO eviction
      */
     setGitHubToken(token: string, username: string, ttl: number = 3600000): void {
-        this.githubTokenCache = {
-            token,
-            username,
-            expiresAt: Date.now() + ttl
-        };
-        this.logger().info('GitHub token cached', { 
-            username, 
-            expiresAt: new Date(this.githubTokenCache.expiresAt).toISOString() 
-        });
+        this.githubOperations.setGitHubToken(token, username, ttl);
     }
 
     /**
      * Get cached GitHub token if available and not expired
      */
     getGitHubToken(): { token: string; username: string } | null {
-        if (!this.githubTokenCache) {
-            return null;
-        }
-        
-        if (Date.now() >= this.githubTokenCache.expiresAt) {
-            this.logger().info('GitHub token expired, clearing cache');
-            this.githubTokenCache = null;
-            return null;
-        }
-        
-        return {
-            token: this.githubTokenCache.token,
-            username: this.githubTokenCache.username
-        };
+        return this.githubOperations.getGitHubToken();
     }
 
     /**
      * Clear cached GitHub token
      */
     clearGitHubToken(): void {
-        this.githubTokenCache = null;
-        this.logger().info('GitHub token cleared');
+        this.githubOperations.clearGitHubToken();
     }
 
     async onMessage(connection: Connection, message: string): Promise<void> {
