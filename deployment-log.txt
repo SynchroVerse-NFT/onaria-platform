@@ -1,0 +1,4 @@
+
+> onaria-platform@2.1.50 deploy
+> bun --env-file .prod.vars scripts/deploy.ts
+

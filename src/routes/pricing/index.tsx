@@ -33,7 +33,11 @@ export default function Pricing() {
 			window.location.href = '/';
 			return;
 		}
-		console.log(`Selected plan: ${tier}`);
+		if (tier === 'enterprise') {
+			window.location.href = '/contact';
+			return;
+		}
+		window.location.href = `/checkout?tier=${tier}`;
 	};
 
 	return (
@@ -50,7 +54,7 @@ export default function Pricing() {
 					<h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-cosmic-blue via-cosmic-purple to-cosmic-pink bg-clip-text text-transparent">
 						Choose Your Plan
 					</h1>
-					<p className="text-xl text-gray-300 dark:text-gray-400 max-w-2xl mx-auto">
+					<p className="text-xl text-gray-100 dark:text-gray-300 max-w-2xl mx-auto">
 						Start building amazing apps with AI. Upgrade anytime as your needs grow.
 					</p>
 				</motion.div>
@@ -59,20 +63,26 @@ export default function Pricing() {
 					<div className="backdrop-blur-xl bg-white/10 dark:bg-black/20 border border-white/20 rounded-full p-1 inline-flex">
 						<button
 							onClick={() => setBillingCycle('monthly')}
-							className={`px-8 py-3 rounded-full transition-all duration-300 ${
+							role="switch"
+							aria-checked={billingCycle === 'monthly'}
+							aria-label="Switch to monthly billing"
+							className={`px-8 py-3 rounded-full transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cosmic-blue focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
 								billingCycle === 'monthly'
 									? 'bg-cosmic-gradient text-white'
-									: 'text-gray-300 dark:text-gray-400 hover:text-white'
+									: 'text-gray-100 dark:text-gray-300 hover:text-white'
 							}`}
 						>
 							Monthly
 						</button>
 						<button
 							onClick={() => setBillingCycle('yearly')}
-							className={`px-8 py-3 rounded-full transition-all duration-300 ${
+							role="switch"
+							aria-checked={billingCycle === 'yearly'}
+							aria-label="Switch to yearly billing"
+							className={`px-8 py-3 rounded-full transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cosmic-blue focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
 								billingCycle === 'yearly'
 									? 'bg-cosmic-gradient text-white'
-									: 'text-gray-300 dark:text-gray-400 hover:text-white'
+									: 'text-gray-100 dark:text-gray-300 hover:text-white'
 							}`}
 						>
 							Yearly
@@ -123,9 +133,9 @@ export default function Pricing() {
 										<div
 											className={`p-3 rounded-xl bg-gradient-to-br ${tierColors[tier]}`}
 										>
-											<Icon className="w-6 h-6 text-white" />
+											<Icon className="w-6 h-6 text-white" aria-label={`${pricing.displayName} tier icon`} />
 										</div>
-										<span className="text-sm font-medium text-gray-400">
+										<span className="text-sm font-medium text-gray-300">
 											{tier.toUpperCase()}
 										</span>
 									</div>
@@ -150,11 +160,11 @@ export default function Pricing() {
 												<span className="text-4xl font-bold text-white">
 													${price}
 												</span>
-												<span className="text-gray-400 ml-2">/month</span>
+												<span className="text-gray-300 ml-2">/month</span>
 											</div>
 										)}
 										{billingCycle === 'yearly' && price > 0 && price !== -1 && (
-											<p className="text-sm text-gray-400 mt-1">
+											<p className="text-sm text-gray-300 mt-1">
 												${pricing.yearlyPrice}/year (save $
 												{pricing.monthlyPrice * 12 - pricing.yearlyPrice})
 											</p>
@@ -164,15 +174,15 @@ export default function Pricing() {
 									<ul className="space-y-3 mb-8 flex-grow">
 										{pricing.features.map((feature, i) => (
 											<li key={i} className="flex items-start gap-3">
-												<Check className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-												<span className="text-gray-300 text-sm">{feature}</span>
+												<Check className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+												<span className="text-gray-100 text-sm"><span className="sr-only">Included:</span> {feature}</span>
 											</li>
 										))}
 									</ul>
 
 									<button
 										onClick={() => handleSelectPlan(tier)}
-										className={`w-full py-3 px-6 rounded-xl font-medium transition-all duration-300 ${
+										className={`w-full py-3 px-6 rounded-xl font-medium transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cosmic-blue focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
 											isPopular || isRecommended
 												? 'bg-cosmic-gradient text-white hover:shadow-lg hover:shadow-cosmic-purple/50'
 												: tier === 'free'
@@ -198,12 +208,12 @@ export default function Pricing() {
 					transition={{ delay: 0.5 }}
 					className="mt-16 text-center"
 				>
-					<p className="text-gray-400 mb-4">
+					<p className="text-gray-300 mb-4">
 						Have questions about our pricing?
 					</p>
 					<Link
-						to="/"
-						className="text-cosmic-blue hover:text-cosmic-purple transition-colors"
+						to="/contact"
+						className="text-cosmic-blue hover:text-cosmic-purple transition-colors focus-visible:ring-2 focus-visible:ring-cosmic-blue focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-md px-2 py-1"
 					>
 						Contact Support
 					</Link>
@@ -223,7 +233,7 @@ export default function Pricing() {
 							<h3 className="font-semibold text-white mb-2">
 								What are credits?
 							</h3>
-							<p className="text-gray-400 text-sm">
+							<p className="text-gray-300 text-sm">
 								Credits are used for AI model calls. Different models have different
 								credit costs: Gemini 2.5 Pro (4 credits), Gemini 2.5 Flash (1
 								credit), Gemini 2.0 Flash (0 credits for platform use).
@@ -233,7 +243,7 @@ export default function Pricing() {
 							<h3 className="font-semibold text-white mb-2">
 								Can I upgrade or downgrade anytime?
 							</h3>
-							<p className="text-gray-400 text-sm">
+							<p className="text-gray-300 text-sm">
 								Yes! You can change your plan at any time. Upgrades take effect
 								immediately, and downgrades take effect at the end of your current
 								billing cycle.
@@ -243,7 +253,7 @@ export default function Pricing() {
 							<h3 className="font-semibold text-white mb-2">
 								What happens if I hit my rate limit?
 							</h3>
-							<p className="text-gray-400 text-sm">
+							<p className="text-gray-300 text-sm">
 								Basic and Pro plans automatically fall back to a lighter model when
 								you hit limits. Free tier users will need to wait for their limits to
 								reset. All limits reset hourly and daily.
@@ -253,7 +263,7 @@ export default function Pricing() {
 							<h3 className="font-semibold text-white mb-2">
 								Is there a money-back guarantee?
 							</h3>
-							<p className="text-gray-400 text-sm">
+							<p className="text-gray-300 text-sm">
 								Yes! We offer a 7-day money-back guarantee on all paid plans. If
 								you're not satisfied, contact support for a full refund.
 							</p>
