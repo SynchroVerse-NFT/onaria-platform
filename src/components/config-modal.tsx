@@ -362,7 +362,7 @@ export function ConfigModal({
                 )}
                 
                 {selectedModelInfo.isPlatformModel && formData.modelName && formData.modelName !== 'default' && (
-                  <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 dark:bg-blue-950/20 px-3 py-2 rounded-md border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/20 px-3 py-2 rounded-md border border-blue-200 dark:border-blue-800">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -371,7 +371,7 @@ export function ConfigModal({
                 )}
                 
                 {formData.modelName && formData.modelName !== 'default' && selectedModelInfo.hasUserKey && (
-                  <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-950/20 px-3 py-2 rounded-md border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/20 px-3 py-2 rounded-md border border-green-200 dark:border-green-800">
                     <Check className="h-4 w-4" />
                     <span>Using your {selectedModelInfo.provider} API key</span>
                   </div>
@@ -400,22 +400,22 @@ export function ConfigModal({
           {/* BYOK Information */}
           <div className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-lg border bg-blue-50/50 border-blue-200">
+              <div className="p-4 rounded-lg border bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                  <h4 className="font-medium text-sm text-blue-900">Platform Models</h4>
+                  <h4 className="font-medium text-sm text-blue-900 dark:text-blue-100">Platform Models</h4>
                 </div>
-                <p className="text-xs text-blue-700">
+                <p className="text-xs text-blue-700 dark:text-blue-300">
                   Models served through our platform with limited quota. No API keys required.
                 </p>
               </div>
-              
-              <div className="p-4 rounded-lg border bg-green-50/50 border-green-200">
+
+              <div className="p-4 rounded-lg border bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                  <h4 className="font-medium text-sm text-green-900">BYOK (Your Keys)</h4>
+                  <h4 className="font-medium text-sm text-green-900 dark:text-green-100">BYOK (Your Keys)</h4>
                 </div>
-                <p className="text-xs text-green-700">
+                <p className="text-xs text-green-700 dark:text-green-300">
                   Your API keys are used for direct billing with providers. Unlimited usage based on your provider account.
                 </p>
               </div>
