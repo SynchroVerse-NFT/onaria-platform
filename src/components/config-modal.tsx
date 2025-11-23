@@ -304,10 +304,10 @@ export function ConfigModal({
 
         <div className="space-y-6">
           {/* Current Status */}
-          <div className="flex items-center justify-between p-3 bg-bg-3/50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800/50 rounded-lg">
             <div>
-              <p className="font-medium text-sm">Configuration Status</p>
-              <p className="text-xs text-text-tertiary">
+              <p className="font-medium text-sm text-gray-900 dark:text-gray-100">Configuration Status</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 {isUserOverride ? 'Using custom configuration' : 'Using system defaults'}
               </p>
             </div>
@@ -321,8 +321,8 @@ export function ConfigModal({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-sm font-medium">Model Configuration</Label>
-                <p className="text-xs text-text-tertiary mt-1">
+                <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">Model Configuration</Label>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Select primary and fallback models - we'll use your API keys if available
                 </p>
               </div>
@@ -426,12 +426,12 @@ export function ConfigModal({
 
           {/* Parameters */}
           <div className="space-y-4">
-            <h4 className="font-medium text-sm">Parameters</h4>
+            <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">Parameters</h4>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Temperature */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Temperature</Label>
+                <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">Temperature</Label>
                 <Input
                   type="number"
                   min="0"
@@ -443,7 +443,7 @@ export function ConfigModal({
                   className="h-10"
                 />
                 {defaultConfig?.temperature && (
-                  <p className="text-xs text-text-tertiary">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     🔧 Default: {defaultConfig.temperature}
                   </p>
                 )}
@@ -451,7 +451,7 @@ export function ConfigModal({
 
               {/* Max Tokens */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Max Tokens</Label>
+                <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">Max Tokens</Label>
                 <Input
                   type="number"
                   min="1"
@@ -462,7 +462,7 @@ export function ConfigModal({
                   className="h-10"
                 />
                 {defaultConfig?.max_tokens && (
-                  <p className="text-xs text-text-tertiary">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     🔧 Default: {defaultConfig.max_tokens?.toLocaleString()}
                   </p>
                 )}
@@ -470,7 +470,7 @@ export function ConfigModal({
 
               {/* Reasoning Effort */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Reasoning Effort</Label>
+                <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">Reasoning Effort</Label>
                 <Select value={formData.reasoningEffort} onValueChange={(value) => setFormData({...formData, reasoningEffort: value})}>
                   <SelectTrigger className="h-10">
                     <SelectValue placeholder="Select effort..." />
@@ -483,7 +483,7 @@ export function ConfigModal({
                   </SelectContent>
                 </Select>
                 {defaultConfig?.reasoning_effort && (
-                  <p className="text-xs text-text-tertiary">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     🔧 Default: {defaultConfig.reasoning_effort}
                   </p>
                 )}
@@ -519,7 +519,7 @@ export function ConfigModal({
                 variant="ghost"
                 size="sm"
                 onClick={handleReset}
-                className="gap-2 text-text-tertiary"
+                className="gap-2 text-gray-600 dark:text-gray-400"
               >
                 <RotateCcw className="h-4 w-4" />
                 Reset to Default
