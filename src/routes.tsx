@@ -14,6 +14,8 @@ const AppView = lazy(() => import('./routes/app'));
 const DiscoverPage = lazy(() => import('./routes/discover'));
 const TemplatesPage = lazy(() => import('./routes/templates'));
 const Pricing = lazy(() => import('./routes/pricing'));
+const Checkout = lazy(() => import('./routes/checkout'));
+const Contact = lazy(() => import('./routes/contact'));
 const HelpPage = lazy(() => import('./routes/help/index'));
 const RequestPasswordReset = lazy(() => import('./routes/reset-password/request'));
 const ConfirmPasswordReset = lazy(() => import('./routes/reset-password/confirm'));
@@ -76,6 +78,14 @@ const routes = [
 			{
 				path: 'pricing',
 				element: React.createElement(SuspenseWrapper, { children: React.createElement(Pricing) }),
+			},
+			{
+				path: 'checkout',
+				element: React.createElement(SuspenseWrapper, { children: React.createElement(Checkout) }),
+			},
+			{
+				path: 'contact',
+				element: React.createElement(SuspenseWrapper, { children: React.createElement(Contact) }),
 			},
 			{
 				path: 'help',
