@@ -140,6 +140,42 @@ const worker = {
 			return new Response('Access denied. Please use the assigned domain name.', { status: 403 });
 		}
 
+		// 3. Security: Block known malicious vulnerability scanning patterns
+		const maliciousPatterns = [
+			// WordPress vulnerability scans
+			/^\/wp-admin/i,
+			/^\/wp-content/i,
+			/^\/wp-includes/i,
+			/^\/wp-login\.php/i,
+			/^\/wp-config\.php/i,
+			/^\/xmlrpc\.php/i,
+			// PHP shell attempts
+			/\.php$/i,
+			// Common backdoor paths
+			/^\/shell/i,
+			/^\/admin\.php/i,
+			/^\/eval-stdin\.php/i,
+			/^\/phpinfo\.php/i,
+			// Config file access attempts
+			/^\/\.env/i,
+			/^\/\.git/i,
+			/^\/\.htaccess/i,
+			/^\/config\.(json|yml|yaml|php)/i,
+			// Database dumps
+			/\.(sql|bak|backup)$/i,
+			// Other common exploit paths
+			/^\/cgi-bin/i,
+			/^\/ALFA_DATA/i,
+			/^\/\.well-known\/(admin|gecko)/i,
+		];
+
+		// Only apply to main domain (not subdomains which are user apps)
+		const isMainDomain = hostname === env.CUSTOM_DOMAIN || hostname === 'localhost';
+		if (isMainDomain && maliciousPatterns.some(pattern => pattern.test(pathname))) {
+			// Silently drop - don't log to avoid log spam from scanners
+			return new Response('Not Found', { status: 404 });
+		}
+
 		// --- Domain-based Routing ---
 
 		// Normalize hostnames for both local development (localhost) and production.

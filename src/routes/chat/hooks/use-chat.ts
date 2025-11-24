@@ -506,6 +506,9 @@ export function useChat({
 				setIsBootstrapping(false);
 				setIsGeneratingBlueprint(false);
 
+				// Clear all loading indicators by setting all stages to error
+				setProjectStages(prev => prev.map(stage => ({ ...stage, status: 'error' as const })));
+
 				if (error instanceof RateLimitExceededError) {
 					const rateLimitMessage = handleRateLimitError(error.details, onDebugMessage);
 					setMessages(prev => [...prev, rateLimitMessage]);

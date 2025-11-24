@@ -999,75 +999,76 @@ export class AppService extends BaseService {
                 return { success: false, error: 'You can only delete your own apps' };
             }
 
-            // Execute atomic transaction: cascade delete all related records + app
-            await this.database.transaction(async (tx) => {
-                // 1. Delete favorites
-                await tx
-                    .delete(schema.favorites)
-                    .where(eq(schema.favorites.appId, appId));
+            // D1 FIX: Execute sequential operations (D1 doesn't support SQL transactions)
+            // Cascade delete all related records + app
 
-                // 2. Delete stars
-                await tx
-                    .delete(schema.stars)
-                    .where(eq(schema.stars.appId, appId));
+            // 1. Delete favorites
+            await this.database
+                .delete(schema.favorites)
+                .where(eq(schema.favorites.appId, appId));
 
-                // 3. Delete app views
-                await tx
-                    .delete(schema.appViews)
-                    .where(eq(schema.appViews.appId, appId));
+            // 2. Delete stars
+            await this.database
+                .delete(schema.stars)
+                .where(eq(schema.stars.appId, appId));
 
-                // 4. Delete tracked features
-                await tx
-                    .delete(schema.trackedFeatures)
-                    .where(eq(schema.trackedFeatures.appId, appId));
+            // 3. Delete app views
+            await this.database
+                .delete(schema.appViews)
+                .where(eq(schema.appViews.appId, appId));
 
-                // 5. Delete app comments
-                await tx
-                    .delete(schema.appComments)
-                    .where(eq(schema.appComments.appId, appId));
+            // 4. Delete tracked features
+            await this.database
+                .delete(schema.trackedFeatures)
+                .where(eq(schema.trackedFeatures.appId, appId));
 
-                // 6. Delete comment likes for this app's comments (no direct FK, need subquery)
-                const commentsToDelete = await tx
-                    .select({ id: schema.appComments.id })
-                    .from(schema.appComments)
-                    .where(eq(schema.appComments.appId, appId));
+            // 5. Get comment IDs first (before deleting comments)
+            const commentsToDelete = await this.database
+                .select({ id: schema.appComments.id })
+                .from(schema.appComments)
+                .where(eq(schema.appComments.appId, appId));
 
-                if (commentsToDelete.length > 0) {
-                    const commentIds = commentsToDelete.map(c => c.id);
-                    await tx
-                        .delete(schema.commentLikes)
-                        .where(inArray(schema.commentLikes.commentId, commentIds));
-                }
+            // 6. Delete comment likes for this app's comments
+            if (commentsToDelete.length > 0) {
+                const commentIds = commentsToDelete.map(c => c.id);
+                await this.database
+                    .delete(schema.commentLikes)
+                    .where(inArray(schema.commentLikes.commentId, commentIds));
+            }
 
-                // 7. Delete app likes
-                await tx
-                    .delete(schema.appLikes)
-                    .where(eq(schema.appLikes.appId, appId));
+            // 7. Delete app comments
+            await this.database
+                .delete(schema.appComments)
+                .where(eq(schema.appComments.appId, appId));
 
-                // 8. Handle fork relationships - make child forks independent
-                await tx
-                    .update(schema.apps)
-                    .set({ parentAppId: null })
-                    .where(eq(schema.apps.parentAppId, appId));
+            // 8. Delete app likes
+            await this.database
+                .delete(schema.appLikes)
+                .where(eq(schema.appLikes.appId, appId));
 
-                // 9. Delete LLM usage records for this app
-                await tx
-                    .delete(schema.llmUsage)
-                    .where(eq(schema.llmUsage.appId, appId));
+            // 9. Handle fork relationships - make child forks independent
+            await this.database
+                .update(schema.apps)
+                .set({ parentAppId: null })
+                .where(eq(schema.apps.parentAppId, appId));
 
-                // 10. Finally delete the app itself
-                const deleteResult = await tx
-                    .delete(schema.apps)
-                    .where(and(
-                        eq(schema.apps.id, appId),
-                        eq(schema.apps.userId, userId)
-                    ))
-                    .returning({ id: schema.apps.id });
+            // 10. Delete LLM usage records for this app
+            await this.database
+                .delete(schema.llmUsage)
+                .where(eq(schema.llmUsage.appId, appId));
 
-                if (deleteResult.length === 0) {
-                    throw new Error('Failed to delete app - app may have been already deleted');
-                }
-            });
+            // 11. Finally delete the app itself
+            const deleteResult = await this.database
+                .delete(schema.apps)
+                .where(and(
+                    eq(schema.apps.id, appId),
+                    eq(schema.apps.userId, userId)
+                ))
+                .returning({ id: schema.apps.id });
+
+            if (deleteResult.length === 0) {
+                throw new Error('Failed to delete app - app may have been already deleted');
+            }
 
             this.logger?.info('App deleted successfully', { appId, userId });
             return { success: true };

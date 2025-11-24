@@ -221,39 +221,39 @@ export class SecretsService extends BaseService {
      */
     async getSecretValue(userId: string, secretId: string): Promise<string> {
         try {
-            // Execute atomic transaction: retrieve secret + update usage tracking
-            const secret = await this.database.transaction(async (tx) => {
-                // 1. Retrieve secret
-                const secretData = await tx
-                    .select()
-                    .from(schema.userSecrets)
-                    .where(
-                        and(
-                            eq(schema.userSecrets.id, secretId),
-                            eq(schema.userSecrets.userId, userId),
-                            eq(schema.userSecrets.isActive, true)
-                        )
+            // D1 FIX: Execute sequential operations (D1 doesn't support SQL transactions)
+            // 1. Retrieve secret
+            const secret = await this.database
+                .select()
+                .from(schema.userSecrets)
+                .where(
+                    and(
+                        eq(schema.userSecrets.id, secretId),
+                        eq(schema.userSecrets.userId, userId),
+                        eq(schema.userSecrets.isActive, true)
                     )
-                    .get();
+                )
+                .get();
 
-                if (!secretData) {
-                    throw new Error('Secret not found');
-                }
+            if (!secret) {
+                throw new Error('Secret not found');
+            }
 
-                // 2. Update usage tracking
-                await tx
+            // 2. Update usage tracking (non-blocking, don't fail retrieval if tracking fails)
+            try {
+                await this.database
                     .update(schema.userSecrets)
                     .set({
                         lastUsed: new Date(),
-                        usageCount: (secretData.usageCount || 0) + 1,
+                        usageCount: (secret.usageCount || 0) + 1,
                         updatedAt: new Date()
                     })
                     .where(eq(schema.userSecrets.id, secretId));
+            } catch (trackingError) {
+                this.logger.warn('Failed to update secret usage tracking', trackingError);
+            }
 
-                return secretData;
-            });
-
-            // Decrypt secret outside transaction (CPU intensive)
+            // Decrypt secret (CPU intensive)
             return await this.decryptSecret(secret.encryptedValue);
         } catch (error) {
             this.logger.error('Failed to get secret value', error);

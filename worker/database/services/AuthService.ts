@@ -136,60 +136,60 @@ export class AuthService extends BaseService {
             const deviceInfo = requestMetadata.userAgent;
             const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
 
-            // Execute atomic transaction: user + session + auth log
-            const result = await this.database.transaction(async (tx) => {
-                // 1. Create user
-                await tx.insert(schema.users).values({
-                    id: userId,
-                    email: userEmail,
-                    passwordHash,
-                    displayName: data.name || data.email.split('@')[0],
-                    emailVerified: true,
-                    provider: 'email',
-                    providerId: userId,
-                    createdAt: now,
-                    updatedAt: now
-                });
+            // D1 FIX: Execute sequential operations (D1 doesn't support SQL transactions)
+            // 1. Create user
+            await this.database.insert(schema.users).values({
+                id: userId,
+                email: userEmail,
+                passwordHash,
+                displayName: data.name || data.email.split('@')[0],
+                emailVerified: true,
+                provider: 'email',
+                providerId: userId,
+                createdAt: now,
+                updatedAt: now
+            });
 
-                // 2. Create session
-                await tx.insert(schema.sessions).values({
-                    id: sessionId,
-                    userId,
-                    accessTokenHash,
-                    refreshTokenHash: '',
-                    expiresAt,
-                    lastActivity: now,
-                    ipAddress: requestMetadata.ipAddress,
-                    userAgent: requestMetadata.userAgent,
-                    deviceInfo,
-                    createdAt: now
-                });
+            // 2. Create session
+            await this.database.insert(schema.sessions).values({
+                id: sessionId,
+                userId,
+                accessTokenHash,
+                refreshTokenHash: '',
+                expiresAt,
+                lastActivity: now,
+                ipAddress: requestMetadata.ipAddress,
+                userAgent: requestMetadata.userAgent,
+                deviceInfo,
+                createdAt: now
+            });
 
-                // 3. Log auth attempt
-                await tx.insert(schema.authAttempts).values({
+            // 3. Log auth attempt (non-critical, don't fail registration if this fails)
+            try {
+                await this.database.insert(schema.authAttempts).values({
                     identifier: userEmail,
                     attemptType: 'register',
                     success: true,
                     ipAddress: requestMetadata.ipAddress
                 });
+            } catch (attemptError) {
+                logger.warn('Failed to log auth attempt', attemptError);
+            }
 
-                // 4. Retrieve created user
-                const newUser = await tx
-                    .select()
-                    .from(schema.users)
-                    .where(eq(schema.users.id, userId))
-                    .get();
+            // 4. Retrieve created user
+            const result = await this.database
+                .select()
+                .from(schema.users)
+                .where(eq(schema.users.id, userId))
+                .get();
 
-                if (!newUser) {
-                    throw new SecurityError(
-                        SecurityErrorType.INVALID_INPUT,
-                        'Failed to retrieve created user',
-                        500
-                    );
-                }
-
-                return newUser;
-            });
+            if (!result) {
+                throw new SecurityError(
+                    SecurityErrorType.INVALID_INPUT,
+                    'Failed to retrieve created user',
+                    500
+                );
+            }
 
             logger.info('User registered and logged in directly', { userId, email: data.email });
 
@@ -560,97 +560,99 @@ export class AuthService extends BaseService {
             const requestMetadata = extractRequestMetadata(request);
             const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
 
-            // Execute atomic transaction: OAuth state + user + session + auth log
-            const result = await this.database.transaction(async (tx) => {
-                // 1. Mark OAuth state as used
-                await tx
-                    .update(schema.oauthStates)
-                    .set({ isUsed: true })
-                    .where(eq(schema.oauthStates.id, oauthState.id));
+            // D1 FIX: Execute sequential operations (D1 doesn't support SQL transactions)
+            // 1. Mark OAuth state as used
+            await this.database
+                .update(schema.oauthStates)
+                .set({ isUsed: true })
+                .where(eq(schema.oauthStates.id, oauthState.id));
 
-                // 2. Find or create OAuth user
-                let user = await tx
-                    .select()
-                    .from(schema.users)
-                    .where(eq(schema.users.email, oauthUserInfo.email.toLowerCase()))
-                    .get();
+            // 2. Find or create OAuth user
+            let user = await this.database
+                .select()
+                .from(schema.users)
+                .where(eq(schema.users.email, oauthUserInfo.email.toLowerCase()))
+                .get();
 
-                if (!user) {
-                    // Create new user
-                    const userId = generateId();
-                    const now = new Date();
+            if (!user) {
+                // Create new user
+                const userId = generateId();
+                const now = new Date();
 
-                    await tx.insert(schema.users).values({
-                        id: userId,
-                        email: oauthUserInfo.email.toLowerCase(),
-                        displayName: oauthUserInfo.name || oauthUserInfo.email.split('@')[0],
-                        avatarUrl: oauthUserInfo.picture,
-                        emailVerified: oauthUserInfo.emailVerified || false,
-                        provider: provider,
-                        providerId: oauthUserInfo.id,
-                        createdAt: now,
-                        updatedAt: now
-                    });
-
-                    user = await tx
-                        .select()
-                        .from(schema.users)
-                        .where(eq(schema.users.id, userId))
-                        .get();
-                } else {
-                    // Update existing user with OAuth info
-                    await tx
-                        .update(schema.users)
-                        .set({
-                            displayName: oauthUserInfo.name || user.displayName,
-                            avatarUrl: oauthUserInfo.picture || user.avatarUrl,
-                            provider: provider,
-                            providerId: oauthUserInfo.id,
-                            emailVerified: oauthUserInfo.emailVerified || user.emailVerified,
-                            updatedAt: new Date()
-                        })
-                        .where(eq(schema.users.id, user.id));
-
-                    // Refresh user data
-                    user = await tx
-                        .select()
-                        .from(schema.users)
-                        .where(eq(schema.users.id, user.id))
-                        .get();
-                }
-
-                if (!user) {
-                    throw new SecurityError(
-                        SecurityErrorType.UNAUTHORIZED,
-                        'Failed to create or update OAuth user',
-                        500
-                    );
-                }
-
-                // 3. Create session
-                await tx.insert(schema.sessions).values({
-                    id: sessionId,
-                    userId: user.id,
-                    accessTokenHash,
-                    refreshTokenHash: '',
-                    expiresAt,
-                    lastActivity: new Date(),
-                    ipAddress: requestMetadata.ipAddress,
-                    userAgent: requestMetadata.userAgent,
-                    deviceInfo: requestMetadata.userAgent,
-                    createdAt: new Date()
+                await this.database.insert(schema.users).values({
+                    id: userId,
+                    email: oauthUserInfo.email.toLowerCase(),
+                    displayName: oauthUserInfo.name || oauthUserInfo.email.split('@')[0],
+                    avatarUrl: oauthUserInfo.picture,
+                    emailVerified: oauthUserInfo.emailVerified || false,
+                    provider: provider,
+                    providerId: oauthUserInfo.id,
+                    createdAt: now,
+                    updatedAt: now
                 });
 
-                // 4. Log auth attempt
-                await tx.insert(schema.authAttempts).values({
+                user = await this.database
+                    .select()
+                    .from(schema.users)
+                    .where(eq(schema.users.id, userId))
+                    .get();
+            } else {
+                // Update existing user with OAuth info
+                await this.database
+                    .update(schema.users)
+                    .set({
+                        displayName: oauthUserInfo.name || user.displayName,
+                        avatarUrl: oauthUserInfo.picture || user.avatarUrl,
+                        provider: provider,
+                        providerId: oauthUserInfo.id,
+                        emailVerified: oauthUserInfo.emailVerified || user.emailVerified,
+                        updatedAt: new Date()
+                    })
+                    .where(eq(schema.users.id, user.id));
+
+                // Refresh user data
+                user = await this.database
+                    .select()
+                    .from(schema.users)
+                    .where(eq(schema.users.id, user.id))
+                    .get();
+            }
+
+            if (!user) {
+                throw new SecurityError(
+                    SecurityErrorType.UNAUTHORIZED,
+                    'Failed to create or update OAuth user',
+                    500
+                );
+            }
+
+            // 3. Create session
+            await this.database.insert(schema.sessions).values({
+                id: sessionId,
+                userId: user.id,
+                accessTokenHash,
+                refreshTokenHash: '',
+                expiresAt,
+                lastActivity: new Date(),
+                ipAddress: requestMetadata.ipAddress,
+                userAgent: requestMetadata.userAgent,
+                deviceInfo: requestMetadata.userAgent,
+                createdAt: new Date()
+            });
+
+            // 4. Log auth attempt (non-critical)
+            try {
+                await this.database.insert(schema.authAttempts).values({
                     identifier: user.email,
                     attemptType: `oauth_${provider}` as 'oauth_google' | 'oauth_github',
                     success: true,
                     ipAddress: requestMetadata.ipAddress
                 });
+            } catch (attemptError) {
+                logger.warn('Failed to log OAuth auth attempt', attemptError);
+            }
 
-                return user;
-            });
+            const result = user;
 
             logger.info('OAuth login successful', { userId: result.id, provider });
 
@@ -1145,44 +1147,46 @@ export class AuthService extends BaseService {
             // Hash new password
             const passwordHash = await this.passwordService.hash(newPassword);
 
-            // Update password and reset lockout in transaction
-            await this.database.transaction(async (tx) => {
-                // 1. Update user password and clear lockout
-                await tx
-                    .update(schema.users)
-                    .set({
-                        passwordHash,
-                        passwordChangedAt: new Date(),
-                        failedLoginAttempts: 0,
-                        lockedUntil: null,
-                        updatedAt: new Date()
-                    })
-                    .where(eq(schema.users.id, user.id));
+            // D1 FIX: Execute sequential operations (D1 doesn't support SQL transactions)
+            // 1. Update user password and clear lockout
+            await this.database
+                .update(schema.users)
+                .set({
+                    passwordHash,
+                    passwordChangedAt: new Date(),
+                    failedLoginAttempts: 0,
+                    lockedUntil: null,
+                    updatedAt: new Date()
+                })
+                .where(eq(schema.users.id, user.id));
 
-                // 2. Mark token as used
-                await tx
-                    .update(schema.passwordResetTokens)
-                    .set({ used: true })
-                    .where(eq(schema.passwordResetTokens.id, validToken.id));
+            // 2. Mark token as used
+            await this.database
+                .update(schema.passwordResetTokens)
+                .set({ used: true })
+                .where(eq(schema.passwordResetTokens.id, validToken.id));
 
-                // 3. Invalidate all existing sessions for security
-                await tx
-                    .update(schema.sessions)
-                    .set({
-                        isRevoked: true,
-                        revokedAt: new Date(),
-                        revokedReason: 'Password reset'
-                    })
-                    .where(eq(schema.sessions.userId, user.id));
+            // 3. Invalidate all existing sessions for security
+            await this.database
+                .update(schema.sessions)
+                .set({
+                    isRevoked: true,
+                    revokedAt: new Date(),
+                    revokedReason: 'Password reset'
+                })
+                .where(eq(schema.sessions.userId, user.id));
 
-                // 4. Log auth attempt
-                await tx.insert(schema.authAttempts).values({
+            // 4. Log auth attempt (non-critical)
+            try {
+                await this.database.insert(schema.authAttempts).values({
                     identifier: user.email,
                     attemptType: 'reset_password',
                     success: true,
                     ipAddress: extractRequestMetadata(request).ipAddress
                 });
-            });
+            } catch (attemptError) {
+                logger.warn('Failed to log password reset attempt', attemptError);
+            }
 
             logger.info('Password reset successful', {
                 userId: user.id,
