@@ -503,9 +503,27 @@ export function useChat({
 				}
 			} catch (error) {
 				logger.error('Error initializing code generation:', error);
+				setIsBootstrapping(false);
+				setIsGeneratingBlueprint(false);
+
 				if (error instanceof RateLimitExceededError) {
 					const rateLimitMessage = handleRateLimitError(error.details, onDebugMessage);
 					setMessages(prev => [...prev, rateLimitMessage]);
+				} else {
+					// Handle generic errors (including app limit errors)
+					const errorMessage = error instanceof Error ? error.message : 'Failed to start code generation';
+					const aiMessage = createAIMessage('error', `❌ ${errorMessage}`);
+					setMessages(() => [aiMessage]);
+
+					// Show toast for additional visibility
+					toast.error(errorMessage);
+
+					// Debug logging for error tracking
+					onDebugMessage?.('error',
+						'Code Generation Initialization Failed',
+						errorMessage,
+						'App Creation Error'
+					);
 				}
 			}
 		}

@@ -608,8 +608,7 @@ class ApiClient {
 		} catch (error) {
 			// Handle any network or parsing errors
 			const errorMessage = error instanceof Error ? error.message : 'Failed to create agent session';
-			toast.error(errorMessage);
-			
+			// Don't show toast here - let the calling component handle it
             throw new Error(errorMessage);
 		}
 	}
