@@ -1111,4 +1111,21 @@ export class AppService extends BaseService {
             return [];
         }
     }
+
+    /**
+     * Count total apps for a user (for subscription tier enforcement)
+     */
+    async countUserApps(userId: string): Promise<number> {
+        try {
+            const result = await this.database
+                .select({ count: sql<number>`COUNT(*)` })
+                .from(schema.apps)
+                .where(eq(schema.apps.userId, userId))
+                .get();
+            return result?.count || 0;
+        } catch (error) {
+            this.logger?.error('Error counting user apps:', error);
+            return 0;
+        }
+    }
 }

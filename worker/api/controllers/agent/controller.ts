@@ -6,9 +6,10 @@ import { getAgentStub, getTemplateForQuery } from '../../../agents';
 import { AgentConnectionData, AgentPreviewResponse, CodeGenArgs } from './types';
 import { ApiResponse, ControllerResponse } from '../types';
 import { RouteContext } from '../../types/route-context';
-import { ModelConfigService, AppService } from '../../../database';
+import { ModelConfigService, AppService, UserService } from '../../../database';
 import { ModelConfig } from '../../../agents/inferutils/config.types';
 import { RateLimitService } from '../../../services/rate-limit/rateLimits';
+import { getTierLimits, type SubscriptionTier } from '../../../services/rate-limit/tierConfig';
 import { validateWebSocketOrigin } from '../../../middleware/security/websocket';
 import { createLogger } from '../../../logger';
 import { getPreviewDomain } from 'worker/utils/urls';
@@ -113,9 +114,31 @@ export class CodingAgentController extends BaseController {
 
             const { templateDetails, selection } = await getTemplateForQuery(env, inferenceContext, query, body.images, this.logger);
 
+            // Enforce tier-based maxApps limit
+            const appService = new AppService(env);
+            const userService = new UserService(env);
+            const userRecord = await userService.findUser({ id: user.id });
+            const tier = ((userRecord?.subscriptionTier || 'free') as SubscriptionTier);
+            const tierLimits = getTierLimits(tier);
+
+            if (tierLimits.maxApps !== -1) {
+                const userAppsCount = await appService.countUserApps(user.id);
+                if (userAppsCount >= tierLimits.maxApps) {
+                    const tierOrder: SubscriptionTier[] = ['free', 'basic', 'pro', 'enterprise'];
+                    const currentIndex = tierOrder.indexOf(tier);
+                    const nextTier = tierOrder[currentIndex + 1];
+                    const upgradeMessage = nextTier
+                        ? ` Upgrade to ${nextTier} tier for ${tierLimits.maxApps === 3 ? '10' : tierLimits.maxApps === 10 ? '50' : 'unlimited'} apps.`
+                        : '';
+                    return CodingAgentController.createErrorResponse(
+                        `App limit reached. Your ${tier} plan allows ${tierLimits.maxApps} apps.${upgradeMessage}`,
+                        403
+                    );
+                }
+            }
+
             // Create app record immediately to allow WebSocket ownership check to pass
             // This record will be updated later by the agent's saveToDatabase() method
-            const appService = new AppService(env);
             await appService.createApp({
                 id: agentId,
                 userId: user.id,
