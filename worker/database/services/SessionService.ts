@@ -124,44 +124,44 @@ export class SessionService extends BaseService {
             const now = new Date();
             const expiresAt = new Date(Date.now() + SessionService.config.sessionTTL * 1000);
 
-            // Execute atomic transaction: cleanup old sessions + create new session
-            await this.db.db.transaction(async (tx) => {
-                // 1. Clean up old sessions (keep only most recent)
-                const existingSessions = await tx
-                    .select({ id: schema.sessions.id })
-                    .from(schema.sessions)
-                    .where(eq(schema.sessions.userId, userId))
-                    .orderBy(desc(schema.sessions.lastActivity))
-                    .all();
+            // CRITICAL FIX: D1 doesn't support Drizzle ORM transactions (SQL BEGIN/COMMIT)
+            // Refactored to sequential operations without transaction wrapper
 
-                if (existingSessions.length >= SessionService.config.maxSessions) {
-                    const sessionsToDelete = existingSessions.slice(SessionService.config.maxSessions - 1);
+            // 1. Clean up old sessions (keep only most recent)
+            const existingSessions = await this.db.db
+                .select({ id: schema.sessions.id })
+                .from(schema.sessions)
+                .where(eq(schema.sessions.userId, userId))
+                .orderBy(desc(schema.sessions.lastActivity))
+                .all();
 
-                    for (const session of sessionsToDelete) {
-                        await tx
-                            .delete(schema.sessions)
-                            .where(eq(schema.sessions.id, session.id));
-                    }
+            if (existingSessions.length >= SessionService.config.maxSessions) {
+                const sessionsToDelete = existingSessions.slice(SessionService.config.maxSessions - 1);
 
-                    logger.debug('Cleaned up old user sessions', {
-                        userId,
-                        deleted: sessionsToDelete.length
-                    });
+                for (const session of sessionsToDelete) {
+                    await this.db.db
+                        .delete(schema.sessions)
+                        .where(eq(schema.sessions.id, session.id));
                 }
 
-                // 2. Create new session
-                await tx.insert(schema.sessions).values({
-                    id: sessionId,
+                logger.debug('Cleaned up old user sessions', {
                     userId,
-                    accessTokenHash,
-                    refreshTokenHash: '',
-                    expiresAt,
-                    lastActivity: now,
-                    ipAddress: requestMetadata.ipAddress,
-                    userAgent: requestMetadata.userAgent,
-                    deviceInfo,
-                    createdAt: now
+                    deleted: sessionsToDelete.length
                 });
+            }
+
+            // 2. Create new session
+            await this.db.db.insert(schema.sessions).values({
+                id: sessionId,
+                userId,
+                accessTokenHash,
+                refreshTokenHash: '',
+                expiresAt,
+                lastActivity: now,
+                ipAddress: requestMetadata.ipAddress,
+                userAgent: requestMetadata.userAgent,
+                deviceInfo,
+                createdAt: now
             });
 
             const session: AuthSession = {

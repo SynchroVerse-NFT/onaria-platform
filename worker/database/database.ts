@@ -4,7 +4,8 @@
  */
 
 import { drizzle } from 'drizzle-orm/d1';
-import * as Sentry from '@sentry/cloudflare';
+// TEMPORARY FIX: Sentry instrumentation breaking D1 transactions
+// import * as Sentry from '@sentry/cloudflare';
 import * as schema from './schema';
 import * as relations from './relations';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
@@ -40,11 +41,13 @@ export class DatabaseService {
 
     // @ts-ignore - Env type exists at runtime from worker-configuration.d.ts
     constructor(env: Env) {
-        const instrumented = Sentry.instrumentD1WithSentry(env.DB);
-        this.d1 = instrumented;
+        // TEMPORARY FIX: Sentry instrumentation breaking D1 transactions
+        // const instrumented = Sentry.instrumentD1WithSentry(env.DB);
+        // this.d1 = instrumented;
+        this.d1 = env.DB; // Use raw D1 connection without Sentry instrumentation
         // Include relations for eager loading support
         // @ts-expect-error - Drizzle type inference with spread relations doesn't match schema type
-        this.db = drizzle(instrumented, { schema: { ...schema, ...relations } });
+        this.db = drizzle(this.d1, { schema: { ...schema, ...relations } });
         this.enableReplicas = env.ENABLE_READ_REPLICAS === 'true';
     }
 
