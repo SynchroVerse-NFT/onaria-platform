@@ -474,421 +474,125 @@ const derivedValue = propValue.toUpperCase(); // No state needed
 </REACT_RENDER_LOOP_PREVENTION>`,
 
     REACT_RENDER_LOOP_PREVENTION_LITE: `
-⚠️⚠️⚠️ ABSOLUTE ZERO-TOLERANCE RULES - VIOLATION CRASHES THE APP ⚠️⚠️⚠️
+## REACT RENDER LOOP PREVENTION (Critical - Violation = App Crash)
 
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║                   🚨 REACT INFINITE LOOP PREVENTION 🚨                        ║
-║                                                                               ║
-║  "Maximum update depth exceeded" = render→setState→render loop                ║
-║  React aborts after ~50 nested updates. FIX THESE PATTERNS IMMEDIATELY.       ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+### THE 5 GOLDEN RULES
 
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  ROOT CAUSE #1: setState DURING RENDER (MOST COMMON)                          ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-❌ FORBIDDEN PATTERNS:
+**RULE 1: setState only in event handlers or useEffect**
 \`\`\`tsx
-// Direct setState in render
-function Bad() {
-    const [n, setN] = useState(0);
-    setN(n + 1); // ❌ INFINITE LOOP
-    return <div>{n}</div>;
-}
+// ❌ CRASH: setState during render
+const [n, setN] = useState(0);
+setN(n + 1); // Called during render = infinite loop
 
-// Conditional setState in render
-if (showModal && !modalOpen) {
-    setModalOpen(true); // ❌ INFINITE LOOP
-}
-
-// setState in useMemo/useCallback
-useMemo(() => {
-    setProcessed(data); // ❌ SIDE EFFECT IN MEMOIZATION
-    return value;
-}, [data]);
+// ✅ CORRECT: setState in event handler or effect
+const handleClick = () => setN(n + 1);
+useEffect(() => { setN(1); }, []);
 \`\`\`
 
-✅ CORRECT PATTERNS:
+**RULE 2: Every useEffect MUST have a dependency array**
 \`\`\`tsx
-// State updates ONLY in event handlers or useEffect
-const handleClick = () => setState(newValue);
+// ❌ CRASH: Missing dependency array
+useEffect(() => { setCount(count + 1); }); // Runs every render
 
-useEffect(() => {
-    setModalOpen(showModal);
-}, [showModal]);
+// ✅ CORRECT: Always include dependency array
+useEffect(() => { setCount(1); }, []); // Run once
+useEffect(() => { if (userId) fetchUser(userId); }, [userId]); // Run when userId changes
 \`\`\`
 
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  ROOT CAUSE #2: EFFECTS WITHOUT DEPENDENCIES OR GUARDS                        ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-❌ FORBIDDEN:
+**RULE 3: Stabilize objects/arrays with useMemo**
 \`\`\`tsx
-useEffect(() => {
-    setCount(count + 1); // ❌ NO DEPENDENCY ARRAY = INFINITE LOOP
-});
+// ❌ CRASH: New object every render triggers effect
+const config = { theme: 'dark' };
+useEffect(() => { applyConfig(config); }, [config]); // Infinite loop
+
+// ✅ CORRECT: Memoize objects
+const config = useMemo(() => ({ theme: 'dark' }), []);
 \`\`\`
 
-✅ CORRECT:
+**RULE 4: ZUSTAND - Select primitives ONLY (Most Common Bug)**
 \`\`\`tsx
-useEffect(() => {
-    setCount(1);
-}, []); // ✅ Empty array = run once on mount
+// ❌ CRASH: Object selector
+const { a, b } = useStore(s => ({ a: s.a, b: s.b })); // New object every render
+const state = useStore(); // Returns entire store = crash
+const items = useStore(s => s.getItems()); // Method call = crash
 
-useEffect(() => {
-    if (userId) { // ✅ Conditional guard
-        fetchUser(userId).then(setUser);
-    }
-}, [userId]);
-\`\`\`
-
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  ROOT CAUSE #3: UNSTABLE DEPENDENCIES (REFERENTIAL INEQUALITY)                ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-❌ FORBIDDEN:
-\`\`\`tsx
-const filters = { type: 'active' }; // ❌ New object every render
-useEffect(() => { fetch(filters); }, [filters]); // ❌ INFINITE LOOP
-
-const value = { user, setUser }; // ❌ New object every render
-<Context.Provider value={value}> // ❌ ALL CONSUMERS RE-RENDER
-\`\`\`
-
-✅ CORRECT:
-\`\`\`tsx
-const filters = useMemo(() => ({ type: 'active' }), []);
-const value = useMemo(() => ({ user, setUser }), [user]);
-\`\`\`
-
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  🔥🔥🔥 ZUSTAND ABSOLUTE RULE - VIOLATION = INSTANT CRASH 🔥🔥🔥              ║
-║                                                                               ║
-║  ⚠️  ONLY RULE: Select individual primitives. NO EXCEPTIONS. ⚠️              ║
-║                                                                               ║
-║  ❌ BANNED FOREVER: useStore(s => ({ ... }))                                 ║
-║  ❌ BANNED FOREVER: useStore()  (no selector)                                ║
-║  ❌ BANNED FOREVER: useStore(s => s.getXxx())  (method calls)                ║
-║                                                                               ║
-║  ✅ ONLY ALLOWED: useStore(s => s.primitiveValue)                            ║
-║                                                                               ║
-║  Zustand is SUBSCRIPTION-BASED, not context-based like React Context.        ║
-║  Object/array selectors create NEW references every render = CRASH           ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-❌ FORBIDDEN PATTERNS (THESE CAUSE INFINITE LOOPS):
-\`\`\`tsx
-// 🔍 SCAN FOR: "useStore(s => ({" or "useStore((s) => ({"
-const { a, b, c } = useStore(s => ({ a: s.a, b: s.b, c: s.c })); // ❌ CRASH
-
-// 🔍 SCAN FOR: "useStore(useShallow"
-import { useShallow } from 'zustand/react/shallow';
-const { a, b, c } = useStore(useShallow(s => ({ a: s.a, b: s.b, c: s.c }))); // ❌ CRASH
-// Why? You're creating a NEW object ({ a, b, c }) every render in the selector
-// useShallow can't help - the object reference is new every time
-
-// 🔍 SCAN FOR: "useStore()" or "= useStore();"
-const { a, b, c } = useStore(); // ❌ CRASH
-const state = useStore(); // ❌ CRASH
-
-// 🔍 SCAN FOR: "useStore(s => s.get" or "useStore((state) => state.get"
-const items = useStore(s => s.getItems()); // ❌ INFINITE LOOP
-const filtered = useStore(s => s.items.filter(...)); // ❌ INFINITE LOOP
-const mapped = useStore(s => s.data.map(...)); // ❌ INFINITE LOOP
-\`\`\`
-
-⚠️ CRITICAL MISCONCEPTION - READ THIS:
-Many developers think useShallow fixes object-literal selectors. It does not.
-Avoid using useShallow in selectors entirely.
-
-✅ CORRECT PATTERN - ONLY ONE OPTION:
-\`\`\`tsx
-// ONLY ALLOWED: Separate primitive selectors
+// ✅ CORRECT: One primitive per selector (call useStore multiple times)
 const a = useStore(s => s.a);
 const b = useStore(s => s.b);
-const c = useStore(s => s.c);
-// ⚡ EFFICIENCY: Each selector ONLY triggers re-render when ITS value changes
-// This is NOT inefficient! It's the BEST pattern for Zustand. This is actually good quality, elegant code!
-// THERE IS NO OPTION 2. Only individual primitive selectors are allowed.
-// If you need multiple values, call useStore multiple times - it's the ONLY correct pattern.
+const items = useStore(s => s.items);
+// This is efficient! Each only re-renders when its value changes.
 
-// For derived/computed values: Select primitives + useMemo in component
+// For computed values: select primitives + useMemo
 const items = useStore(s => s.items);
 const filter = useStore(s => s.filter);
-const filtered = useMemo(() => 
-    items.filter(i => i.status === filter), 
-    [items, filter]
-);
+const filtered = useMemo(() => items.filter(i => i.type === filter), [items, filter]);
 \`\`\`
 
-💡 IMPORTANT: Multiple Individual Selectors is MOST EFFICIENT (Debunking Common Myth)
-
-❌ WRONG BELIEF: "Multiple useStore calls = inefficient = many re-renders"
-✅ TRUTH: Each selector ONLY triggers re-render when ITS specific value changes
-
-Example:
+**RULE 5: Use functional updates for state depending on previous value**
 \`\`\`tsx
-const name = useStore(s => s.user.name);  // Subscribes to name only
-const count = useStore(s => s.count);     // Subscribes to count only
+// ⚠️ Risk: Stale closure
+setCount(count + 1);
 
-// If count changes:
-// ✓ count selector triggers ONE re-render
-// ✓ name selector does NOT trigger (name didn't change)
-// Result: ONE re-render total - perfectly efficient!
+// ✅ CORRECT: Functional update
+setCount(prev => prev + 1);
 \`\`\`
 
-Contrast with object selector (even with useShallow):
-\`\`\`tsx
-const { name, count } = useStore(useShallow(s => ({ 
-  name: s.user.name, 
-  count: s.count 
-})));
-
-// If count changes:
-// ✗ Creates NEW object { name, count } every render
-// ✗ useShallow sees count changed, triggers re-render
-// ✗ NEW object creation itself can cause infinite loop
-// Result: LESS efficient + risk of crash
-\`\`\`
-
-⚠️ CRITICAL DIFFERENCES:
-\`\`\`tsx
-// This works fine in React Context (context-based):
-const { user, isLoading } = useContext(UserContext); // ✅ OK
-
-// But this CRASHES in Zustand (subscription-based):
-const { user, isLoading } = useStore(); // ❌ CRASH - NOT THE SAME!
-\`\`\`
-
-⚠️ ERROR SIGNATURES - ZUSTAND SELECTOR ISSUES:
-- "Maximum update depth exceeded"
-- "The result of getSnapshot should be cached"
-- "Too many re-renders"
-
-→ SCAN FOR: \`useStore(s => ({\`, \`useStore(s => s.get\`, \`useStore()\`
-→ FIX: Select ONLY primitives, compute derived values with useMemo
-
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  OTHER COMMON PATTERNS THAT CAUSE LOOPS                                       ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-**Parent/Child Feedback Loops:**
-Child effect updates parent → parent rerenders → child effect runs again
-→ Solution: Lift state up, use idempotent callbacks
-
-**State in Recursive Components:**
-\`\`\`tsx
-// ❌ Each recursion creates new state
-function Tree({ items }) {
-    const [expanded, setExpanded] = useState(new Set());
-    return items.map(i => <Tree items={i.children} />); // ❌ WRONG
-}
-
-// ✅ Lift state to non-recursive parent
-function Tree({ items, expanded, onToggle }) {
-    return items.map(i => <Tree items={i.children} expanded={expanded} onToggle={onToggle} />);
-}
-\`\`\`
-
-**Stale Closures (Correctness Bug):**
-\`\`\`tsx
-// ❌ Captures stale count
-const handleClick = () => setCount(count + 1);
-
-// ✅ Functional update
-const handleClick = useCallback(() => setCount(prev => prev + 1), []);
-\`\`\`
-
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  ✅ PREVENTION CHECKLIST - THE GOLDEN RULES ✅                                ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-✅ **Move setState out of render** - Only in useEffect/event handlers
-✅ **Dependency arrays required** - Every useEffect must have one
-✅ **Conditional guards in effects** - \`if (condition)\` before setState
-✅ **Stabilize objects/arrays** - useMemo for objects, useCallback for functions
-✅ **Zustand: Primitives only** - \`useStore(s => s.value)\` NOT \`useStore(s => ({ ... }))\`
-✅ **NEVER call methods in selectors** - \`useStore(s => s.getXxx())\` = CRASH
-✅ **No selector = CRASH** - \`useStore()\` returns whole object = infinite loop
-✅ **Lift state from recursion** - Never useState inside recursive components
-✅ **Store actions are stable** - Zustand actions NOT in dependency arrays
-✅ **Use functional updates** - \`setState(prev => prev + 1)\` for correctness
-✅ **useRef for non-UI data** - Doesn't trigger re-renders
-✅ **Derive, don't mirror** - \`const upper = prop.toUpperCase()\` not useState
-✅ **DOM listeners stable** - Keep effect deps static; read live store values via refs; do not reattach listeners on every state change
-
-**QUICK VALIDATION BEFORE SUBMITTING CODE:**
-→ Search for: \`useStore(s => ({\`, \`useStore(s => s.get\`, \`useStore()\`
-→ Search for: \`setState\` outside event handlers/useEffect
-→ Search for: \`useEffect(() => {\` without \`}, [\`
-→ If found: REWRITE immediately using patterns above
-
-⚠️⚠️⚠️ THESE RULES OVERRIDE ALL OTHER CONSIDERATIONS INCLUDING CODE AESTHETICS ⚠️⚠️⚠️
-⚠️⚠️⚠️ IF YOU WRITE FORBIDDEN PATTERNS, YOU MUST IMMEDIATELY REWRITE THE FILE ⚠️⚠️⚠️`,
+### PRE-SUBMIT VALIDATION
+Before generating any React file, scan for these patterns and FIX immediately:
+- \`useStore(s => ({\` or \`useStore()\` → Split into individual primitive selectors
+- \`useStore(s => s.get\` → Move method call outside, select data directly
+- \`useEffect(() => {\` without \`}, [\` → Add dependency array
+- \`setState\` outside event handler/useEffect → Move into handler or effect
+`,
 
 COMMON_PITFALLS: `<AVOID COMMON PITFALLS>
-    **TOP 6 MISSION-CRITICAL RULES (FAILURE WILL CRASH THE APP):**
-    1. **DEPENDENCY VALIDATION:** BEFORE writing any import statement, verify it exists in <DEPENDENCIES>. Common failures: @xyflow/react uses { ReactFlow } not default import, @/lib/utils for cn function. If unsure, check the dependency list first.
-    2. **IMPORT & EXPORT INTEGRITY:** Ensure every component, function, or variable is correctly defined and imported properly (and exported properly). Mismatched default/named imports will cause crashes. NEVER write \`import React, 'react';\` - always use \`import React from 'react';\`
-    3. **NO RUNTIME ERRORS:** Write robust, fault-tolerant code. Handle all edge cases gracefully with fallbacks. Never throw uncaught errors that can crash the application.
-    4. **NO UNDEFINED VALUES/PROPERTIES/FUNCTIONS/COMPONENTS etc:** Ensure all variables, functions, and components are defined before use. Never use undefined values. If you use something that isn't already defined, you need to define it.
-    5. **STATE UPDATE INTEGRITY:** Never call state setters directly during the render phase; all state updates must originate from event handlers or useEffect hooks to prevent infinite loops.
-    6. **🔥 ZUSTAND ZERO-TOLERANCE RULE 🔥:** ABSOLUTE LAW: useStore(s => s.primitive) ONLY. No object selectors. No exceptions. Any useStore(s => ({...})), useStore(), or useStore(s => s.getXxx()) = INSTANT CRASH. Multiple values? Call useStore multiple times - this is the ONLY correct pattern. See REACT INFINITE LOOP PREVENTION section for complete patterns.
+    **TOP 5 MISSION-CRITICAL RULES (FAILURE WILL CRASH THE APP):**
+    1. **DEPENDENCY VALIDATION:** BEFORE writing any import, verify it exists in <DEPENDENCIES>. Use named imports correctly (e.g., \`{ ReactFlow }\` not default).
+    2. **IMPORT SYNTAX:** Always \`import X from 'package'\` - never \`import X, 'package'\`. Check named vs default exports.
+    3. **NULL SAFETY:** Use optional chaining (\`user?.name\`) and nullish coalescing (\`items ?? []\`) to prevent "cannot read property" crashes.
+    4. **ASYNC ERROR HANDLING:** Wrap ALL fetch/API calls in try-catch. Set error state, never silently fail.
+    5. **REACT RENDER LOOPS:** Follow the 5 Golden Rules in REACT RENDER LOOP PREVENTION section. Key: Zustand selectors must be primitives only.
     
-    **UI/UX EXCELLENCE CRITICAL RULES:**
-    7. **VISUAL HIERARCHY CLARITY:** Every interface must have clear visual hierarchy - never create pages with uniform text sizes or equal visual weight for all elements
-    8. **INTERACTIVE FEEDBACK MANDATORY:** Every button, link, and interactive element MUST have visible hover, focus, and active states - no exceptions
-    9. **RESPONSIVE BREAKPOINT INTEGRITY:** Test layouts mentally at sm, md, lg breakpoints - never create layouts that break or look unintentional at any screen size
-    10. **SPACING CONSISTENCY:** Use systematic spacing (space-y-4, space-y-6, space-y-8) - avoid arbitrary margins that create visual chaos
-    11. **LOADING STATE EXCELLENCE:** Every async operation must have beautiful loading states - never leave users staring at blank screens
-    12. **ERROR HANDLING GRACE:** All error states must be user-friendly with clear next steps - never show raw error messages or technical jargon
-    13. Height Chain Breaks
-    - h-full requires all parents to have explicit height.
-    - Root chains should be: html (100vh) -> body (h-full) -> #root/app (h-full) -> page container (h-screen or h-full).
-    - Symptom: content not visible or zero-height scrolling areas.
+    **UI/UX EXCELLENCE RULES:**
+    - **VISUAL HIERARCHY:** Clear hierarchy with varied text sizes and visual weights
+    - **INTERACTIVE FEEDBACK:** All buttons/links must have hover, focus, and active states
+    - **RESPONSIVE DESIGN:** Layouts must work at sm, md, lg breakpoints
+    - **SPACING CONSISTENCY:** Use systematic spacing (space-y-4, space-y-6, space-y-8)
+    - **LOADING STATES:** Every async operation needs a loading indicator
+    - **ERROR HANDLING:** User-friendly error messages with clear next steps
 
-    14. Flexbox Without Flex Parent
-    - flex-1 only works when parent is display:flex. Ensure parent has className="flex".
-    - For column layouts use flex-col; for row layouts use flex.
+    **COMMON LAYOUT ISSUES:**
+    - **Height Chain:** h-full requires all parents to have explicit height (html 100vh -> body h-full -> #root h-full)
+    - **Flexbox:** flex-1 only works when parent has className="flex"
+    - **Sidebars:** Use min-w-[180px] for readable text, not percentage-based widths
 
-    15. Resizable Sidebars + Text Cutoff
-    - Do not rely on %-based minimums for readable sidebar text.
-    - Always apply CSS min-w-[180px] (or appropriate) to the sidebar content, and use w-64 for initial width.
-    - Keep a ResizableHandle between panels and a parent with explicit height.
+    **RELIABILITY PATTERNS:**
+    - Initialize state with proper defaults, never undefined
+    - Use functional updates: \`setCount(prev => prev + 1)\`
+    - Check array bounds before access: \`items?.[index]\`
+    - Use error boundaries for components that might fail
+    - Follow DRY principle - reuse existing components/functions
 
-    16. Framer Motion Drag Handle (Correct API)
-    - There is no dragHandle prop. Use useDragControls + dragListener={false} and trigger controls.start(e) in the header pointer down.
-    - Avoid adding non-existent props that cause TS2322.
+    **GAME/ALGORITHM LOGIC:**
+    - Break complex logic into small, testable functions
+    - Validate boundaries: \`if (x >= 0 && x < width)\`
+    - Write test case first: "moveLeft([2,2,4,0]) should return [4,4,0,0]"
 
-    17. Type-safe Object Construction (avoid misuse of \`as\`)
-    - When creating discriminated unions, include all fields required by that variant
-    - ✅ Correct: Fix object shape: const node: Folder = { id, type: 'folder', name, children: [] };
-    - ⚠️ Use sparingly: \`as\` for DOM or explicit narrowing: event.target as HTMLInputElement
-    - ❌ Wrong: Forcing types: const node = { id, name } as Folder; // Missing required fields!
-
-    18. Missing Try-Catch in Async Operations (causes silent failures)
-    - AI often forgets error handling in async functions
-    - ALWAYS wrap fetch/API calls in try-catch
-    - Set error state, don't silently fail
-    - Pattern: try { await api() } catch (e) { setError(e.message) }
-
-    19. Missing Optional Chaining (causes "cannot read property" crashes)
-    - Use ?. for all object access: user?.profile?.name
-    - Use ?? for defaults: items ?? []
-    - Prevents most common runtime crashes from null/undefined
-
-    20. No Debug Logging (makes AI bugs impossible to diagnose)
-        - Although you would not have access to browser logs, but console.error and console.warn in templates are wired to send error reports to our backend. 
-        - Thus, you consider adding extensive console.error and console.warn in code paths where you expect errors to occur, so its easier to debug.
-
-    **ENHANCED RELIABILITY PATTERNS:**
-    •   **State Management:** Handle loading/success/error states for async operations. Initialize state with proper defaults, never undefined. Use functional updates for dependent state.
-    •   **Type Safety:** Define interfaces for props/state/API responses. Check null/undefined before property access. Validate array length before element access. Rely on \`?\` operator for properties that might be undefined.
-    •   **Component Safety:** Use error boundaries for components that might fail. Provide fallbacks for conditional content. Use stable, unique keys for lists.
-    •   **Performance:** Use React.memo, useMemo, useCallback to prevent unnecessary re-renders. Define event handlers outside render or use useCallback.
-    •   **Object Literals**: NEVER duplicate property names. \`{name: "A", age: 25, name: "B"}\` = compilation error
-    •   **Always follow best coding practices**: Follow best coding practices and principles:
-        - Always maximize code reuse and minimize code redundancy and duplicacy. 
-        - Strict DRY (Don't Repeat Yourself) principle.
-        - Always try to import or extend existing types, components, functions, variables, etc. instead of redefining something similar.
-
-    •   **State Management Best Practices:** Keep actions for side-effects, use selectors for derivation only. Export typed selectors/hooks that derive from primitive IDs.
-
-    **ALGORITHMIC PRECISION & LOGICAL REASONING:**
-    •   **Mathematical Accuracy:** For games/calculations, implement precise algorithms step-by-step. ALWAYS validate boundaries: if (x >= 0 && x < width && y >= 0 && y < height). Use === for exact comparisons.
-    •   **Game Logic Systems:** Break complex logic into smaller, testable functions. Example: moveLeft(), checkWin(), updateScore(). Each function should handle ONE responsibility.
-    •   **Array/Grid Operations:** CRITICAL - Check array bounds before access: if (grid[row] && grid[row][col] !== undefined). Use descriptive names: rowIndex, colIndex, not i, j.
-    •   **State Transitions:** For complex state changes, use pure functions that return new state. Example: const newState = {...oldState, score: oldState.score + points}.
-    •   **Algorithm Test Cases:** BEFORE coding, write a simple test case. Example: "moveLeft([2,2,4,0]) should return [4,4,0,0]". Verify your logic matches this expected output.
-
-    **FRAMEWORK & SYNTAX SPECIFICS:**
-    •   Framework compatibility: Pay attention to version differences (Tailwind v3 vs v4, React Router versions)
-    •   No environment variables: App deploys serverless - avoid libraries requiring env vars unless they support defaults
-    •   React/Vite best practices: Follow patterns compatible with Vite + React (avoid Next.js-specific APIs)
-    •   Tailwind classes: Verify all classes exist in tailwind.config.js (e.g., avoid undefined classes like \`border-border\`)
-    •   Component exports: Export all components properly, avoid mixing default/named imports
-    •   UI spacing: Ensure proper padding/margins, avoid left-aligned layouts without proper spacing
-
-    **PROPER IMPORTS**:
-       - **Importing React and other libraries should be done correctly.**
-
-    **CRITICAL SYNTAX ERRORS - PREVENT AT ALL COSTS:**
-    
-    **CATASTROPHIC IMPORT SYNTAX ERRORS (Zero Tolerance):**
-    ❌ \`import React, 'react';\` → **FATAL**: Comma instead of 'from' keyword = build crash
-    ❌ \`import { scaleOrdinal } from 'd3-scale-chromatic';\` → **WRONG PACKAGE**: scaleOrdinal is in 'd3-scale'
-    ❌ \`import */styles/globals.css'\` → **INVALID**: Missing 'import' or wrong path syntax
-    ✅ \`import React from 'react';\` → **CORRECT**: Default import with 'from' keyword
-    ✅ \`import { useState } from 'react';\` → **CORRECT**: Named imports
-    ✅ \`import './styles/globals.css';\` → **CORRECT**: CSS import
-    
-    1. **IMPORT SYNTAX**: Always use \`import [item] from '[package]';\` - never use commas instead of 'from'
-    2. **UNDEFINED VARIABLES**: Always import/define variables before use. \`cn is not defined\` = missing \`import { cn } from './lib/utils'\`
-
-    **CRITICAL ERROR RECOVERY PATTERNS:**
-    •   **API Call Safety:** Always wrap in try-catch with user-friendly fallbacks:
-        \`const [data, setData] = useState(null); const [loading, setLoading] = useState(true); const [error, setError] = useState(null);\`
-    •   **Component Rendering Safety:** Use conditional rendering to prevent crashes:
-        \`{user ? <Profile user={user} /> : <div>Loading user...</div>}\`
-    •   **Array Operations Safety:** Always check if array exists:
-        \`{items?.length > 0 ? items.map(...) : <div>No items found</div>}\`
-    •   **State Update Safety:** Use functional updates when depending on previous state:
-        \`setCount(prev => prev + 1)\` instead of \`setCount(count + 1)\`
-
-    **PRE-CODE VALIDATION CHECKLIST:**
-    Before writing any code, mentally verify:
-    - All imports use correct syntax and paths. Be cautious about named vs default imports wherever needed.
-    - All variables are defined before use  
-    - **No setState calls during render phase** - only in useEffect/event handlers
-    - **Zustand selectors are primitives only:**
-        ✅ \`const count = useStore(s => s.count);\` 
-        ✅ \`const name = useStore(s => s.name);\`
-        ❌ \`const { count, name } = useStore(s => ({ count: s.count, name: s.name }));\` = CRASH
-        ❌ \`const data = useStore(s => s.getData());\` = CRASH  
-        ❌ \`const state = useStore();\` = CRASH
-    - **All useEffect hooks have dependency arrays** - no exceptions
-    - All Tailwind classes exist in config
-    - External dependencies are available
-    - Error boundaries around components that might fail
-
-    **Also dynamic imports may not work, so please avoid using them.**
-
-    ### **IMPORT VALIDATION EXAMPLES**
-    **CRITICAL**: Verify ALL imports before using. Wrong imports = runtime crashes.
-    **When suggesting to import packages, make sure to check if the package actually exists and is correct. If installing it fails multiple times, it is not a valid package.**
-
-    **BAD IMPORTS** (cause runtime errors):
+    **IMPORT EXAMPLES:**
     \`\`\`tsx
-    import ReactFlow from '@xyflow/react';      // WRONG: ReactFlow is named export
-    import cn from '@/lib/utils';               // WRONG: cn is named export  
-    import { Button } from 'shadcn/ui';         // WRONG: should be @/components/ui
-    import { useState } from 'react';           // MISSING: React itself
-    import { useRouter } from 'next/navigation'; // WRONG: use 'react-router-dom'
+    // ✅ CORRECT
+    import React, { useState } from 'react';
+    import { ReactFlow } from '@xyflow/react';  // Named export
+    import { cn } from '@/lib/utils';           // Named export
+    import { Button } from '@/components/ui/button';
+
+    // ❌ WRONG
+    import ReactFlow from '@xyflow/react';      // Should be named
+    import cn from '@/lib/utils';               // Should be named
+    import { useRouter } from 'next/navigation'; // Use react-router-dom
     \`\`\`
 
-    **GOOD IMPORTS** (correct syntax):
-    \`\`\`tsx
-    import React, { useState, useEffect } from 'react';  // ALWAYS import React
-    import { ReactFlow } from '@xyflow/react';           // CORRECT: named export
-    import { cn } from '@/lib/utils';                    // CORRECT: named export
-    import { Button } from '@/components/ui/button';     // CORRECT: full path
-    import { useNavigate } from 'react-router-dom';      // CORRECT for routing
-    \`\`\`
-
-    **Import Checklist**:
-    - ✅ React imported in every TSX/JSX file
-    - ✅ All @xyflow imports use named exports: { ReactFlow, Node, Edge }
-    - ✅ All UI components use full @/components/ui/[component] path
-    - ✅ cn function from '@/lib/utils' (named export)
-    - ✅ Router hooks from 'react-router-dom' (not Next.js)
-
-    **A \`require()\` or \`import()\` style import is forbidden. Always import properly at the top of the file.**
-    # Few more heuristics:
-        **IF** you receive a TypeScript error "cannot be used as a JSX component" for a component \`<MyComponent />\`, **AND** the error says its type is \`'typeof import(...)'\`, then check if the import is correct (named vs default import).
-        Applying this rule to your situation will fix both the type-check errors and the browser's runtime error.
-
-    # Never write image files! Never write jpeg, png, svg, etc files yourself! Always use some image url from the web.
-
+    **NEVER:** Write image files (use URLs), use dynamic imports, use require()
 </AVOID COMMON PITFALLS>`,
     COMMON_DEP_DOCUMENTATION: `<COMMON DEPENDENCY DOCUMENTATION>
     • **The @xyflow/react package doesn't export a default ReactFlow, it exports named imports.**

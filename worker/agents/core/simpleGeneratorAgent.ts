@@ -548,6 +548,11 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
 
     async ensureTemplateDetails() {
         if (!this.templateDetailsCache) {
+            // Validate template name exists before attempting to load
+            if (!this.state.templateName) {
+                throw new Error('Cannot load template details: templateName is not set in state. The agent may not have been properly initialized.');
+            }
+
             this.logger().info(`Loading template details for: ${this.state.templateName}`);
             const results = await BaseSandboxService.getTemplateDetails(this.state.templateName);
             if (!results.success || !results.templateDetails) {
@@ -997,9 +1002,9 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         this.logger().info('Starting code generation', {
             totalFiles: this.getTotalFiles()
         });
-        if (this.state.templateName) {
-            await this.ensureTemplateDetails();
-        }
+
+        // Always ensure template details are loaded - required for code generation
+        await this.ensureTemplateDetails();
 
         let currentDevState = CurrentDevState.PHASE_IMPLEMENTING;
         const generatedPhases = this.state.generatedPhases;

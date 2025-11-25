@@ -15,11 +15,11 @@ export function handleWebSocketMessage(agent: SimpleCodeGeneratorAgent, connecti
         switch (parsedMessage.type) {
             case WebSocketMessageRequests.GENERATE_ALL:
                 // Set shouldBeGenerating flag to indicate persistent intent
-                agent.setState({ 
-                    ...agent.state, 
-                    shouldBeGenerating: true 
+                agent.setState({
+                    ...agent.state,
+                    shouldBeGenerating: true
                 });
-                
+
                 // Check if generation is already active to avoid duplicate processes
                 if (agent.isCodeGenerating()) {
                     logger.info('Generation already in progress, skipping duplicate request');
@@ -28,22 +28,46 @@ export function handleWebSocketMessage(agent: SimpleCodeGeneratorAgent, connecti
                     // });
                     return;
                 }
-                
-                // Start generation process
-                logger.info('Starting code generation process');
-                agent.generateAllFiles().catch(error => {
-                    logger.error('Error during code generation:', error);
-                    sendError(connection, `Error generating files: ${error instanceof Error ? error.message : String(error)}`);
-                }).finally(() => {
-                    // Only clear shouldBeGenerating on successful completion
-                    // (errors might want to retry, so this could be handled differently)
-                    if (!agent.isCodeGenerating()) {
-                        agent.setState({ 
-                            ...agent.state, 
-                            shouldBeGenerating: false 
-                        });
+
+                // Wait for agent to be initialized (templateName set) before starting
+                // This handles the race condition where WebSocket connects before initialize() completes
+                (async () => {
+                    const MAX_INIT_WAIT_MS = 30000; // 30 seconds max wait
+                    const POLL_INTERVAL_MS = 500;
+                    let waited = 0;
+
+                    // Log initial state for debugging
+                    const currentState = agent.state;
+                    logger.info(`Initial state check - templateName: "${currentState.templateName}", query: "${currentState.query?.substring(0, 50)}", projectName: "${currentState.projectName}"`);
+
+                    while (!agent.state.templateName && waited < MAX_INIT_WAIT_MS) {
+                        logger.info(`Waiting for agent initialization... (${waited}ms), templateName: "${agent.state.templateName}"`);
+                        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+                        waited += POLL_INTERVAL_MS;
                     }
-                });
+
+                    if (!agent.state.templateName) {
+                        logger.error(`Agent initialization timeout - templateName not set after 30s. Final state - query: "${agent.state.query?.substring(0, 50)}", projectName: "${agent.state.projectName}"`);
+                        sendError(connection, 'Agent initialization failed - please refresh and try again');
+                        return;
+                    }
+
+                    // Start generation process
+                    logger.info('Starting code generation process');
+                    agent.generateAllFiles().catch(error => {
+                        logger.error('Error during code generation:', error);
+                        sendError(connection, `Error generating files: ${error instanceof Error ? error.message : String(error)}`);
+                    }).finally(() => {
+                        // Only clear shouldBeGenerating on successful completion
+                        // (errors might want to retry, so this could be handled differently)
+                        if (!agent.isCodeGenerating()) {
+                            agent.setState({
+                                ...agent.state,
+                                shouldBeGenerating: false
+                            });
+                        }
+                    });
+                })();
                 break;
             case WebSocketMessageRequests.DEPLOY:
                 agent.deployToCloudflare().then((deploymentResult) => {
