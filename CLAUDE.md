@@ -213,6 +213,29 @@ DO NOT stop until this goal is achieved.
 
 ## Recent Critical Deployments
 
+### v2.2.17 (2025-11-25)
+**Template Selection System Fixed**
+- CRITICAL: Template catalog was missing from R2, causing all template selection to fail
+- CRITICAL: Template selector referenced non-existent templates in examples (react-game-starter, digital-product-store, etc.)
+- Fixes:
+  1. Uploaded `template_catalog.json` to R2 bucket (onaria-apps)
+  2. Rewrote `worker/agents/planning/templateSelector.ts` with actual 7 templates:
+     - c-code-react-runner (client-side SPAs)
+     - vite-cf-DO-runner (single global DO)
+     - vite-cf-DO-v2-runner (multi-entity storage)
+     - vite-cfagents-runner (AI chatbots)
+     - reveal-presentation-pro (presentations)
+     - vite-cf-DO-KV-runner (deprecated)
+     - c-code-next-runner (disabled)
+  3. Added decision tree for template selection based on:
+     - Storage needs (none/single/multi-entity)
+     - AI requirements
+     - Presentation needs
+  4. Replaced fake examples with real use cases (todo app → DO v2, calculator → React SPA, chatbot → AI agents)
+- Impact: Template selection now works correctly, AI picks appropriate templates for user requests
+- Test result: Successfully selected `vite-cf-DO-v2-runner` for water tracking app
+- Deployment: 10fa6435-7420-4b37-b35e-0c5e911987c4
+
 ### v2.2.16 (2025-11-25)
 **Phase Generation Loop Fix & Empty Conversation Response Fix**
 - Bug #1: Infinite phase generation loop - apps generating 44+ phases for simple requests
