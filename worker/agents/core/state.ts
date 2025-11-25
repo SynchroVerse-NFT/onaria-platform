@@ -37,6 +37,7 @@ export enum CurrentDevState {
 }
 
 export const MAX_PHASES = 12;
+export const MAX_TOTAL_PHASES = 30; // Hard cap on total phases - cannot be bypassed by recharging
 
 export interface CodeGenState {
     blueprint: Blueprint;

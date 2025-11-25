@@ -434,9 +434,17 @@ export class UserConversationProcessor extends AgentOperation<UserConversationIn
                 streamingSuccess: !!extractedUserResponse,
             });
 
+            // Use result.string if streaming didn't capture text (e.g., when LLM only calls tools)
+            const finalUserResponse = extractedUserResponse || result.string || FALLBACK_USER_RESPONSE;
             const conversationResponse: ConversationalResponseType = {
-                userResponse: extractedUserResponse
+                userResponse: finalUserResponse
             };
+
+            // If streaming didn't capture text but we have a final response, send it now
+            if (!extractedUserResponse && finalUserResponse) {
+                logger.info("Sending non-streamed final response", { responseLength: finalUserResponse.length });
+                inputs.conversationResponseCallback(finalUserResponse, aiConversationId, false);
+            }
 
             
             // For conversation history, store only text (images are ephemeral and not persisted)

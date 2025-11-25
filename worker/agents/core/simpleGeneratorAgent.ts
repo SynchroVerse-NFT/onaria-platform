@@ -10,7 +10,7 @@ import {
 import { ExecuteCommandsResponse, GitHubPushRequest, PreviewType, StaticAnalysisResponse, TemplateDetails } from '../../services/sandbox/sandboxTypes';
 import {  GitHubExportResult } from '../../services/github/types';
 import { GitHubService } from '../../services/github/GitHubService';
-import { CodeGenState, CurrentDevState, MAX_PHASES, FileState, TrackedFeature } from './state';
+import { CodeGenState, CurrentDevState, MAX_PHASES, MAX_TOTAL_PHASES, FileState, TrackedFeature } from './state';
 import { AllIssues, AgentSummary, AgentInitArgs, PhaseExecutionResult, UserContext } from './types';
 import { PREVIEW_EXPIRED_ERROR, WebSocketMessageResponses } from '../constants';
 import { broadcastToConnections, handleWebSocketClose, handleWebSocketMessage, sendToConnection } from './websocket';
@@ -1279,6 +1279,13 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
             this.logger().info(`Phase ${phaseConcept.name} completed, generating next phase`);
 
             const phasesCounter = this.decrementPhasesCounter();
+            const totalPhases = this.state.generatedPhases.length;
+
+            // Hard cap on total phases - prevents infinite loop even with recharging
+            if (totalPhases >= MAX_TOTAL_PHASES) {
+                this.logger().warn(`Hard cap reached: ${totalPhases} phases generated (max: ${MAX_TOTAL_PHASES}). Forcing finalization.`);
+                return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
+            }
 
             if ((phaseConcept.lastPhase || phasesCounter <= 0) && this.state.pendingUserInputs.length === 0) return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
             return {currentDevState: CurrentDevState.PHASE_GENERATING, staticAnalysis: staticAnalysis};

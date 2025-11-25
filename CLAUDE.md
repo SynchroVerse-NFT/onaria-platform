@@ -213,6 +213,24 @@ DO NOT stop until this goal is achieved.
 
 ## Recent Critical Deployments
 
+### v2.2.16 (2025-11-25)
+**Phase Generation Loop Fix & Empty Conversation Response Fix**
+- Bug #1: Infinite phase generation loop - apps generating 44+ phases for simple requests
+  - Root cause: Three compounding issues:
+    1. `rechargePhasesCounter(3)` resets counter on user messages
+    2. LLM generates phases named "Final..." but never sets `lastPhase: true`
+    3. Termination requires `pendingUserInputs.length === 0`, blocked by queued requests
+  - Fix: Added `MAX_TOTAL_PHASES = 30` hard cap in `worker/agents/core/state.ts`
+  - Added hard cap check in `worker/agents/core/simpleGeneratorAgent.ts:1281-1291`
+  - Impact: Prevents infinite loops by forcing finalization at 30 phases regardless of counter state
+- Bug #2: Empty conversation response during generation
+  - Root cause: When LLM only calls tools (like queue_request) without generating text, streaming chunks never received
+  - Fix: Use `result.string` as fallback when streaming didn't capture text
+  - Location: `worker/agents/operations/UserConversationProcessor.ts`
+  - Added non-streamed final response when streaming empty
+- Test results: Empty response bug FIXED, infinite loop bug IMPROVED (capped at 30)
+- Deployment: 2f9289dd-6ad5-4435-9732-0f11d81f0f21
+
 ### v2.2.4 (2025-11-24)
 **Modal Centering Fix**
 - Fixed dialogs appearing at bottom instead of centered in viewport
