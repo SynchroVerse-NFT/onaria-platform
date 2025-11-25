@@ -635,17 +635,23 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
 
         const toolsOpts = tools ? { tools, tool_choice: 'auto' as const } : {};
         let response: OpenAI.ChatCompletion | OpenAI.ChatCompletionChunk | Stream<OpenAI.ChatCompletionChunk>;
+
+        // Only include reasoning_effort for OpenAI reasoning models (o1, o3, o5)
+        // Gemini and other providers don't support this parameter and will return 400 errors
+        const isOpenAIReasoningModel = modelName.startsWith('o1') || modelName.startsWith('o3') || modelName.startsWith('o5');
+        const reasoningEffortOpts = isOpenAIReasoningModel && reasoning_effort ? { reasoning_effort } : {};
+
         try {
             // Call OpenAI API with proper structured output format
             response = await client.chat.completions.create({
                 ...schemaObj,
                 ...extraBody,
                 ...toolsOpts,
+                ...reasoningEffortOpts,
                 model: modelName,
                 messages: messagesToPass as OpenAI.ChatCompletionMessageParam[],
                 max_completion_tokens: maxTokens || 150000,
                 stream: stream ? true : false,
-                reasoning_effort,
                 temperature,
             }, {
                 signal: abortSignal,
