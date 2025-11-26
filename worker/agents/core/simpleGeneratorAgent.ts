@@ -1294,6 +1294,19 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                 return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
             }
 
+            // Detect repetitive "final polish" phases - if last 3+ phases all contain finalizing keywords, force termination
+            const FINALIZING_KEYWORDS = ['final', 'critical', 'production readiness', 'polish', 'cleanup', 'definitive'];
+            if (totalPhases >= 3) {
+                const recentPhases = this.state.generatedPhases.slice(-3);
+                const allFinalizing = recentPhases.every(phase =>
+                    FINALIZING_KEYWORDS.some(keyword => phase.name.toLowerCase().includes(keyword))
+                );
+                if (allFinalizing) {
+                    this.logger().warn(`Detected 3 consecutive finalizing phases. Forcing termination to prevent infinite polish loop.`);
+                    return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
+                }
+            }
+
             if ((phaseConcept.lastPhase || phasesCounter <= 0) && this.state.pendingUserInputs.length === 0) return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
             return {currentDevState: CurrentDevState.PHASE_GENERATING, staticAnalysis: staticAnalysis};
         } catch (error) {
