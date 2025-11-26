@@ -32,13 +32,32 @@ export function handleWebSocketMessage(agent: SimpleCodeGeneratorAgent, connecti
                 // Wait for agent to be initialized (templateName set) before starting
                 // This handles the race condition where WebSocket connects before initialize() completes
                 (async () => {
-                    const MAX_INIT_WAIT_MS = 30000; // 30 seconds max wait
+                    const MAX_INIT_WAIT_MS = 60000; // 60 seconds max wait (increased for slow blueprint generation)
+                    const BROKEN_APP_TIMEOUT_MS = 120000; // 2 minutes - if initializingAt is older than this, app is broken
                     const POLL_INTERVAL_MS = 500;
                     let waited = 0;
 
                     // Log initial state for debugging
                     const currentState = agent.state;
-                    logger.info(`Initial state check - templateName: "${currentState.templateName}", query: "${currentState.query?.substring(0, 50)}", projectName: "${currentState.projectName}"`);
+                    logger.info(`Initial state check - templateName: "${currentState.templateName}", query: "${currentState.query?.substring(0, 50)}", projectName: "${currentState.projectName}", initializingAt: ${currentState.initializingAt}`);
+
+                    // Early detection of broken/stale apps
+                    // If no initializingAt timestamp and no templateName, this is a broken app that was never properly initialized
+                    if (!currentState.templateName && !currentState.initializingAt) {
+                        logger.error('App is broken - no initializingAt timestamp and no templateName. This app was never properly initialized.');
+                        sendError(connection, 'This app failed to initialize. Please create a new app from the home page.');
+                        return;
+                    }
+
+                    // If initializingAt is older than BROKEN_APP_TIMEOUT_MS, the initialization failed/timed out
+                    if (currentState.initializingAt && !currentState.templateName) {
+                        const timeSinceInit = Date.now() - currentState.initializingAt;
+                        if (timeSinceInit > BROKEN_APP_TIMEOUT_MS) {
+                            logger.error(`App initialization timed out - initializingAt was ${timeSinceInit}ms ago, no templateName set`);
+                            sendError(connection, 'App initialization timed out. Please create a new app from the home page.');
+                            return;
+                        }
+                    }
 
                     while (!agent.state.templateName && waited < MAX_INIT_WAIT_MS) {
                         logger.info(`Waiting for agent initialization... (${waited}ms), templateName: "${agent.state.templateName}"`);
@@ -47,7 +66,7 @@ export function handleWebSocketMessage(agent: SimpleCodeGeneratorAgent, connecti
                     }
 
                     if (!agent.state.templateName) {
-                        logger.error(`Agent initialization timeout - templateName not set after 30s. Final state - query: "${agent.state.query?.substring(0, 50)}", projectName: "${agent.state.projectName}"`);
+                        logger.error(`Agent initialization timeout - templateName not set after 60s. Final state - query: "${agent.state.query?.substring(0, 50)}", projectName: "${agent.state.projectName}"`);
                         sendError(connection, 'Agent initialization failed - please refresh and try again');
                         return;
                     }

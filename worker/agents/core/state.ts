@@ -69,4 +69,7 @@ export interface CodeGenState {
     inferenceContext: InferenceContext;
 
     lastDeepDebugTranscript: string | null;
+
+    // Timestamp when initialize() started - used to detect stale/broken apps
+    initializingAt?: number;
 } 

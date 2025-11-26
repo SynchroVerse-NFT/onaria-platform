@@ -318,7 +318,14 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
         const { query, language, frameworks, hostname, inferenceContext, templateInfo } = initArgs;
         const sandboxSessionId = DeploymentManager.generateNewSessionId();
         this.initLogger(inferenceContext.agentId, sandboxSessionId, inferenceContext.userId);
-        
+
+        // Set initializingAt timestamp EARLY so WebSocket handler knows initialization is in progress
+        // This helps distinguish new apps (being initialized) from broken apps (never initialized)
+        this.setState({
+            ...this.state,
+            initializingAt: Date.now()
+        });
+
         // Generate a blueprint
         this.logger().info('Generating blueprint', { query, queryLength: query.length, imagesCount: initArgs.images?.length || 0 });
         this.logger().info(`Using language: ${language}, frameworks: ${frameworks ? frameworks.join(", ") : "none"}`);
