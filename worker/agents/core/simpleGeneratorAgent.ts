@@ -929,7 +929,11 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
     }
 
     async queueUserRequest(request: string, images?: ProcessedImageAttachment[]): Promise<void> {
-        this.rechargePhasesCounter(3);
+        // Only recharge counter if NOT actively generating to prevent infinite loops
+        // User requests during generation will be queued and handled after finalization
+        if (!this.state.shouldBeGenerating) {
+            this.rechargePhasesCounter(3);
+        }
 
         // Create tracked feature for this request
         const trackedFeature: TrackedFeature = {
@@ -1294,20 +1298,85 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                 return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
             }
 
-            // Detect repetitive "final polish" phases - if last 3+ phases all contain finalizing keywords, force termination
-            const FINALIZING_KEYWORDS = ['final', 'critical', 'production readiness', 'polish', 'cleanup', 'definitive'];
+            // Detect repetitive polish/fix/lint phases - force early termination
+            // Keywords that indicate a phase is doing cleanup/polish work rather than new features
+            const WRAPUP_KEYWORDS = ['final', 'polish', 'cleanup', 'completion', 'complete', 'finish', 'wrap', 'lint', 'fix', 'review', 'error', 'issue', 'production', 'resolve', 'quality'];
+
+            // Log phase names for debugging
+            this.logger().info(`[TERMINATION_CHECK] totalPhases=${totalPhases}, phaseNames=[${this.state.generatedPhases.map(p => p.name).join(', ')}]`);
+
+            // AGGRESSIVE CHECK 1: If current phase name has wrapup keywords AND we have 3+ phases, terminate immediately
+            const currentPhaseName = phaseConcept.name.toLowerCase();
+            const currentPhaseHasWrapup = WRAPUP_KEYWORDS.some(keyword => currentPhaseName.includes(keyword));
+
+            if (totalPhases >= 3 && currentPhaseHasWrapup) {
+                this.logger().warn(`TERMINATING: Current phase "${phaseConcept.name}" has wrapup keywords after ${totalPhases} phases. Forcing termination.`);
+                return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
+            }
+
+            // AGGRESSIVE CHECK 2: After 2 phases, if 2+ out of last 3 have wrapup keywords, terminate
             if (totalPhases >= 3) {
                 const recentPhases = this.state.generatedPhases.slice(-3);
-                const allFinalizing = recentPhases.every(phase =>
-                    FINALIZING_KEYWORDS.some(keyword => phase.name.toLowerCase().includes(keyword))
-                );
-                if (allFinalizing) {
-                    this.logger().warn(`Detected 3 consecutive finalizing phases. Forcing termination to prevent infinite polish loop.`);
+                const wrapupMatches = recentPhases.map(phase => {
+                    const name = phase.name?.toLowerCase() || '';
+                    const hasKeyword = WRAPUP_KEYWORDS.some(keyword => name.includes(keyword));
+                    return { name: phase.name, hasKeyword };
+                });
+                const wrapupCount = wrapupMatches.filter(m => m.hasKeyword).length;
+
+                this.logger().info(`[TERMINATION_CHECK] recentPhases wrapup analysis: ${JSON.stringify(wrapupMatches)}, wrapupCount=${wrapupCount}`);
+
+                if (wrapupCount >= 2) {
+                    this.logger().warn(`TERMINATING: Detected ${wrapupCount}/3 recent wrap-up phases. Forcing termination to prevent infinite polish loop.`);
                     return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
                 }
             }
 
-            if ((phaseConcept.lastPhase || phasesCounter <= 0) && this.state.pendingUserInputs.length === 0) return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
+            // AGGRESSIVE CHECK 3: If we've had 3+ consecutive phases with wrapup keywords starting from any point
+            if (totalPhases >= 3) {
+                const allPhaseKeywords = this.state.generatedPhases.map(p =>
+                    WRAPUP_KEYWORDS.some(keyword => (p.name?.toLowerCase() || '').includes(keyword))
+                );
+                // Check for any window of 3 consecutive wrapup phases
+                for (let i = 0; i <= allPhaseKeywords.length - 3; i++) {
+                    if (allPhaseKeywords[i] && allPhaseKeywords[i + 1] && allPhaseKeywords[i + 2]) {
+                        this.logger().warn(`TERMINATING: Found 3 consecutive wrap-up phases starting at index ${i}. Forcing termination.`);
+                        return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
+                    }
+                }
+            }
+
+            // Detect zero-change phases - check if this phase's files have actual content changes
+            // Phases may list files but with empty diffs (no actual changes made)
+            const lastPhase = this.state.generatedPhases[this.state.generatedPhases.length - 1];
+            if (lastPhase && lastPhase.files) {
+                if (lastPhase.files.length === 0) {
+                    this.logger().warn(`Phase "${lastPhase.name}" generated 0 files. Forcing termination.`);
+                    return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
+                }
+                // Check if any files have actual content changes via lastDiff
+                const hasActualChanges = lastPhase.files.some(file => {
+                    const fileState = this.state.generatedFilesMap[file.path];
+                    return fileState && fileState.lastDiff && fileState.lastDiff.trim().length > 10;
+                });
+                if (!hasActualChanges) {
+                    this.logger().warn(`Phase "${lastPhase.name}" has ${lastPhase.files.length} files but minimal/no actual changes. Forcing termination.`);
+                    return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
+                }
+            }
+
+            // TERMINATION LOGIC:
+            // 1. If counter reaches 0, ALWAYS finalize - prevents infinite loops
+            //    Pending user inputs will be handled in conversation after finalization
+            // 2. If LLM says lastPhase AND no pending inputs, finalize
+            // 3. Otherwise, continue generating
+            if (phasesCounter <= 0) {
+                this.logger().info(`Phase counter reached 0. Finalizing generation. Pending inputs: ${this.state.pendingUserInputs.length}`);
+                return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
+            }
+            if (phaseConcept.lastPhase && this.state.pendingUserInputs.length === 0) {
+                return {currentDevState: CurrentDevState.FINALIZING, staticAnalysis: staticAnalysis};
+            }
             return {currentDevState: CurrentDevState.PHASE_GENERATING, staticAnalysis: staticAnalysis};
         } catch (error) {
             this.logger().error("Error implementing phase", error);
@@ -2131,6 +2200,10 @@ export class SimpleCodeGeneratorAgent extends Agent<Env, CodeGenState> {
                     this.broadcast(WebSocketMessageResponses.DEPLOYMENT_STARTED, data);
                 },
                 onCompleted: (data) => {
+                    // Store previewUrl in state for restoration on reconnect
+                    if (data.previewURL) {
+                        this.setState({ ...this.state, previewUrl: data.previewURL });
+                    }
                     this.broadcast(WebSocketMessageResponses.DEPLOYMENT_COMPLETED, data);
                 },
                 onError: (data) => {

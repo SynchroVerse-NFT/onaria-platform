@@ -248,8 +248,14 @@ export function createWebSocketMessageHandler(deps: HandleMessageDeps) {
                     if (state.generatedFilesMap && Object.keys(state.generatedFilesMap).length > 0) {
                         updateStage('code', { status: 'completed' });
                         if (urlChatId !== 'new') {
-                            logger.debug('🚀 Requesting preview deployment for existing chat with files');
-                            sendWebSocketMessage(websocket, 'preview');
+                            // Restore preview URL from state if available, otherwise request deployment
+                            if (state.previewUrl && !previewUrl) {
+                                logger.debug('📥 Restoring preview URL from state:', state.previewUrl);
+                                setPreviewUrl(state.previewUrl);
+                            } else if (!previewUrl) {
+                                logger.debug('🚀 Requesting preview deployment for existing chat with files');
+                                sendWebSocketMessage(websocket, 'preview');
+                            }
                         }
                     }
 

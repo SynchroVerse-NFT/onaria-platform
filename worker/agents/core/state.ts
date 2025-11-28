@@ -36,8 +36,8 @@ export enum CurrentDevState {
     FINALIZING,
 }
 
-export const MAX_PHASES = 12;
-export const MAX_TOTAL_PHASES = 15; // Hard cap on total phases - lowered from 30 to prevent excessive generation
+export const MAX_PHASES = 4; // Initial counter - lowered from 6 for faster completion of simple apps
+export const MAX_TOTAL_PHASES = 8; // Hard cap - lowered from 10, safety net only
 
 export interface CodeGenState {
     blueprint: Blueprint;
@@ -49,7 +49,8 @@ export interface CodeGenState {
     lastPackageJson?: string; // Last package.json file contents
     templateName: string;
     sandboxInstanceId?: string;
-    
+    previewUrl?: string; // Preview URL for sandbox instance - restored on reconnection
+
     shouldBeGenerating: boolean; // Persistent flag indicating generation should be active
     mvpGenerated: boolean;
     reviewingInitiated: boolean;

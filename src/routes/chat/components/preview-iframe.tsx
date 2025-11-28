@@ -50,6 +50,14 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 		const hasRequestedRedeployRef = useRef(false);
         const postLoadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+		// Store latest src in ref to avoid effect re-triggers when callbacks change
+		const srcRef = useRef(src);
+		srcRef.current = src;
+
+		// Store webSocket in ref to avoid callback identity changes triggering reloads
+		const webSocketRef = useRef(webSocket);
+		webSocketRef.current = webSocket;
 		// ====================================================================
 		// Core Loading Logic
 		// ====================================================================
@@ -92,9 +100,11 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 
 		/**
 		 * Request automatic redeployment via WebSocket
+		 * Uses ref to avoid callback identity changes
 		 */
 		const requestRedeploy = useCallback(() => {
-			if (!webSocket || webSocket.readyState !== WebSocket.OPEN) {
+			const ws = webSocketRef.current;
+			if (!ws || ws.readyState !== WebSocket.OPEN) {
 				console.warn('Cannot request redeploy: WebSocket not connected');
 				return;
 			}
@@ -103,29 +113,31 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 					return;
 			}
 
-				
+
 			try {
-				webSocket.send(JSON.stringify({
+				ws.send(JSON.stringify({
 					type: 'preview',
 				}));
 				hasRequestedRedeployRef.current = true;
 			} catch (error) {
 				console.error('Failed to send redeploy request:', error);
 			}
-		}, [webSocket]);
+		}, []);
 
 		/**
 		 * Request screenshot capture via WebSocket
+		 * Uses ref to avoid callback identity changes
 		 */
 		const requestScreenshot = useCallback((url: string) => {
-			if (!webSocket || webSocket.readyState !== WebSocket.OPEN) {
+			const ws = webSocketRef.current;
+			if (!ws || ws.readyState !== WebSocket.OPEN) {
 				console.warn('Cannot request screenshot: WebSocket not connected');
 				return;
 			}
 
-				
+
 			try {
-				webSocket.send(JSON.stringify({
+				ws.send(JSON.stringify({
 					type: 'capture_screenshot',
 					data: {
 						url,
@@ -135,10 +147,16 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 			} catch (error) {
 				console.error('Failed to send screenshot request:', error);
 			}
-		}, [webSocket]);
+		}, []);
+
+		/**
+		 * Store loadWithRetry in a ref so effects don't re-trigger when callbacks change
+		 */
+		const loadWithRetryRef = useRef<((url: string, attempt: number) => Promise<void>) | undefined>(undefined);
 
 		/**
 		 * Attempt to load the preview with retry logic
+		 * Uses refs for all callbacks to maintain stable identity
 		 */
 		const loadWithRetry = useCallback(async (url: string, attempt: number) => {
 			// Clear any pending retry
@@ -197,26 +215,30 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 				// Not available yet - retry with backoff
 				const delay = getRetryDelay(attempt);
 				const nextAttempt = attempt + 1;
-				
-	
+
+
 				// Auto-redeploy after 3 failed attempts
 				if (nextAttempt === REDEPLOY_AFTER_ATTEMPT) {
 					requestRedeploy();
 				}
 
-				// Schedule next retry
+				// Schedule next retry using ref to avoid stale closure
 				retryTimeoutRef.current = setTimeout(() => {
-					loadWithRetry(url, nextAttempt);
+					loadWithRetryRef.current?.(url, nextAttempt);
 				}, delay);
 			}
 		}, [testAvailability, requestScreenshot, requestRedeploy]);
 
+		// Keep ref updated with latest loadWithRetry
+		loadWithRetryRef.current = loadWithRetry;
+
 		/**
 		 * Force a fresh reload from scratch
+		 * Uses srcRef to avoid dependency on src prop
 		 */
 		const forceReload = useCallback(() => {
 				hasRequestedRedeployRef.current = false;
-			
+
 			if (retryTimeoutRef.current) {
 				clearTimeout(retryTimeoutRef.current);
 				retryTimeoutRef.current = null;
@@ -234,9 +256,12 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 				errorMessage: null,
 			});
 
-			// Start loading
-			loadWithRetry(src, 0);
-		}, [src, loadWithRetry]);
+			// Start loading using ref to get current src
+			const currentSrc = srcRef.current;
+			if (currentSrc) {
+				loadWithRetryRef.current?.(currentSrc, 0);
+			}
+		}, []);
 
 		// ====================================================================
 		// Effects
@@ -244,12 +269,13 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 
 		/**
 		 * Effect: Load when src changes
+		 * Only depends on src - uses ref for loadWithRetry to avoid re-triggers
 		 */
 		useEffect(() => {
 			if (!src) return;
 
 				hasRequestedRedeployRef.current = false;
-			
+
 			if (retryTimeoutRef.current) {
 				clearTimeout(retryTimeoutRef.current);
 				retryTimeoutRef.current = null;
@@ -267,7 +293,8 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 				errorMessage: null,
 			});
 
-			loadWithRetry(src, 0);
+			// Use ref to call loadWithRetry without adding it to dependencies
+			loadWithRetryRef.current?.(src, 0);
 
 			return () => {
 				if (retryTimeoutRef.current) {
@@ -279,10 +306,12 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 					postLoadTimeoutRef.current = null;
 				}
 			};
-		}, [src, loadWithRetry]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		}, [src]);
 
 		/**
 		 * Effect: Auto-refresh after deployment
+		 * forceReload is now stable (no dependencies)
 		 */
 		useEffect(() => {
 			if (shouldRefreshPreview && loadState.status === 'loaded' && loadState.loadedSrc) {
@@ -292,6 +321,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 
 		/**
 		 * Effect: Manual refresh trigger
+		 * forceReload is now stable (no dependencies)
 		 */
 		useEffect(() => {
 			if (manualRefreshTrigger && manualRefreshTrigger > 0) {
